@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Medelit.Infra.CrossCutting.IoC</AssemblyName>
+    <PackageId>Medelit.Infra.CrossCutting.IoC</PackageId>
+    <AssetTargetFallback>$(AssetTargetFallback);portable-net45+win8+wp8+wpa81;</AssetTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Medelit.Application\Medelit.Application.csproj" />
+    <ProjectReference Include="..\Medelit.Domain\Medelit.Domain.csproj" />
+    <ProjectReference Include="..\Medelit.Infra.CrossCutting.Bus\Medelit.Infra.CrossCutting.Bus.csproj" />
+    <ProjectReference Include="..\Medelit.Infra.Data\Medelit.Infra.Data.csproj" />
+  </ItemGroup>
+
+</Project>
