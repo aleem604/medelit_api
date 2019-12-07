@@ -17,186 +17,171 @@ namespace Medelit.Application
     public class StaticDataService : IStaticDataService
     {
         private readonly IAccountingCodeRepository _acodeRepository;
-        private readonly IBookingStatusRepository _bsRepository;
-        private readonly IBookingTypeRepository _btypeRepository;
-        private readonly IBuildingTypeRepository _buildingTypeRepository;
-        private readonly IContactMethodRepository _contactMethodRepository;
-        private readonly ICityRepository _cityRepositry;
-        private readonly ICountryRepository _countryRepository;
-        private readonly IDiscountNetworkRepository _discountNetworkRepository;
-        private readonly IDurationRepository _durationRepository;
-        private readonly IIERatingRepository _iERatingRepository;
-        private readonly IIETypeRepository _iETypeRepository;
-        private readonly IInvoiceStatusRepository _invoiceStatusRepository;
-        private readonly ILanguageRepository _languageRepository;
-        private readonly ILeadCategoryRepository _leadCategoryRepository;
-        private readonly ILeadSourceRepository _leadSourceRepository;
-        private readonly ILeadStatusRepository _leadStatusRepository;
-        private readonly ITitleRepository _titleRepository;
-        private readonly IPaymentMethodsRepository _paymentMethodsRepository;
-        private readonly IPaymentStatusRepository _paymentStatusRepository;
-        private readonly IRelationshipRepository _relationashipRepository;
-        private readonly IVatRepository _vatRepository;
-        private readonly IVisitVenueRepository _visitVenueRepository;
 
-        public StaticDataService(
-            IAccountingCodeRepository acodeRepository,
-            IBookingStatusRepository   bsRepository,
-            IBookingTypeRepository  btypeRepository,
-            IBuildingTypeRepository buildingTypeRepository,
-            IContactMethodRepository contactMethodRepository,
-            ICityRepository cityRepository,
-            ICountryRepository  countryRepository,
-            IDiscountNetworkRepository discountNetworkRepository,
-            IDurationRepository durationRepository,
-            IIERatingRepository iERatingRepository,
-            IIETypeRepository iETypeRepository,
-            IInvoiceStatusRepository invoiceStatusRepository,
-            ILanguageRepository languageRepository,
-            ILeadCategoryRepository leadCategoryRepository,
-            ILeadSourceRepository leadSourceRepository,
-            ILeadStatusRepository leadStatusRepository,
-            ITitleRepository titleRepository,
-            IPaymentMethodsRepository paymentMethodsRepository,
-            IPaymentStatusRepository paymentStatusRepository,
-            IRelationshipRepository relationashipRepository,
-            IVatRepository vatRepository,
-            IVisitVenueRepository visitVenueRepository
-                       
+        public StaticDataService(          
+            IAccountingCodeRepository acodeRepository        
             )
-        {
-            _acodeRepository = acodeRepository;
-            _bsRepository = bsRepository;
-            _btypeRepository = btypeRepository;
-            _buildingTypeRepository = buildingTypeRepository;
-            _contactMethodRepository = contactMethodRepository;
-            _cityRepositry = cityRepository;
-            _countryRepository = countryRepository;
-            _discountNetworkRepository = discountNetworkRepository;
-            _durationRepository = durationRepository;
-            _iERatingRepository = iERatingRepository;
-            _iETypeRepository = iETypeRepository;
-            _invoiceStatusRepository = invoiceStatusRepository;
-            _languageRepository = languageRepository;
-            _leadCategoryRepository = leadCategoryRepository;
-            _leadSourceRepository = leadSourceRepository;
-            _leadStatusRepository = leadStatusRepository;
-            _titleRepository = titleRepository;
-            _paymentMethodsRepository = paymentMethodsRepository;
-            _paymentStatusRepository = paymentStatusRepository;
-            _relationashipRepository = relationashipRepository;
-            _vatRepository = vatRepository;
-            _visitVenueRepository = visitVenueRepository;
+        {            
+            _acodeRepository = acodeRepository;          
         }
+
+        public dynamic GetProfessionalsForFitler()
+        {
+            return _acodeRepository.GetProfessionalsForFitler();
+        }
+
+        public dynamic GePTFeesForFilter()
+        {
+            return _acodeRepository.GetPTFeesForFilter();
+        }
+
+        public dynamic GetPROFeesForFilter()
+        {
+            return _acodeRepository.GePROFeesForFilter();
+        }
+
+        public IEnumerable<FilterModel> GetFieldsForFilter()
+        {
+            return _acodeRepository.GetFieldsForFilter().ToList();
+        }
+        public IEnumerable<FilterModel> GetSubCategoriesForFilter()
+        {
+            return _acodeRepository.GetSubCategoriesForFilter().ToList();
+        }
+
+        public IEnumerable<ContractStatus> GetContractStatusOptions()
+        {
+            return _acodeRepository.GetContractStatus().ToList();
+        }
+        public IEnumerable<ApplicationMethod> GetApplicationMethods()
+        {
+            return _acodeRepository.GetApplicationMethods().ToList();
+        }
+
+        public IEnumerable<ApplicationMean> GetApplicationMeans()
+        {
+            return _acodeRepository.GetApplicationMeans().ToList();
+        }
+
+        public IEnumerable<DocumentListSent> GetDocumentListSents()
+        {
+            return _acodeRepository.GetDocumentListSents().ToList();
+        }
+
 
         public IEnumerable<AccountingCode> GetAccountingCodes()
         {
             return _acodeRepository.GetAll().ToList();
         }
 
+        public IEnumerable<CollaborationCode> GetCollaborationCodes()
+        {
+            return _acodeRepository.GetCollaborationCodes().ToList();
+        }
+
         public IEnumerable<BookingStatus> GetBookingStatus()
         {
-            return _bsRepository.GetAll().ToList();
+            return _acodeRepository.GetBookingStatus().ToList();
         }
 
         public IEnumerable<BookingType> GetBookingTypes()
         {
-            return _btypeRepository.GetAll().ToList();
+            return _acodeRepository.GetBookingTypes().ToList();
         }
 
         public IEnumerable<BuildingType> GetBuildingTypes()
         {
-            return _buildingTypeRepository.GetAll().ToList();
+            return _acodeRepository.GetBuildingTypes().ToList();
         }
 
         public IEnumerable<City> GetCities()
         {
-            return _cityRepositry.GetAll().ToList();
+            return _acodeRepository.GetCities().ToList();
         }
 
         public IEnumerable<ContactMethod> GetContactMethods()
         {
-            return _contactMethodRepository.GetAll().ToList();
+            return _acodeRepository.GetContactMethods().ToList();
         }
 
         public IEnumerable<Country> GetCountries()
         {
-            return _countryRepository.GetAll().ToList();
+            return _acodeRepository.GetCountries().ToList();
         }
 
         public IEnumerable<DiscountNetwork> GetDiscountNewtorks()
         {
-            return _discountNetworkRepository.GetAll().ToList();
+            return _acodeRepository.GetDiscountNewtorks().ToList();
         }
 
-        public IEnumerable<Duration> GetDurations()
+        public IEnumerable<FilterModel> GetDurations()
         {
-            return _durationRepository.GetAll().ToList();
+            return _acodeRepository.GetDurations().Select(x => new FilterModel { Id = x.Id, Value = $"{x.Value} {x.Unit}" }).ToList();
         }
 
         public IEnumerable<IERating> GetIERatings()
         {
-            return _iERatingRepository.GetAll().ToList();
+            return _acodeRepository.GetIERatings().ToList();
         }
 
         public IEnumerable<IEType> GetIETypes()
         {
-            return _iETypeRepository.GetAll().ToList();
+            return _acodeRepository.GetIETypes().ToList();
         }
 
         public IEnumerable<InvoiceStatus> GetInvoiceStatuses()
         {
-            return _invoiceStatusRepository.GetAll().ToList();
+            return _acodeRepository.GetInvoiceStatuses().ToList();
         }
 
         public dynamic GetLanguages()
         {
-            return _languageRepository.GetAll().Select(x=> new { Id= x.Id, Value = x.Name }).ToList();
+            return _acodeRepository.GetLanguages().ToList();
         }
 
         public IEnumerable<LeadCategory> GetLeadCategories()
         {
-            return _leadCategoryRepository.GetAll().ToList();
+            return _acodeRepository.GetLeadCategories().ToList();
         }
 
         public IEnumerable<LeadSource> GetLeadSources()
         {
-            return _leadSourceRepository.GetAll().ToList();
+            return _acodeRepository.GetLeadSources().ToList();
         }
 
         public IEnumerable<LeadStatus> GetLeadStatuses()
         {
-            return _leadStatusRepository.GetAll().ToList();
+            return _acodeRepository.GetLeadStatuses().ToList();
         }
 
         public IEnumerable<PaymentMethods> GetPaymentMethods()
         {
-            return _paymentMethodsRepository.GetAll().ToList();
+            return _acodeRepository.GetPaymentMethods().ToList();
         }
 
         public IEnumerable<PaymentStatus> GetPaymentStatuses()
         {
-            return _paymentStatusRepository.GetAll().ToList();
+            return _acodeRepository.GetPaymentStatuses().ToList();
         }
 
         public IEnumerable<Relationship> GetRelationships()
         {
-            return _relationashipRepository.GetAll().ToList();
+            return _acodeRepository.GetRelationships().ToList();
         }
 
         public IEnumerable<Title> GetTitles()
         {
-            return _titleRepository.GetAll().ToList();
+            return _acodeRepository.GetTitles().ToList();
         }
 
-        public IEnumerable<Vat> GetVats()
+        public IEnumerable<FilterModel> GetVats()
         {
-            return _vatRepository.GetAll().ToList();
+            return _acodeRepository.GetVats().Select(x => new FilterModel { Id = x.Id, Value = $"{Convert.ToInt64(x.Value)}{x.Unit}" });
         }
 
         public IEnumerable<VisitVenue> GetVisitVenues()
         {
-            return _visitVenueRepository.GetAll().ToList();
+            return _acodeRepository.GetVisitVenues().ToList();
         }
 
         public void Dispose()

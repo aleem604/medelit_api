@@ -13,6 +13,9 @@ namespace Equinox.Infra.Data.Repository
             : base(context)
         {
 
+
+
+
         }
     }
 }

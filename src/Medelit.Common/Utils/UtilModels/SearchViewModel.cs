@@ -16,7 +16,7 @@ namespace Medelit.Common
     public class SearchFilterViewModel
     {
         public eRecordStatus Status { get; set; } = eRecordStatus.All;
-        public long CountryId { get; set; }
+        public eFeeType FeeType { get; set; } = eFeeType.All;
         public long RegionId { get; set; }
         public long CityId { get; set; }
         public long NeighbourhoodId { get; set; }

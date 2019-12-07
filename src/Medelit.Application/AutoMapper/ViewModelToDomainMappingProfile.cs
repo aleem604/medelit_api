@@ -46,11 +46,22 @@ namespace Medelit.Application.AutoMapper
             CreateMap<PermissionRequestViewModel, GetPermissionsCommand>((MemberList.Source));
             CreateMap<PermissionRequestViewModel, GetPermissionsByRoleCommand>((MemberList.Source));
 
-           
+
             //CreateMap<Source, Destination>()
             //    .ForMember(d => d.Text, o => o.MapFrom(s => s.Name))
             //    .ForMember(d => d.Value, o => o.MapFrom(s => s.Id))
             //    .ForAllOtherMembers(opts => opts.Ignore());
+
+            CreateMap<FeeViewModel, Fee>((MemberList.Source));
+            CreateMap<ProfessionalRequestViewModel, Professional>((MemberList.Destination));
+            CreateMap<FilterModel, ProfessionalLanguageRelation>()
+               .ForMember(dest => dest.LanguageId,
+                   opts => opts.MapFrom(
+                       src => src.Id
+                   )).ReverseMap();
+            // Services
+            CreateMap<ServiceViewModel, Service>((MemberList.Source));
+
 
         }
     }

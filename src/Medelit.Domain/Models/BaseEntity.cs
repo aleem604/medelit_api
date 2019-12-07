@@ -18,7 +18,7 @@ namespace Medelit.Domain.Models
         public long? UpdatedById { get; set; }
         [Column("deleted_at")]
         public DateTime? DeletedAt { get; set; }
-        [Column("updated_by_id")]
+        [Column("deleted_by_id")]
         public long? DeletedById { get; set; }
 
     }

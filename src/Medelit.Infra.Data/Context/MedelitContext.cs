@@ -20,12 +20,19 @@ namespace Medelit.Infra.Data.Context
         public DbSet<Customer> Customer { get; set; }
         public DbSet<FieldSubCategory> FieldSubCategory { get; set; }
         public DbSet<Service> Service { get; set; }
+        public DbSet<ServiceProfessionalRelation> ServiceProfessionalRelation { get; set; }
         public DbSet<Professional> Professional { get; set; }
+        public DbSet<ProfessionalLanguageRelation> ProfessionalLanguageRelation { get; set; }
         public DbSet<Fee> Fee { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
         public DbSet<InvoiceEntity> InvoiceEntity { get; set; }
 
         #region static data models
+        public DbSet<ContractStatus> ContactStatus { get; set; }
+        public DbSet<DocumentListSent> DocumentListSent { get; set; }
+        public DbSet<ApplicationMethod> ApplicationMethod { get; set; }
+        public DbSet<ApplicationMean> ApplicationMean { get; set; }
+        public DbSet<CollaborationCode> CollaborationCode { get; set; }
         public DbSet<AccountingCode> AccountingCode { get; set; }
         public DbSet<BookingStatus> GetBookingStatus { get; set; }
         public DbSet<BookingType> BookingType { get; set; }
@@ -48,6 +55,7 @@ namespace Medelit.Infra.Data.Context
         public DbSet<Relationship> Relationships { get; set; }
         public DbSet<Vat> Vats { get; set; }
         public DbSet<VisitVenue> VisitVenues { get; set; }
+        public DbSet<BookingStatus> BookingStatus { get; set; }
 
         #endregion static data models
 

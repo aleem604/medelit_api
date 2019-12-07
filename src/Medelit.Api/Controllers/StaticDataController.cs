@@ -29,6 +29,82 @@ namespace Medelit.Api.Controllers
             _logger = logger;
         }
 
+        [HttpGet("static/professionals")]
+        public IActionResult GetProfessionalsForFitler()
+        {
+            return Response(_dataService.GetProfessionalsForFitler());
+        }
+
+        [HttpGet("static/ptfees")]
+        public IActionResult GePTFeesForFilter()
+        {
+            return Response(_dataService.GePTFeesForFilter());
+        }
+
+        [HttpGet("static/profees")]
+        public IActionResult GeROFeesForFilter()
+        {
+            return Response(_dataService.GetPROFeesForFilter());
+        }
+
+        [HttpGet("static/durations")]
+        public IActionResult GeDurationsForFilter()
+        {
+            return Response(_dataService.GetDurations());
+        }
+
+        [HttpGet("static/vats")]
+        public IActionResult GeVatsForFilter()
+        {
+            return Response(_dataService.GetVats());
+        }
+
+        [HttpGet("static/fields")]
+        public IActionResult GetFieldsForFilter()
+        {
+
+            return Response(_dataService.GetFieldsForFilter());
+        }
+
+        [HttpGet("static/categories")]
+        public IActionResult GetSubCategoriesForFilter()
+        {
+
+            return Response(_dataService.GetSubCategoriesForFilter());
+        }
+
+        [HttpGet("static/application-methods")]
+        public IActionResult GetApplicationMethods()
+        {
+
+            return Response(_dataService.GetApplicationMethods());
+        }
+        [HttpGet("static/application-means")]
+        public IActionResult GetApplicationMeans()
+        {
+
+            return Response(_dataService.GetApplicationMeans());
+        }
+        [HttpGet("static/document-list-sent")]
+        public IActionResult GetDocumentListSent()
+        {
+            return Response(_dataService.GetDocumentListSents());
+        }
+
+        [HttpGet("static/contract-status")]
+        public IActionResult GetContractStatusOptions()
+        {
+            return Response(_dataService.GetContractStatusOptions());
+        }
+
+
+        [HttpGet("static/collaboration-codes")]
+        public IActionResult GetCollaborationCodes()
+        {
+
+            return Response(_dataService.GetCollaborationCodes());
+        }
+
         [HttpGet("static/accounting-codes")]
         public IActionResult GetAccountingCodes()
         {
@@ -57,6 +133,13 @@ namespace Medelit.Api.Controllers
         {
             return Response(_dataService.GetLanguages());
         }
+
+        [HttpGet("static/cities")]
+        public IActionResult GetCities()
+        {
+            return Response(_dataService.GetCities());
+        }
+
         [HttpGet("static/countries")]
         public IActionResult GetCountries()
         {
@@ -68,6 +151,7 @@ namespace Medelit.Api.Controllers
         {
             return Response(_dataService.GetRelationships());
         }
+
 
     }
 }

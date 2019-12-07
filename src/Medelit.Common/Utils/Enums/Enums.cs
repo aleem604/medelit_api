@@ -15,6 +15,15 @@ namespace Medelit.Common
         TasteOfDishes = 105
     }
 
+    public enum eFeeType : short
+    {
+        All = -1,
+        [Description("PT Fee")]
+        PTFee = 0,
+        [Description("PRO Fee")]
+        PROFee = 1
+    }
+
     public enum eEntityServiceType : short
     {
         ViewAll = -1,
@@ -27,7 +36,7 @@ namespace Medelit.Common
     }
 
     public enum eRating : short
-    {        
+    {
         Terrible = 1,
         Poor = 2,
         Average = 3,
@@ -49,7 +58,8 @@ namespace Medelit.Common
         All = -1,
         Pending = 0,
         Active = 1,
-        Suspended = 2
+        Suspended = 2,
+        Deleted = 3
     }
     public enum eLocationType : int
     {

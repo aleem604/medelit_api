@@ -59,6 +59,12 @@
     <Compile Update="Models\Lead.cs">
       <Generator></Generator>
     </Compile>
+    <Compile Update="Models\Professional\Professional.cs">
+      <Generator></Generator>
+    </Compile>
+    <Compile Update="Models\Service\Service.cs">
+      <Generator></Generator>
+    </Compile>
   </ItemGroup>
 
 </Project>

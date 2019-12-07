@@ -59,6 +59,7 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
             services.AddScoped<IInvoiceEntityRepository, InvoiceEntityRepository>();
 
+            services.AddScoped<ICollaborationCodeRepository, CollaborationCodeRepository>();
             services.AddScoped<IAccountingCodeRepository, AccountingCodeRepository>();
             services.AddScoped<IBookingStatusRepository, BookingStatusRepository>();
             services.AddScoped<IBookingTypeRepository, BookingTypeRepository>();
@@ -81,6 +82,9 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<ITitleRepository, TitleRepository>();
             services.AddScoped<IVatRepository, VatRepository>();
             services.AddScoped<IVisitVenueRepository, VisitVenueRepository>();
+            services.AddScoped<IApplicationMethodRepository, ApplicationMethodRepository>();
+            services.AddScoped<IApplicationMeanRepository, ApplicationMeanRepository>();
+            services.AddScoped<IDocumentListSentRepository, DocumentListSentRepository>();
 
         }
 
@@ -120,6 +124,22 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<IRequestHandler<GetUserCommand, bool>, AuthCommandHandler>();
             services.AddScoped<IRequestHandler<UserAssignRolesCommand, bool>, AuthCommandHandler>();
             services.AddScoped<IRequestHandler<AccessTokenFromRefreshTokenCommand, bool>, AuthCommandHandler>();
+
+            //fee commmands
+            services.AddScoped<IRequestHandler<SaveFeeCommand, bool>, FeeCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateFeesStatusCommand, bool>, FeeCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteFeesCommand, bool>, FeeCommandHandler>();
+
+            //professional commmands
+            services.AddScoped<IRequestHandler<SaveProfessionalCommand, bool>, ProfessionalCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateProfessionalsStatusCommand, bool>, ProfessionalCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteProfessionalsCommand, bool>, ProfessionalCommandHandler>();
+
+            //service commmands
+            services.AddScoped<IRequestHandler<SaveServiceCommand, bool>, ServiceCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateServicesStatusCommand, bool>, ServiceCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteServicesCommand, bool>, ServiceCommandHandler>();
+
 
         }
 

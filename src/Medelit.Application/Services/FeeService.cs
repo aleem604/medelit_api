@@ -44,6 +44,8 @@ namespace Medelit.Application
             _langRepository = langRepository;
         }
        
+       
+
         public dynamic GetFees()
         {
             return _feeRepository.GetAll().Select(x=> new {x.Id, x.FeeCode }).ToList();
@@ -55,9 +57,27 @@ namespace Medelit.Application
             var langs = _langRepository.GetAll().ToList();
             var titles = _titleRepository.GetAll().ToList();
 
-            var query = _feeRepository.GetAll();
-
-
+            var query = _feeRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new {
+                x.Id,
+                x.FeeTypeId,
+                FeeType = x.FeeTypeId.GetDescription(),
+                x.FeeCode,
+                x.FeeName,
+                Fields = new List<string>(),
+                SubCategories = new List<string>(),
+                x.A1,
+                x.A2,
+                x.Status,
+                x.Tags,
+                x.ConnectedServices,
+                x.CreateDate,
+                x.CreatedById,
+                x.UpdateDate,
+                x.UpdatedById,
+                x.DeletedAt,
+                x.DeletedById
+            });
+           
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
             {
                 viewModel.Filter.Search = viewModel.Filter.Search.Trim();
@@ -76,6 +96,10 @@ namespace Medelit.Application
             if (viewModel.Filter.Status != eRecordStatus.All)
             {
                 query = query.Where(x => x.Status == viewModel.Filter.Status);
+            }
+            if (viewModel.Filter.FeeType != eFeeType.All)
+            {
+                query = query.Where(x => x.FeeTypeId == viewModel.Filter.FeeType);
             }
 
             switch (viewModel.SortField)
@@ -134,9 +158,9 @@ namespace Medelit.Application
 
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Id);
+                        query = query.OrderBy(x => x.FeeCode);
                     else
-                        query = query.OrderByDescending(x => x.Id);
+                        query = query.OrderByDescending(x => x.FeeCode);
 
                     break;
             }
@@ -150,11 +174,27 @@ namespace Medelit.Application
             };
         }
 
+        public void SaveFee(FeeViewModel viewModel)
+        {
+            var feeModel = _mapper.Map<Fee>(viewModel);
+            _bus.SendCommand(new SaveFeeCommand { Fee = feeModel });
+        }
+
+        public void UpdateStatus(IList<FeeViewModel> fees, eRecordStatus status)
+        {
+            _bus.SendCommand(new UpdateFeesStatusCommand { Fees = _mapper.Map<IEnumerable<Fee>>(fees), Status = status });
+        }
+
+        public void DeleteFees(IList<long> feeIds)
+        {
+            _bus.SendCommand(new DeleteFeesCommand { FeeIds = feeIds });
+        }
 
         public void Dispose()
         {
             GC.SuppressFinalize(this);
         }
 
+        
     }
 }

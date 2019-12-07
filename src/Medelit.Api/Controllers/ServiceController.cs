@@ -6,6 +6,7 @@ using Medelit.Application;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
+using System.Collections.Generic;
 
 namespace Medelit.Api.Controllers
 {
@@ -39,6 +40,46 @@ namespace Medelit.Api.Controllers
 
             return Response(_serviceService.FindServices(model));
         }
+
+        [HttpGet("services/{serviceId}")]
+        public IActionResult GetServiceById(long serviceId)
+        {
+
+            return Response(_serviceService.GetServiceById(serviceId));
+        }
+
+
+
+        [HttpPost("services")]
+        [HttpPut("services")]
+        public IActionResult SaveService([FromBody] ServiceViewModel viewModel)
+        {
+            _serviceService.SaveService(viewModel);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpDelete("services/{serviceId}")]
+        public IActionResult DeleteService(long serviceId)
+        {
+            _serviceService.DeleteServices(new List<long> { serviceId });
+            return Response();
+        }
+
+        [HttpPut("services/update-status/{status}")]
+        public IActionResult UpdateStatus([FromBody] IEnumerable<ServiceViewModel> services, eRecordStatus status)
+        {
+            _serviceService.UpdateStatus(services, status);
+            return Response();
+        }
+        //api/v1/
+        [HttpPut("services/delete")]
+        public IActionResult DeleteAttractions([FromBody] IEnumerable<long> serviceIds)
+        {
+            _serviceService.DeleteServices(serviceIds);
+            return Response();
+        }
+
 
     }
 }

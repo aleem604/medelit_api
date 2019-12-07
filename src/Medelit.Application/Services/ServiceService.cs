@@ -49,14 +49,21 @@ namespace Medelit.Application
             return _serviceRepository.GetAll().ToList();
         }
 
+        public ServiceViewModel GetServiceById(long serviceId)
+        {
+            //return _mapper.Map<ServiceViewModel>(_serviceRepository.GetByIdWithIncludes(serviceId));
+
+            var service = _serviceRepository.GetByIdWithIncludes(serviceId);
+            var viewModel = _mapper.Map<ServiceViewModel>(service);
+            viewModel.Professionals = service.ServiceProfessionalRelation.Select((s) => new FilterModel { Id = s.ProfessionalId }).ToList();
+            return viewModel;
+
+        }
+
         public dynamic FindServices(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-            var langs = _langRepository.GetAll().ToList();
-            var titles = _titleRepository.GetAll().ToList();
-
-            var query = _serviceRepository.GetAll();
-
+            var query = _serviceRepository.GetAll().Where(x=>x.Status != eRecordStatus.Deleted);
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
             {
@@ -65,7 +72,6 @@ namespace Medelit.Application
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Name.Equals(viewModel.Filter.Search))
-                //|| (!string.IsNullOrEmpty(x.currency) && x.currency.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
@@ -129,6 +135,25 @@ namespace Medelit.Application
                 totalCount
             };
         }
+
+
+        public void SaveService(ServiceViewModel viewModel)
+        {
+            var serviceModel = _mapper.Map<Service>(viewModel);
+            serviceModel.ServiceProfessionalRelation = viewModel.Professionals.Select((s) => new ServiceProfessionalRelation { ProfessionalId = s.Id }).ToList();
+            _bus.SendCommand(new SaveServiceCommand { Service = serviceModel });
+        }
+
+        public void UpdateStatus(IEnumerable<ServiceViewModel> services, eRecordStatus status)
+        {
+            _bus.SendCommand(new UpdateServicesStatusCommand { Services = _mapper.Map<IEnumerable<Service>>(services), Status = status });
+        }
+
+        public void DeleteServices(IEnumerable<long> serviceIds)
+        {
+            _bus.SendCommand(new DeleteServicesCommand { ServiceIds = serviceIds });
+        }
+
 
 
         public void Dispose()

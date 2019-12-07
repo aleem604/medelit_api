@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
@@ -14,5 +15,23 @@ namespace Equinox.Infra.Data.Repository
         {
 
         }
+
+        public IQueryable<ProfessionalLanguageRelation> GetAllLangs()
+        {
+            return Db.ProfessionalLanguageRelation;
+        }
+
+        public IQueryable<Professional> GetByIdWithLangs(long professionalId)
+        {
+            return Db.Professional.Include(x => x.ProfessionalLangs).Where(x=>x.Id == professionalId).AsNoTracking();
+        }
+
+        public void DeleteLangs(long id)
+        {
+            var langs = Db.ProfessionalLanguageRelation.Where(x => x.ProfessionalId == id).ToList();
+            Db.ProfessionalLanguageRelation.RemoveRange(langs);
+            Db.SaveChanges();
+        }
+
     }
 }

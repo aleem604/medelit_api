@@ -63,8 +63,6 @@ namespace Medelit.Application
                 query = query.Where(x =>
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.SurName.Equals(viewModel.Filter.Search))
-                //|| (!string.IsNullOrEmpty(x.currency) && x.currency.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
@@ -85,14 +83,7 @@ namespace Medelit.Application
                     else
                         query = query.OrderByDescending(x => x.Name);
                     break;
-
-                case "surname":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.SurName);
-                    else
-                        query = query.OrderByDescending(x => x.SurName);
-                    break;
-
+               
                 case "email":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Email);
@@ -137,6 +128,42 @@ namespace Medelit.Application
                 totalCount
             };
         }
+
+        public dynamic GetProfessionalById(long professionalId)
+        {
+            var professional = _professionalRepository.GetByIdWithLangs(professionalId).FirstOrDefault();
+            var viewModel = _mapper.Map<ProfessionalRequestViewModel>(professional);
+            viewModel.Languages = professional.ProfessionalLangs.Select((s) => new FilterModel { Id = s.LanguageId }).ToList();
+            return viewModel;
+
+        }
+
+        public void SaveProvessional(ProfessionalRequestViewModel model)
+        {
+            var professionalModel = _mapper.Map<Professional>(model);
+            var proLangModel = new List<ProfessionalLanguageRelation>();
+            foreach (var lang in model.Languages)
+            {
+                proLangModel.Add(new ProfessionalLanguageRelation {
+                    LanguageId = lang.Id
+                });
+            }
+
+            professionalModel.ProfessionalLangs = proLangModel;
+            _bus.SendCommand(new SaveProfessionalCommand {Model = professionalModel });
+
+        }
+        public void UpdateStatus(IEnumerable<ProfessionalRequestViewModel> pros, eRecordStatus status)
+        {
+            _bus.SendCommand(new UpdateProfessionalsStatusCommand { Professionals = _mapper.Map<IEnumerable<Professional>>(pros), Status = status });
+        }
+
+        public void DeleteFees(IEnumerable<long> feeIds)
+        {
+            _bus.SendCommand(new DeleteProfessionalsCommand { Ids = feeIds });
+        }
+
+
 
 
         public void Dispose()

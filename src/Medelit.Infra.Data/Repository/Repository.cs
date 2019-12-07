@@ -22,7 +22,7 @@ namespace Medelit.Infra.Data.Repository
             DbSet.Add(obj);
         }
 
-        public virtual TEntity GetById(Guid id)
+        public virtual TEntity GetById(long id)
         {
             return DbSet.Find(id);
         }
@@ -37,7 +37,7 @@ namespace Medelit.Infra.Data.Repository
             DbSet.Update(obj);
         }
 
-        public virtual void Remove(Guid id)
+        public virtual void Remove(long id)
         {
             DbSet.Remove(DbSet.Find(id));
         }

@@ -11,12 +11,14 @@ namespace Medelit.Domain.Models
         [Column("title_id")]
         public int? TitleId { get; set; }
         public string Name { get; set; }
-        [Column("invoice_entity_id")]
-        public int? InvoiceEntityId { get; set; }
+        [Column("requested_service_id")]
+        public long RequestedServiceId { get; set; }
         [Column("main_phone")]
         public string MainPhone { get; set; }
         [Column("main_phone_owner")]
         public string MainPhoneOwner { get; set; }
+        [Column("invoice_entity_id")]
+        public long? InvoiceEntityId { get; set; }
         public string Phone2 { get; set; }
         [Column("phone2_owner")]
         public string Phone2Owner { get; set; }
@@ -30,6 +32,8 @@ namespace Medelit.Domain.Models
         [Column("visit_requestig_person_relation_id")]
         public int? VisitRequestingPersonRelationId { get; set; }
         public string Fax { get; set; }
+        [Column("professional_id")]
+        public long ProfessionalId { get; set; }
         public string Email { get; set; }
         [Column("lead_source_id")]
         public int? LeadSourceId { get; set; }
@@ -40,7 +44,7 @@ namespace Medelit.Domain.Models
         [Column("lead_category_id")]
         public int? LeadCategoryId { get; set; }
         [Column("contact_method_id")]
-        public int? ContactMethod { get; set; }
+        public int? ContactMethodId { get; set; }
         [Column("date_of_birth")]
         public DateTime? DateOfBirth { get; set; }
         [Column("country_of_birth_id")]
@@ -49,8 +53,8 @@ namespace Medelit.Domain.Models
         public int? PreferredPaymentMethodId { get; set; }
         [Column("invoicing_notes")]
         public string InvoicingNotes { get; set; }
-        [Column("insurance_cover")]
-        public bool? InsuranceCover { get; set; }
+        [Column("insurance_cover_id")]
+        public short? InsuranceCover { get; set; }
         [Column("listed_discount_network_id")]
         public int? ListedDiscountNetworkId { get; set; }
         public decimal? Discount { get; set; }
@@ -67,7 +71,7 @@ namespace Medelit.Domain.Models
         [Column("building_type_id")]
         public int? BuildingTypeId { get; set; }
         [Column("flat_no")]
-        public int? FlatNumber { get; set; }
+        public short? FlatNumber { get; set; }
         public string Buzzer { get; set; }
         public int? Floor { get; set; }
         [Column("visit_venue_id")]
@@ -76,6 +80,7 @@ namespace Medelit.Domain.Models
         public string AddressNotes { get; set; }
         [Column("visit_venue_detail")]
         public string VisitVenueDetail { get; set; }
+        public string Description { get; set; }
         [Column("from_customer_id")]
         public long? FromCustomerId { get; set; }
         [Column("converted_at")]

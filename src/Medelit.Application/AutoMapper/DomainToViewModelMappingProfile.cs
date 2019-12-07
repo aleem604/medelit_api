@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Medelit.Common;
 using Medelit.Domain.Models;
 
 namespace Medelit.Application.AutoMapper
@@ -8,26 +9,15 @@ namespace Medelit.Application.AutoMapper
         public DomainToViewModelMappingProfile()
         {
             CreateMap<Lead, LeadViewModel>();
-            //CreateMap<LocationCategoryRelation, LocationCategoryRelationViewModel>();
-            //CreateMap<LocationEntityRelation, LocationEntityRelationViewModel>();
-            //CreateMap<EntityAttributeRelation, EntityAttributeRelationViewModel>();
-
-            // entity 
-            //CreateMap<Entity, OldEntityViewModel>();
-
-            // entity contact
-            //CreateMap<EntityContact, BusinessContactViewModel>();
-
-            //// Business Offers
-            //CreateMap<BusinessOffer, BusinessOffersViewModel>();
+            CreateMap<Professional, ProfessionalRequestViewModel>();
+            CreateMap<ProfessionalLanguageRelation, FilterModel>()
+                .ForMember(dest => dest.Id,
+                    opts => opts.MapFrom(
+                        src => src.LanguageId
+                    )).ReverseMap();
+            CreateMap<Service, ServiceViewModel>();
 
 
-            //// profile models
-            //CreateMap<ProfileAttribute, ProfileAttributeViewModel>();
-            //CreateMap<ProfileReview, ProfileReviewViewModel>();
-            //CreateMap<ProfileSection, ProfileSectionViewModel>();
-
-            //CreateMap<LocationGallary, LocationGallaryVM>();
         }
     }
 }

@@ -28,6 +28,7 @@ namespace Medelit.Domain.CommandHandlers
         IRequestHandler<UserAssignRolesCommand, bool>,
         IRequestHandler<AccessTokenFromRefreshTokenCommand, bool>
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IMediatorHandler _bus;
         private readonly IConfiguration _config;
@@ -35,7 +36,9 @@ namespace Medelit.Domain.CommandHandlers
         private readonly ITinRoleRepo _tinRoleRepo;
         private readonly ITinUserRoleRepo _tinUserRoleRepo;
         private readonly ITinPermissionRepo _tinPermissionRepo;
-        public AuthCommandHandler(IMapper mapper,
+        public AuthCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
             IConfiguration config,
             IMediatorHandler bus,
             ITinUserRepo tinUserRepo,
@@ -44,7 +47,7 @@ namespace Medelit.Domain.CommandHandlers
             ITinUserRoleRepo tinUserRoleRepo,
             IHttpContextAccessor httpContext,
             INotificationHandler<DomainNotification> notifications)
-            : base(bus, notifications, httpContext)
+            : base(bus, notifications, httpContext, unitOfWork)
         {
             _mapper = mapper;
             _config = config;

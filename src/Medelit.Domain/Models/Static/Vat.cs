@@ -3,7 +3,11 @@
 namespace Medelit.Domain.Models
 {
     [Table("vat")]
-    public class Vat : StaticBaseEntity
+    public class Vat
     {
+        public long Id { get; set; }
+        public decimal Value { get; set; }
+        public string Unit { get; set; }
+
     }
 }
