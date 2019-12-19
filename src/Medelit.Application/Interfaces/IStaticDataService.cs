@@ -8,39 +8,48 @@ namespace Medelit.Application
 {
     public interface IStaticDataService : IDisposable
     {
-        dynamic GetProfessionalsForFitler();
+        IEnumerable<FilterModel> GetCustomersForImportFilter();
+        IEnumerable<FilterModel> GetInvoiceEntities();
+        dynamic GetServicesForFitler();
+        dynamic GetProfessionalsForFitler(long? serviceId);
         dynamic GePTFeesForFilter();
         dynamic GetPROFeesForFilter();
         IEnumerable<FilterModel> GetFieldsForFilter();
         IEnumerable<FilterModel> GetSubCategoriesForFilter();
-        IEnumerable<ContractStatus> GetContractStatusOptions();
-        IEnumerable<ApplicationMethod> GetApplicationMethods();
-        IEnumerable<ApplicationMean> GetApplicationMeans();
-        IEnumerable<DocumentListSent> GetDocumentListSents();
-        IEnumerable<CollaborationCode> GetCollaborationCodes();
-        IEnumerable<AccountingCode> GetAccountingCodes();
-        IEnumerable<BookingStatus> GetBookingStatus();
-        IEnumerable<BookingType> GetBookingTypes();
-        IEnumerable<BuildingType> GetBuildingTypes();
-        IEnumerable<ContactMethod> GetContactMethods();
+        IEnumerable<FilterModel> GetContractStatusOptions();
+        IEnumerable<FilterModel> GetApplicationMethods();
+        IEnumerable<FilterModel> GetApplicationMeans();
+        IEnumerable<FilterModel> GetDocumentListSents();
+        IEnumerable<FilterModel> GetCollaborationCodes();
+        IEnumerable<FilterModel> GetAccountingCodes();
+        IEnumerable<FilterModel> GetBookingStatus();
+        IEnumerable<FilterModel> GetBookingTypes();
+        IEnumerable<FilterModel> GetBuildingTypes();
+        IEnumerable<FilterModel> GetContactMethods();
         IEnumerable<Country> GetCountries();
         IEnumerable<City> GetCities();
-        IEnumerable<DiscountNetwork> GetDiscountNewtorks();
+        
+        IEnumerable<FilterModel> GetDiscountNewtorks();
         IEnumerable<FilterModel> GetDurations();
-        IEnumerable<IERating> GetIERatings();
-        IEnumerable<IEType> GetIETypes();
-        IEnumerable<InvoiceStatus> GetInvoiceStatuses();
+        IEnumerable<FilterModel> GetIERatings();
+        IEnumerable<FilterModel> GetIETypes();
+        IEnumerable<FilterModel> GetInvoiceStatuses();
         dynamic GetLanguages();
         
         IEnumerable<LeadCategory> GetLeadCategories();
-        IEnumerable<LeadSource> GetLeadSources();
-        IEnumerable<LeadStatus> GetLeadStatuses();
-        IEnumerable<Title> GetTitles();
-        IEnumerable<PaymentMethods> GetPaymentMethods();
-        IEnumerable<PaymentStatus> GetPaymentStatuses();
-        IEnumerable<Relationship> GetRelationships();
+        IEnumerable<FilterModel> GetLeadSources();
+        IEnumerable<FilterModel> GetLeadStatuses();
+        IEnumerable<FilterModel> GetTitles();
+        IEnumerable<FilterModel> GetPaymentMethods();
+        IEnumerable<FilterModel> GetPaymentStatuses();
+        IEnumerable<FilterModel> GetRelationships();
         IEnumerable<FilterModel> GetVats();
-        IEnumerable<VisitVenue> GetVisitVenues();
-       
+        IEnumerable<FilterModel> GetVisitVenues();
+        IEnumerable<FilterModel> GetReportDeliveryOptions();
+        IEnumerable<FilterModel> GetAddedToAccountOptions();
+        IEnumerable<FilterModel> GetInvoiceRatings();
+        IEnumerable<FilterModel> GetInvoiceEntityTypes();
+        dynamic GetStaticData();
+        IEnumerable<FilterModel> GetLabsForFilter();
     }
 }

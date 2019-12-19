@@ -56,13 +56,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Models\Lead.cs">
+    <Compile Update="Models\Booking\Booking.cs">
+      <Generator></Generator>
+    </Compile>
+    <Compile Update="Models\Customer\Customer.cs">
+      <Generator></Generator>
+    </Compile>
+    <Compile Update="Models\Lead\Lead.cs">
       <Generator></Generator>
     </Compile>
     <Compile Update="Models\Professional\Professional.cs">
       <Generator></Generator>
     </Compile>
     <Compile Update="Models\Service\Service.cs">
+      <Generator></Generator>
+    </Compile>
+    <Compile Update="Models\Static\StaticData.cs">
       <Generator></Generator>
     </Compile>
   </ItemGroup>

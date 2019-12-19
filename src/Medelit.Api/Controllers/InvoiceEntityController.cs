@@ -6,6 +6,7 @@ using Medelit.Application;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
+using System.Collections.Generic;
 
 namespace Medelit.Api.Controllers
 {
@@ -39,6 +40,46 @@ namespace Medelit.Api.Controllers
 
             return Response(_invoiceEntityService.FindInvoiceEntities(model));
         }
+
+        [HttpGet("invoice-entities/{ieId}")]
+        public IActionResult GetLeadById(long ieId)
+        {
+
+            return Response(_invoiceEntityService.GetInvoiceEntityById(ieId));
+        }
+
+        [HttpPost("invoice-entities")]
+        [HttpPut("invoice-entities")]
+        public IActionResult SaveProvessional([FromBody] InvoiceEntityViewModel model)
+        {
+            _invoiceEntityService.SaveInvoiceEntity(model);
+            return Response();
+        }
+
+        [HttpPut("invoice-entities/update-status/{status}")]
+        public IActionResult UpdateStatus([FromBody] IEnumerable<InvoiceEntityViewModel> invoiceEntities, eRecordStatus status)
+        {
+            _invoiceEntityService.UpdateStatus(invoiceEntities, status);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpDelete("invoice-entities/{entityId}")]
+        public IActionResult DeleteLead(long entityId)
+        {
+            _invoiceEntityService.DeleteInvoiceEntities(new List<long> { entityId });
+            return Response();
+        }
+
+        //api/v1/
+        [HttpPut("invoice-entities/delete")]
+        public IActionResult DeleteLeads([FromBody] IEnumerable<long> ids)
+        {
+            _invoiceEntityService.DeleteInvoiceEntities(ids);
+            return Response();
+        }
+
+
 
     }
 }

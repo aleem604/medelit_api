@@ -6,6 +6,7 @@ using Medelit.Application;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
+using System.Collections.Generic;
 
 namespace Medelit.Api.Controllers
 {
@@ -29,16 +30,55 @@ namespace Medelit.Api.Controllers
         [HttpGet("invoices")]
         public IActionResult GetInvoices()
         {
-         
             return Response(_invoiceService.GetInvoices());
         }
 
         [HttpPost("invoices/find")]
         public IActionResult FindInvoices([FromBody] SearchViewModel model)
         {
-
             return Response(_invoiceService.FindInvoices(model));
         }
+
+        [HttpGet("invoices/{invoiceId}")]
+        public IActionResult GetInvoiceById(long invoiceId)
+        {
+
+            return Response(_invoiceService.GetInvoiceById(invoiceId));
+        }
+
+        [HttpPost("invoices")]
+        [HttpPut("invoices")]
+        public IActionResult SaveInvoice([FromBody] InvoiceViewModel model)
+        {
+            _invoiceService.SaveInvoice(model);
+            return Response();
+        }
+
+        [HttpPut("invoices/update-status/{status}")]
+        public IActionResult UpdateStatus([FromBody] IEnumerable<InvoiceViewModel> invoices, eRecordStatus status)
+        {
+            _invoiceService.UpdateStatus(invoices, status);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpDelete("invoices/{invoiceId}")]
+        public IActionResult DeleteInvoice(long invoiceId)
+        {
+            _invoiceService.DeleteInvoices(new List<long> { invoiceId });
+            return Response();
+        }
+
+        //api/v1/
+        [HttpPut("invoices/delete")]
+        public IActionResult DeleteInvoices([FromBody] IEnumerable<long> invoiceIds)
+        {
+            _invoiceService.DeleteInvoices(invoiceIds);
+            return Response();
+        }
+
+
+
 
     }
 }

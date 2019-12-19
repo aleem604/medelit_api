@@ -1,12 +1,5 @@
 ﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Medelit.Common;
-using Medelit.Domain.Commands;
-using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using System.Collections.Generic;
@@ -16,18 +9,30 @@ namespace Medelit.Application
 {
     public class StaticDataService : IStaticDataService
     {
-        private readonly IAccountingCodeRepository _acodeRepository;
+        private readonly IStaticDataRepository _acodeRepository;
 
-        public StaticDataService(          
-            IAccountingCodeRepository acodeRepository        
+        public StaticDataService(
+            IStaticDataRepository acodeRepository
             )
-        {            
-            _acodeRepository = acodeRepository;          
+        {
+            _acodeRepository = acodeRepository;
         }
 
-        public dynamic GetProfessionalsForFitler()
+        public IEnumerable<FilterModel> GetCustomersForImportFilter()
         {
-            return _acodeRepository.GetProfessionalsForFitler();
+            return _acodeRepository.GetCustomersForImportFilter().ToList();
+        }
+        public IEnumerable<FilterModel> GetInvoiceEntities()
+        {
+            return _acodeRepository.GetInvoiceEntities().ToList();
+        }
+        public dynamic GetServicesForFitler()
+        {
+            return _acodeRepository.GetServicesForFitler();
+        }
+        public dynamic GetProfessionalsForFitler(long? serviceId)
+        {
+            return _acodeRepository.GetProfessionalsForFitler(serviceId);
         }
 
         public dynamic GePTFeesForFilter()
@@ -49,49 +54,49 @@ namespace Medelit.Application
             return _acodeRepository.GetSubCategoriesForFilter().ToList();
         }
 
-        public IEnumerable<ContractStatus> GetContractStatusOptions()
+        public IEnumerable<FilterModel> GetContractStatusOptions()
         {
-            return _acodeRepository.GetContractStatus().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.ContractStatus != null).Select(x => new FilterModel { Id = x.Id, Value = x.ContractStatus }).ToList();
         }
-        public IEnumerable<ApplicationMethod> GetApplicationMethods()
+        public IEnumerable<FilterModel> GetApplicationMethods()
         {
-            return _acodeRepository.GetApplicationMethods().ToList();
-        }
-
-        public IEnumerable<ApplicationMean> GetApplicationMeans()
-        {
-            return _acodeRepository.GetApplicationMeans().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.ApplicationMethods != null).Select(x => new FilterModel { Id = x.Id, Value = x.ApplicationMethods }).ToList();
         }
 
-        public IEnumerable<DocumentListSent> GetDocumentListSents()
+        public IEnumerable<FilterModel> GetApplicationMeans()
         {
-            return _acodeRepository.GetDocumentListSents().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.ApplicationMeans != null).Select(x => new FilterModel { Id = x.Id, Value = x.ApplicationMeans }).ToList();
+        }
+
+        public IEnumerable<FilterModel> GetDocumentListSents()
+        {
+            return _acodeRepository.GetStaticData().Where(x => x.DocumentListSentOptions != null).Select(x => new FilterModel { Id = x.Id, Value = x.DocumentListSentOptions }).ToList();
         }
 
 
-        public IEnumerable<AccountingCode> GetAccountingCodes()
+        public IEnumerable<FilterModel> GetAccountingCodes()
         {
-            return _acodeRepository.GetAll().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.AccountingCodes != null).Select(x => new FilterModel { Id = x.Id, Value = x.AccountingCodes }).ToList();
         }
 
-        public IEnumerable<CollaborationCode> GetCollaborationCodes()
+        public IEnumerable<FilterModel> GetCollaborationCodes()
         {
-            return _acodeRepository.GetCollaborationCodes().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.CollaborationCodes != null).Select(x => new FilterModel { Id = x.Id, Value = x.CollaborationCodes }).ToList();
         }
 
-        public IEnumerable<BookingStatus> GetBookingStatus()
+        public IEnumerable<FilterModel> GetBookingStatus()
         {
-            return _acodeRepository.GetBookingStatus().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.BookingStatus != null).Select(x => new FilterModel { Id = x.Id, Value = x.BookingStatus }).ToList();
         }
 
-        public IEnumerable<BookingType> GetBookingTypes()
+        public IEnumerable<FilterModel> GetBookingTypes()
         {
-            return _acodeRepository.GetBookingTypes().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.BookingTypes != null).Select(x => new FilterModel { Id = x.Id, Value = x.BookingTypes }).ToList();
         }
 
-        public IEnumerable<BuildingType> GetBuildingTypes()
+        public IEnumerable<FilterModel> GetBuildingTypes()
         {
-            return _acodeRepository.GetBuildingTypes().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.BuildingTypes != null).Select(x => new FilterModel { Id = x.Id, Value = x.BuildingTypes }).ToList();
         }
 
         public IEnumerable<City> GetCities()
@@ -99,9 +104,9 @@ namespace Medelit.Application
             return _acodeRepository.GetCities().ToList();
         }
 
-        public IEnumerable<ContactMethod> GetContactMethods()
+        public IEnumerable<FilterModel> GetContactMethods()
         {
-            return _acodeRepository.GetContactMethods().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.ContactMethods != null).Select(x => new FilterModel { Id = x.Id, Value = x.ContactMethods }).ToList();
         }
 
         public IEnumerable<Country> GetCountries()
@@ -109,9 +114,9 @@ namespace Medelit.Application
             return _acodeRepository.GetCountries().ToList();
         }
 
-        public IEnumerable<DiscountNetwork> GetDiscountNewtorks()
+        public IEnumerable<FilterModel> GetDiscountNewtorks()
         {
-            return _acodeRepository.GetDiscountNewtorks().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.DiscountNetworks != null).Select(x => new FilterModel { Id = x.Id, Value = x.DiscountNetworks }).ToList();
         }
 
         public IEnumerable<FilterModel> GetDurations()
@@ -119,19 +124,19 @@ namespace Medelit.Application
             return _acodeRepository.GetDurations().Select(x => new FilterModel { Id = x.Id, Value = $"{x.Value} {x.Unit}" }).ToList();
         }
 
-        public IEnumerable<IERating> GetIERatings()
+        public IEnumerable<FilterModel> GetIERatings()
         {
-            return _acodeRepository.GetIERatings().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.IERatings != null).Select(x => new FilterModel { Id = x.Id, Value = x.IERatings }).ToList();
         }
 
-        public IEnumerable<IEType> GetIETypes()
+        public IEnumerable<FilterModel> GetIETypes()
         {
-            return _acodeRepository.GetIETypes().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.IETypes != null).Select(x => new FilterModel { Id = x.Id, Value = x.IETypes }).ToList();
         }
 
-        public IEnumerable<InvoiceStatus> GetInvoiceStatuses()
+        public IEnumerable<FilterModel> GetInvoiceStatuses()
         {
-            return _acodeRepository.GetInvoiceStatuses().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.InvoiceStatus != null).Select(x => new FilterModel { Id = x.Id, Value = x.InvoiceStatus }).ToList();
         }
 
         public dynamic GetLanguages()
@@ -144,34 +149,34 @@ namespace Medelit.Application
             return _acodeRepository.GetLeadCategories().ToList();
         }
 
-        public IEnumerable<LeadSource> GetLeadSources()
+        public IEnumerable<FilterModel> GetLeadSources()
         {
-            return _acodeRepository.GetLeadSources().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.LeadSources != null).Select(x => new FilterModel { Id = x.Id, Value = x.LeadSources }).ToList();
         }
 
-        public IEnumerable<LeadStatus> GetLeadStatuses()
+        public IEnumerable<FilterModel> GetLeadStatuses()
         {
-            return _acodeRepository.GetLeadStatuses().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.LeadStatus != null).Select(x => new FilterModel { Id = x.Id, Value = x.LeadStatus }).ToList();
         }
 
-        public IEnumerable<PaymentMethods> GetPaymentMethods()
+        public IEnumerable<FilterModel> GetPaymentMethods()
         {
-            return _acodeRepository.GetPaymentMethods().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.PaymentMethods != null).Select(x => new FilterModel { Id = x.Id, Value = x.PaymentMethods }).ToList();
         }
 
-        public IEnumerable<PaymentStatus> GetPaymentStatuses()
+        public IEnumerable<FilterModel> GetPaymentStatuses()
         {
-            return _acodeRepository.GetPaymentStatuses().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.PaymentStatus != null).Select(x => new FilterModel { Id = x.Id, Value = x.PaymentStatus }).ToList();
         }
 
-        public IEnumerable<Relationship> GetRelationships()
+        public IEnumerable<FilterModel> GetRelationships()
         {
-            return _acodeRepository.GetRelationships().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.Relationships != null).Select(x => new FilterModel { Id = x.Id, Value = x.Relationships }).ToList();
         }
 
-        public IEnumerable<Title> GetTitles()
+        public IEnumerable<FilterModel> GetTitles()
         {
-            return _acodeRepository.GetTitles().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.Titles != null).Select(x => new FilterModel { Id = x.Id, Value = x.Titles }).ToList();
         }
 
         public IEnumerable<FilterModel> GetVats()
@@ -179,9 +184,38 @@ namespace Medelit.Application
             return _acodeRepository.GetVats().Select(x => new FilterModel { Id = x.Id, Value = $"{Convert.ToInt64(x.Value)}{x.Unit}" });
         }
 
-        public IEnumerable<VisitVenue> GetVisitVenues()
+        public IEnumerable<FilterModel> GetVisitVenues()
         {
-            return _acodeRepository.GetVisitVenues().ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.VisitVenues != null).Select(x => new FilterModel { Id = x.Id, Value = x.VisitVenues }).ToList();
+        }
+
+        public IEnumerable<FilterModel> GetReportDeliveryOptions()
+        {
+            return _acodeRepository.GetStaticData().Where(x => x.ReportDeliveryOptions != null).Select(x => new FilterModel { Id = x.Id, Value = x.ReportDeliveryOptions }).ToList();
+        }
+
+        public IEnumerable<FilterModel> GetAddedToAccountOptions()
+        {
+            return _acodeRepository.GetStaticData().Where(x => x.AddToAccountOptions != null).Select(x => new FilterModel { Id = x.Id, Value = x.AddToAccountOptions }).ToList();
+        }
+
+        public IEnumerable<FilterModel> GetInvoiceRatings()
+        {
+            return _acodeRepository.GetStaticData().Where(x=>x.IERatings != null).Select(x => new FilterModel { Id = x.Id, Value = x.IERatings }).ToList();
+        }
+
+        public IEnumerable<FilterModel> GetInvoiceEntityTypes()
+        {
+            return _acodeRepository.GetStaticData().Where(x=>x.IETypes != null).Select(x => new FilterModel { Id = x.Id, Value = x.IETypes }).ToList();
+        }
+         public dynamic GetStaticData()
+        {
+            return _acodeRepository.GetStaticData().ToList();
+        }
+
+        public IEnumerable<FilterModel> GetLabsForFilter()
+        {
+            return _acodeRepository.GetLabs().ToList();
         }
 
         public void Dispose()

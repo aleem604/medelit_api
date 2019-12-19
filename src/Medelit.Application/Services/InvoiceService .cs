@@ -1,25 +1,24 @@
 ﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Medelit.Common;
-using Medelit.Domain.Commands;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Interfaces;
 using System.Linq;
-using System.Collections.Generic;
 using Medelit.Domain.Models;
+using System.Collections.Generic;
+using Medelit.Domain.Commands;
 
 namespace Medelit.Application
 {
     public class InvoiceService : IInvoiceService
     {
         private readonly IInvoiceRepository _invoiceRepository;
+        private readonly ICustomerRepository _customerRepository;
         private readonly ITitleRepository _titleRepository;
         private readonly ILanguageRepository _langRepository;
-
+        private readonly IStaticDataRepository _staticRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
@@ -30,9 +29,11 @@ namespace Medelit.Application
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             IInvoiceRepository invoiceRepository,
+                            ICustomerRepository customerRepository,
                             ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
-            
+                            ITitleRepository titleRepository,
+                            IStaticDataRepository staticRepository
+
             )
         {
             _mapper = mapper;
@@ -40,20 +41,44 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _invoiceRepository = invoiceRepository;
+            _customerRepository = customerRepository;
             _titleRepository = titleRepository;
             _langRepository = langRepository;
+            _staticRepository = staticRepository;
         }
-       
+
         public dynamic GetInvoices()
         {
-            return _invoiceRepository.GetAll().Select(x=> new {x.Id, x.InvoiceNumber, x.Subject }).ToList();
+            return _invoiceRepository.GetAll().Select(x => new { x.Id, x.InvoiceNumber, x.Subject }).ToList();
         }
 
         public dynamic FindInvoices(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+            var customers = _customerRepository.GetAll().Select((s) => new { s.Id, s.Name }).ToList();
+            var invoiceStatus = _staticRepository.GetInvoiceStatuses().ToList();
 
-            var query = _invoiceRepository.GetAll();
+
+            var query = _invoiceRepository.GetAll().Select((x) => new
+            {
+                x.Id,
+                x.Subject,
+                x.InvoiceNumber,
+                Amount = x.TotalInvoice,
+                x.InvoiceDate,
+                x.DueDate,
+                x.CustomerId,
+                Customer = customers.FirstOrDefault(c => c.Id == x.CustomerId).Name,
+                x.StatusId,
+                InvoiceStatus = invoiceStatus.FirstOrDefault(i => i.Id == x.StatusId).Value,
+                x.AssignedToId,
+                AssignedTo = "Admin",
+                x.Status,
+                x.CreateDate,
+                x.UpdateDate,
+                
+            });
+
 
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
@@ -66,9 +91,7 @@ namespace Medelit.Application
                 || (!string.IsNullOrEmpty(x.Subject) && x.Subject.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.CreateDate.ToString("yyyy-MM-dd").CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
-
                 ));
-
             }
 
             if (viewModel.Filter.Status != eRecordStatus.All)
@@ -112,13 +135,7 @@ namespace Medelit.Application
                     else
                         query = query.OrderByDescending(x => x.CreateDate);
                     break;
-                case "createdBy":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CreatedById);
-                    else
-                        query = query.OrderByDescending(x => x.CreatedById);
-                    break;
-
+               
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Id);
@@ -135,6 +152,29 @@ namespace Medelit.Application
                 items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
                 totalCount
             };
+        }
+
+
+        public InvoiceViewModel GetInvoiceById(long invoiceId)
+        {
+            return _mapper.Map<InvoiceViewModel>(_invoiceRepository.GetWithInclude(invoiceId));
+        }
+
+        public void SaveInvoice(InvoiceViewModel viewModel)
+        {
+            var invoiceModel = _mapper.Map<Invoice>(viewModel);
+            invoiceModel.Services = _mapper.Map<ICollection<InvoiceServiceRelation>>(viewModel.Services);
+            _bus.SendCommand(new SaveInvoiceCommand { Invoice = invoiceModel });
+        }
+
+        public void UpdateStatus(IEnumerable<InvoiceViewModel> invoices, eRecordStatus status)
+        {
+            _bus.SendCommand(new UpdateInvoicesStatusCommand { Invoices = _mapper.Map<IEnumerable<Invoice>>(invoices), Status = status });
+        }
+
+        public void DeleteInvoices(IEnumerable<long> invoiceIds)
+        {
+            _bus.SendCommand(new DeleteInvoicesCommand { InvoiceIds = invoiceIds });
         }
 
 

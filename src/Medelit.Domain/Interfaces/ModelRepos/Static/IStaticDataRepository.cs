@@ -5,9 +5,12 @@ using System.Linq;
 
 namespace Medelit.Domain.Interfaces
 {
-    public interface IAccountingCodeRepository : IRepository<AccountingCode>
+    public interface IStaticDataRepository : IRepository<StaticData>
     {
-        dynamic GetProfessionalsForFitler();
+        IQueryable<FilterModel> GetCustomersForImportFilter();
+        IQueryable<FilterModel> GetInvoiceEntities();
+        dynamic GetServicesForFitler();
+        dynamic GetProfessionalsForFitler(long? serviceId);
         dynamic GetPTFeesForFilter();
         dynamic GePROFeesForFilter();
         IQueryable<FilterModel> GetFieldsForFilter();
@@ -40,5 +43,9 @@ namespace Medelit.Domain.Interfaces
         IQueryable<Relationship> GetRelationships();
         IQueryable<Vat> GetVats();
         IQueryable<VisitVenue> GetVisitVenues();
+        IQueryable<ReportDeliveryOptions> GetReportDeliveryOptions();
+        IQueryable<FilterModel> GetAddedToAccountOptions();
+        IQueryable<StaticData> GetStaticData();
+        IEnumerable<FilterModel> GetLabs();
     }
 }

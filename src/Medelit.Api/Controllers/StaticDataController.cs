@@ -29,10 +29,31 @@ namespace Medelit.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("static/professionals")]
-        public IActionResult GetProfessionalsForFitler()
+
+        [HttpGet("static/customers")]
+        public IActionResult GetCustomersForImportFilter()
         {
-            return Response(_dataService.GetProfessionalsForFitler());
+            return Response(_dataService.GetCustomersForImportFilter());
+        }
+
+        [HttpGet("static/invoice-entities")]
+        public IActionResult GetInvoiceEntities()
+        {
+            return Response(_dataService.GetInvoiceEntities());
+        }
+
+      
+        [HttpGet("static/services")]
+        public IActionResult GetServicesForFitler()
+        {
+            return Response(_dataService.GetServicesForFitler());
+        }
+
+        [HttpGet("static/professionals/{serviceId}")]
+        [HttpGet("static/professionals")]
+        public IActionResult GetProfessionalsForFitler(long? serviceId)
+        {
+            return Response(_dataService.GetProfessionalsForFitler(serviceId));
         }
 
         [HttpGet("static/ptfees")]
@@ -118,6 +139,7 @@ namespace Medelit.Api.Controllers
             return Response(Enum.GetValues(typeof(eRecordStatus)).Cast<eRecordStatus>().Select(e => new KeyValuePair<string, int>(e.ToString(), (int)e))
                 .Select((x) => new {
                     id = x.Value,
+                    value = x.Key,
                     name = x.Key
                 }).OrderBy(x => x.id));
         }
@@ -152,6 +174,107 @@ namespace Medelit.Api.Controllers
             return Response(_dataService.GetRelationships());
         }
 
+        [HttpGet("static/payment-methods")]
+        public IActionResult GetPaymentMethods()
+        {
+            return Response(_dataService.GetPaymentMethods());
+        }
+
+        [HttpGet("static/payment-status")]
+        public IActionResult GetPaymentStatus()
+        {
+            return Response(_dataService.GetPaymentStatuses());
+        }
+
+        [HttpGet("static/discount-networks")]
+        public IActionResult GetDiscountNetworks()
+        {
+            return Response(_dataService.GetDiscountNewtorks());
+        }
+
+        [HttpGet("static/visit-venues")]
+        public IActionResult GetVisitVenues()
+        {
+            return Response(_dataService.GetVisitVenues());
+        }
+
+        [HttpGet("static/building-types")]
+        public IActionResult GetBuildingTypes()
+        {
+            return Response(_dataService.GetBuildingTypes());
+        }
+
+        [HttpGet("static/lead-statuses")]
+        public IActionResult GetLeadStatuses()
+        {
+            return Response(_dataService.GetLeadStatuses());
+        }
+
+        [HttpGet("static/lead-sources")]
+        public IActionResult GetLeadSources()
+        {
+            return Response(_dataService.GetLeadSources());
+        }
+
+        [HttpGet("static/lead-categories")]
+        public IActionResult GetLeadCategories()
+        {
+            return Response(_dataService.GetLeadCategories());
+        }
+
+         [HttpGet("static/contact-methods")]
+        public IActionResult GetContactMethods()
+        {
+            return Response(_dataService.GetContactMethods());
+        }
+
+        [HttpGet("static/booking-status")]
+        public IActionResult GetBookingStatus()
+        {
+            return Response(_dataService.GetBookingStatus());
+        }
+
+        [HttpGet("static/report-delivery-options")]
+        public IActionResult GetReportDeliveryOptions()
+        {
+            return Response(_dataService.GetReportDeliveryOptions());
+        }
+
+        [HttpGet("static/added-to-account-options")]
+        public IActionResult GetAddedToAccountOptions()
+        {
+            return Response(_dataService.GetAddedToAccountOptions());
+        }
+
+        [HttpGet("static/ratings")]
+        public IActionResult GetInvoiceRatings()
+        {
+            return Response(_dataService.GetInvoiceRatings());
+        }
+
+        [HttpGet("static/ie-types")]
+        public IActionResult GetInvoiceEntityTypes()
+        {
+            return Response(_dataService.GetInvoiceEntityTypes());
+        }
+
+        [HttpGet("static/invoice-status")]
+        public IActionResult GetInvoiceStatus()
+        {
+            return Response(_dataService.GetInvoiceStatuses());
+        }
+
+        [HttpGet("static/static-data")]
+        public IActionResult GetStaticData()
+        {
+            return Response(_dataService.GetStaticData());
+        }
+
+        [HttpGet("static/labs")]
+        public IActionResult GetLabsForFilter()
+        {
+            return Response(_dataService.GetLabsForFilter());
+        }
 
     }
 }

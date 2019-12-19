@@ -17,7 +17,11 @@ namespace Medelit.Infra.Data.Context
 
         public DbSet<TinUser> User { get; set; }
         public DbSet<Lead> Lead { get; set; }
+        public DbSet<LeadServiceRelation> LeadServiceRelation { get; set; }
         public DbSet<Customer> Customer { get; set; }
+        public DbSet<CustomerServiceRelation> CustomerServiceRelation { get; set; }
+        public DbSet<Booking> Booking { get; set; }
+        public DbSet<BookingServiceRelation> BookingServiceRelation { get; set; }
         public DbSet<FieldSubCategory> FieldSubCategory { get; set; }
         public DbSet<Service> Service { get; set; }
         public DbSet<ServiceProfessionalRelation> ServiceProfessionalRelation { get; set; }
@@ -25,9 +29,12 @@ namespace Medelit.Infra.Data.Context
         public DbSet<ProfessionalLanguageRelation> ProfessionalLanguageRelation { get; set; }
         public DbSet<Fee> Fee { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
+        public DbSet<InvoiceServiceRelation> InvoiceServiceRelation { get; set; }
         public DbSet<InvoiceEntity> InvoiceEntity { get; set; }
 
         #region static data models
+        public DbSet<Lab> Lab { get; set; }
+        public DbSet<StaticData> StaticData { get; set; }
         public DbSet<ContractStatus> ContactStatus { get; set; }
         public DbSet<DocumentListSent> DocumentListSent { get; set; }
         public DbSet<ApplicationMethod> ApplicationMethod { get; set; }
@@ -56,6 +63,7 @@ namespace Medelit.Infra.Data.Context
         public DbSet<Vat> Vats { get; set; }
         public DbSet<VisitVenue> VisitVenues { get; set; }
         public DbSet<BookingStatus> BookingStatus { get; set; }
+        public DbSet<ReportDeliveryOptions> ReportDeliveryOptions { get; set; }
 
         #endregion static data models
 

@@ -51,6 +51,7 @@ namespace Medelit.Infra.CrossCutting.IoC
             //services.AddScoped<ITinRolePermissionRepo, TinRolePermissionRepo>();
 
             services.AddScoped<ILeadRepository, LeadRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IFieldSubcategoryRepository, FieldSubCategoryRepository>();
             services.AddScoped<IServiceRepository, ServiceRepository>();
@@ -60,7 +61,7 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<IInvoiceEntityRepository, InvoiceEntityRepository>();
 
             services.AddScoped<ICollaborationCodeRepository, CollaborationCodeRepository>();
-            services.AddScoped<IAccountingCodeRepository, AccountingCodeRepository>();
+            services.AddScoped<IStaticDataRepository, StaticDataRepository>();
             services.AddScoped<IBookingStatusRepository, BookingStatusRepository>();
             services.AddScoped<IBookingTypeRepository, BookingTypeRepository>();
             services.AddScoped<IBuildingTypeRepository, BuildingTypeRepository>();
@@ -94,6 +95,7 @@ namespace Medelit.Infra.CrossCutting.IoC
 
             services.AddScoped<IFeeService, FeeService>();
             services.AddScoped<ILeadService, LeadService>();
+            services.AddScoped<IBookingService, BookingService>();
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<IFieldSubcategoryService, FieldSubcategoryService>();
             services.AddScoped<IServiceService, ServiceService>();
@@ -124,6 +126,36 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<IRequestHandler<GetUserCommand, bool>, AuthCommandHandler>();
             services.AddScoped<IRequestHandler<UserAssignRolesCommand, bool>, AuthCommandHandler>();
             services.AddScoped<IRequestHandler<AccessTokenFromRefreshTokenCommand, bool>, AuthCommandHandler>();
+
+            //lead commmands
+            services.AddScoped<IRequestHandler<SaveLeadCommand, bool>, LeadCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateLeadsStatusCommand, bool>, LeadCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteLeadsCommand, bool>, LeadCommandHandler>();
+            services.AddScoped<IRequestHandler<ConvertLeadToBookingCommand, bool>, LeadCommandHandler>();
+
+            //customer commmands
+            services.AddScoped<IRequestHandler<SaveCustomerCommand, bool>, CustomerCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateCustomersStatusCommand, bool>, CustomerCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteCustomersCommand, bool>, CustomerCommandHandler>();
+            services.AddScoped<IRequestHandler<ConvertCustomerToBookingCommand, bool>, CustomerCommandHandler>();
+
+            //booking commmands
+            services.AddScoped<IRequestHandler<SaveBookingCommand, bool>, BookingCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateBookingsStatusCommand, bool>, BookingCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteBookingsCommand, bool>, BookingCommandHandler>();
+            services.AddScoped<IRequestHandler<BookingFromCustomerCommand, bool>, BookingCommandHandler>();
+            services.AddScoped<IRequestHandler<CreateInvoiceCommand, bool>, BookingCommandHandler>();
+
+            //invoice
+            services.AddScoped<IRequestHandler<SaveInvoiceCommand, bool>, InvoiceCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateInvoicesStatusCommand, bool>, InvoiceCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteInvoicesCommand, bool>, InvoiceCommandHandler>();
+
+            //invoice entity commmands
+            services.AddScoped<IRequestHandler<SaveInvoiceEntityCommand, bool>, InvoiceEntityCommandHandler>();
+            services.AddScoped<IRequestHandler<UpdateInvoiceEntitiesStatusCommand, bool>, InvoiceEntityCommandHandler>();
+            services.AddScoped<IRequestHandler<DeleteInvoiceEntitiesCommand, bool>, InvoiceEntityCommandHandler>();
+
 
             //fee commmands
             services.AddScoped<IRequestHandler<SaveFeeCommand, bool>, FeeCommandHandler>();

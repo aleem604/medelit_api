@@ -48,7 +48,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ViewModels\InvoiceViewModel.cs">
+    <Compile Update="ViewModels\Customer\CustomerViewModel.cs">
+      <Generator></Generator>
+    </Compile>
+    <Compile Update="ViewModels\Invoices\InvoiceViewModel.cs">
       <Generator></Generator>
     </Compile>
   </ItemGroup>

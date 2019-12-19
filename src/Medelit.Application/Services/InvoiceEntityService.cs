@@ -46,7 +46,7 @@ namespace Medelit.Application
        
         public dynamic GetInvoiceEntities()
         {
-            return _invoiceEntityRepository.GetAll().Select(x=> new {x.Id, x.IENumber, x.Name }).ToList();
+            return _invoiceEntityRepository.GetAll().Select(x=> new {x.Id, x.Name }).ToList();
         }
 
         public dynamic FindInvoiceEntities(SearchViewModel viewModel)
@@ -62,8 +62,7 @@ namespace Medelit.Application
                 query = query.Where(x =>
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.Name.Equals(viewModel.Filter.Search))
-                || (!string.IsNullOrEmpty(x.IENumber) && x.IENumber.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
@@ -78,18 +77,11 @@ namespace Medelit.Application
 
             switch (viewModel.SortField)
             {
-                case "name":
+                case "invoicingentityname":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Name);
                     else
                         query = query.OrderByDescending(x => x.Name);
-                    break;
-
-                case "ienumber":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.IENumber);
-                    else
-                        query = query.OrderByDescending(x => x.IENumber);
                     break;
 
                 case "email":
@@ -135,6 +127,27 @@ namespace Medelit.Application
                 items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
                 totalCount
             };
+        }
+
+        public InvoiceEntityViewModel GetInvoiceEntityById(long ieId)
+        {
+            return _mapper.Map<InvoiceEntityViewModel>(_invoiceEntityRepository.GetById(ieId));
+        }
+
+        public void SaveInvoiceEntity(InvoiceEntityViewModel viewModel)
+        {
+            var ieModel = _mapper.Map<InvoiceEntity>(viewModel);
+            _bus.SendCommand(new SaveInvoiceEntityCommand { Entity = ieModel });
+        }
+
+        public void UpdateStatus(IEnumerable<InvoiceEntityViewModel> entityIds, eRecordStatus status)
+        {
+            _bus.SendCommand(new UpdateInvoiceEntitiesStatusCommand { Entities = _mapper.Map<IEnumerable<InvoiceEntity>>(entityIds), Status = status });
+        }
+
+        public void DeleteInvoiceEntities(IEnumerable<long> ids)
+        {
+            _bus.SendCommand(new DeleteInvoiceEntitiesCommand { InvoieEntityIds = ids });
         }
 
 

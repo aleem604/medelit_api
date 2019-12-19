@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Medelit.Common;
 
@@ -8,6 +9,10 @@ namespace Medelit.Application
     {
         dynamic GetLeads();
         dynamic FindLeads(SearchViewModel model);
-        LeadViewModel GetLeadById(long leadId);
+        LeadViewModel GetLeadById(long leadId, long? fromCustomerId);
+        void SaveLead(LeadViewModel model);
+        void UpdateStatus(IEnumerable<LeadViewModel> leads, eRecordStatus status);
+        void DeleteLeads(IEnumerable<long> leadIds);
+        void ConvertToBooking(long leadId);
     }
 }

@@ -6,6 +6,7 @@ using Medelit.Application;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
+using System.Collections.Generic;
 
 namespace Medelit.Api.Controllers
 {
@@ -43,11 +44,52 @@ namespace Medelit.Api.Controllers
         }
 
         [HttpGet("leads/{leadId}")]
-        public IActionResult GetLeadById(long leadId)
+        [HttpGet("leads/{leadId}/{fromCustomerId}")]
+        public IActionResult GetLeadById(long leadId, long? fromCustomerId)
         {
 
-            return Response(_leadService.GetLeadById(leadId));
+            return Response(_leadService.GetLeadById(leadId, fromCustomerId));
         }
+
+        [HttpPost("leads")]
+        [HttpPut("leads")]
+        public IActionResult SaveProvessional([FromBody] LeadViewModel model)
+        {
+            _leadService.SaveLead(model);
+            return Response();
+        }
+
+        [HttpPut("leads/update-status/{status}")]
+        public IActionResult UpdateStatus([FromBody] IEnumerable<LeadViewModel> leads, eRecordStatus status)
+        {
+            _leadService.UpdateStatus(leads, status);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpDelete("leads/{leadId}")]
+        public IActionResult DeleteLead(long leadId)
+        {
+            _leadService.DeleteLeads(new List<long> {leadId });
+            return Response();
+        }
+
+        //api/v1/
+        [HttpPut("leads/delete")]
+        public IActionResult DeleteLeads([FromBody] IEnumerable<long> leadIds)
+        {
+            _leadService.DeleteLeads(leadIds);
+            return Response();
+        }
+
+        [HttpGet("leads/convert-booking/{leadId}")]
+        public IActionResult ConvertToBooking(long leadId)
+        {
+            _leadService.ConvertToBooking(leadId);
+            return Response();
+        }
+
+
 
     }
 }

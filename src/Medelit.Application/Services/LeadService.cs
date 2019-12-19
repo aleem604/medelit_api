@@ -17,9 +17,10 @@ namespace Medelit.Application
     public class LeadService : ILeadService
     {
         private readonly ILeadRepository _leadRepository;
-        private readonly ITitleRepository _titleRepository;
+        private readonly IStaticDataRepository _staticRepository;
         private readonly ILanguageRepository _langRepository;
-
+        private readonly IServiceRepository _serviceRepository;
+        private readonly IProfessionalRepository _professoinalRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
@@ -31,8 +32,10 @@ namespace Medelit.Application
                             IMediatorHandler bus,
                             ILeadRepository leadRepository,
                             ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
-            
+                            IStaticDataRepository staticRepository,
+                            IServiceRepository serviceRepository,
+                            IProfessionalRepository professionalRepository
+
             )
         {
             _mapper = mapper;
@@ -40,36 +43,40 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _leadRepository = leadRepository;
-            _titleRepository = titleRepository;
+            _staticRepository = staticRepository;
             _langRepository = langRepository;
+            _serviceRepository = serviceRepository;
+            _professoinalRepository = professionalRepository;
         }
-       
+
         public dynamic GetLeads()
         {
-            return _leadRepository.GetAll().Select(x=> new {x.Id, x.TitleId, x.SurName }).ToList();
+            return _leadRepository.GetAll().Select(x => new { x.Id, x.TitleId, x.SurName }).ToList();
         }
 
         public dynamic FindLeads(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var langs = _langRepository.GetAll().ToList();
-            var titles = _titleRepository.GetAll().ToList();
+            var statics = _staticRepository.GetAll().ToList();
+            var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
 
-            var query = (from lead in _leadRepository.GetAll()
-                         join title in _titleRepository.GetAll() on lead.TitleId equals title.Id
-                         join lang in _langRepository.GetAll() on lead.LanguageId equals lang.Id
-                         select new { lead, title, lang })
+            var query = (from lead in _leadRepository.GetAllWithService().Where(x => x.Status != eRecordStatus.Deleted)
+
+                         select lead)
                         .Select((x) => new
                         {
-                            Id = x.lead.Id,
-                            Title = x.title.Value,
-                            Language = x.lang.Name,
-                            SurName = x.lead.SurName,
-                            Name = x.lead.Name,
-                            Email = x.lead.Email,
-                            MainPhone = x.lead.MainPhone,
-                            UpdateDate = x.lead.UpdateDate,
-                            Status = x.lead.Status
+                            x.Id,
+                            Title = statics.FirstOrDefault(s => s.Id == x.TitleId).Titles,
+                            Language = langs.FirstOrDefault(s => s.Id == x.LanguageId).Name,
+                            Services = PopulateServices(x.Services, services),
+                            
+                            SurName = x.SurName,
+                            Name = x.Name,
+                            Email = x.Email,
+                            MainPhone = x.MainPhone,
+                            UpdateDate = x.UpdateDate,
+                            Status = x.Status
                         });
 
 
@@ -159,10 +166,59 @@ namespace Medelit.Application
             };
         }
 
-        public LeadViewModel GetLeadById(long leadId)
+        private string PopulateServices(ICollection<LeadServiceRelation> services, List<FilterModel> oservices)
         {
-            return _mapper.Map<LeadViewModel>(_leadRepository.GetAll().FirstOrDefault(x => x.Id == leadId));
+            var query = from s in services
+                        join
+                        os in oservices on s.ServiceId equals os.Id
+                        select os.Value;
+
+            return string.Join(",", query.ToArray());
         }
+
+        public LeadViewModel GetLeadById(long leadId, long? fromCustomerId)
+        {
+            if (fromCustomerId.HasValue)
+            {
+                var customerObj = _leadRepository.GetCustomerId(fromCustomerId);
+
+                var model = _mapper.Map<LeadViewModel>(customerObj);
+                model.FromCustomerId = customerObj.Id;
+                model.FromCustomer = customerObj.Name;
+                model.Id = leadId;
+
+                return model;
+            }
+            else
+            {
+                return _mapper.Map<LeadViewModel>(_leadRepository.GetWithInclude(leadId));
+            }
+        }
+
+        public void SaveLead(LeadViewModel viewModel)
+        {
+            var leadModel = _mapper.Map<Lead>(viewModel);
+
+            leadModel.Services = _mapper.Map<ICollection<LeadServiceRelation>>(viewModel.Services);
+            _bus.SendCommand(new SaveLeadCommand { Lead = leadModel, FromCustomerId = viewModel.FromCustomerId });
+        }
+
+        public void UpdateStatus(IEnumerable<LeadViewModel> leads, eRecordStatus status)
+        {
+            _bus.SendCommand(new UpdateLeadsStatusCommand { Leads = _mapper.Map<IEnumerable<Lead>>(leads), Status = status });
+        }
+
+        public void DeleteLeads(IEnumerable<long> leadIds)
+        {
+            _bus.SendCommand(new DeleteLeadsCommand { LeadIds = leadIds });
+        }
+
+        public void ConvertToBooking(long leadId)
+        {
+            _bus.SendCommand(new ConvertLeadToBookingCommand { LeadId = leadId });
+        }
+
+
 
         public void Dispose()
         {

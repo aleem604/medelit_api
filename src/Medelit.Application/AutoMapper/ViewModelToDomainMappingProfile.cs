@@ -61,7 +61,19 @@ namespace Medelit.Application.AutoMapper
                    )).ReverseMap();
             // Services
             CreateMap<ServiceViewModel, Service>((MemberList.Source));
+            CreateMap<LeadViewModel, Lead>((MemberList.Source));
+            CreateMap<LeadServiceRelationViewModel, LeadServiceRelation>();
+            CreateMap<Lead, Customer>((MemberList.Source));
+            CreateMap<LeadServiceRelation, CustomerServiceRelation>((MemberList.Source));
 
+
+            CreateMap<CustomerViewModel, Customer>((MemberList.Source));
+            CreateMap<CustomerServiceRelationViewModel, CustomerServiceRelation>((MemberList.Source));
+
+            CreateMap<InvoiceEntityViewModel, InvoiceEntity>((MemberList.Source));
+
+            CreateMap<BookingViewModel, Booking>((MemberList.Source));
+            CreateMap<BookingServiceRelationViewModel, BookingServiceRelation>((MemberList.Source));
 
         }
     }

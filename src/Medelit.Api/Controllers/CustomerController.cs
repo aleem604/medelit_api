@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Medelit.Application;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
+using Medelit.Common;
+using System.Collections.Generic;
 
 namespace Medelit.Api.Controllers
 {
@@ -25,12 +27,55 @@ namespace Medelit.Api.Controllers
             _logger = logger;
         }
 
+        [HttpPost("customers/find")]
+        public IActionResult FindCustomers([FromBody] SearchViewModel model)
+        {
+            return Response(_customerService.FindCustomers(model));
+        }
+
         [HttpGet("customers")]
         public IActionResult GetCustomers()
         {
-         
+
             return Response(_customerService.GetCustomers());
-        }      
+        }
+
+        [HttpGet("customers/{customerId}")]
+        public IActionResult GetCustomerById(long customerId)
+        {
+
+            return Response(_customerService.GetCustomerById(customerId));
+        }
+
+        [HttpPost("customers")]
+        [HttpPut("customers")]
+        public IActionResult SaveProvessional([FromBody] CustomerViewModel model)
+        {
+            _customerService.SaveCustomer(model);
+            return Response();
+        }
+
+        [HttpPut("customers/update-status/{status}")]
+        public IActionResult UpdateStatus([FromBody] IEnumerable<CustomerViewModel> customers, eRecordStatus status)
+        {
+            _customerService.UpdateStatus(customers, status);
+            return Response();
+        }
+        //api/v1/
+        [HttpPut("customers/delete")]
+        public IActionResult DeleteAttractions([FromBody] IEnumerable<long> feeIds)
+        {
+            _customerService.DeleteCustomers(feeIds);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpPost("customers/create-booking")]
+        public IActionResult CreateBooking([FromBody] CustomerViewModel viewModel)
+        {
+            _customerService.CreateBooking(viewModel);
+            return Response();
+        }
 
     }
 }
