@@ -33,7 +33,6 @@ namespace Medelit.Application.AutoMapper
                     .ReverseMap();
             CreateMap<CustomerServiceRelation, LeadServiceRelationViewModel>();
             CreateMap<Customer, Booking>();
-            CreateMap<CustomerServiceRelation, BookingServiceRelation>();
 
             CreateMap<Professional, ProfessionalRequestViewModel>();
             CreateMap<ProfessionalLanguageRelation, FilterModel>()
@@ -47,10 +46,13 @@ namespace Medelit.Application.AutoMapper
 
             CreateMap<InvoiceEntity, InvoiceEntityViewModel>((MemberList.Source));
             CreateMap<Invoice, InvoiceViewModel>((MemberList.Source));
-            CreateMap<InvoiceServiceRelation, InvoiceServiceRelationViewModel>((MemberList.Source));
-
-            CreateMap<Booking, BookingViewModel>((MemberList.Source));
-            CreateMap<BookingServiceRelation, BookingServiceRelationViewModel>((MemberList.Source));
+            CreateMap<InvoiceBookings, InvoiceBookingsViewModel>((MemberList.Source));
+            
+            CreateMap<Booking, BookingViewModel>((MemberList.Source)).ForMember(dest => dest.IsAllDayVisit,
+                   opts => opts.MapFrom(
+                       src => src.IsAllDayVisit.Value == 0 ? false : true
+                   )).ReverseMap();
+           
         }
     }
 }

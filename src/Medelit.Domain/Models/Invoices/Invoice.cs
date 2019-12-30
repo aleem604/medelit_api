@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Medelit.Domain.Core.Models;
 
 namespace Medelit.Domain.Models
 {
@@ -11,8 +10,7 @@ namespace Medelit.Domain.Models
         public string Subject { get; set; }
         [Column("invoicing_entity_id")]
         public long? InvoiceEntityId { get; set; }
-        [Column("customer_id")]
-        public long? CustomerId { get; set; }
+        
         [Column("invoice_number")]
         public string InvoiceNumber { get; set; }
         [Column("due_date")]
@@ -72,15 +70,20 @@ namespace Medelit.Domain.Models
         public string InvoiceDescription { get; set; }
         [Column("item_name_on_invoice")]
         public string ItemNameOnInvoice { get; set; }
-        public int? Quantity { get; set; }
         [Column("payment_arrival_date")]
         public DateTime? PaymentArrivalDate { get; set; }
         [Column("pro_invoice_date")]
         public DateTime? ProInvoiceDate { get; set; }
+       
         [Column("assigned_to_id")]
         public long? AssignedToId { get; set; }
+        [Column("customer_id")]
+        public long? CustomerId { get; set; }
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
 
-        public ICollection<InvoiceServiceRelation> Services { get; set; }
+        public ICollection<InvoiceBookings> InvoiceBookings { get; set; }
+
         /// connected customers
         /// connected services
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Medelit.Domain.Models;
 
 namespace Medelit.Domain.Interfaces
@@ -8,5 +9,6 @@ namespace Medelit.Domain.Interfaces
         void SaveCustomerRelation(List<CustomerServiceRelation> newServices);
         Customer GetByIdWithInclude(long customerId);
         void RemoveCustomerServices(long id);
+        IQueryable<Customer> GetAllWithService();
     }
 }

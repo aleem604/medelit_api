@@ -11,13 +11,15 @@ using Medelit.Domain.Interfaces;
 using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
+using System.Text;
 
 namespace Medelit.Application
 {
     public class ServiceService : IServiceService
     {
         private readonly IServiceRepository _serviceRepository;
-        private readonly ITitleRepository _titleRepository;
+        private readonly IProfessionalRepository _professionalRepository;
+        private readonly IFeeRepository _feeRepository;
         private readonly ILanguageRepository _langRepository;
 
         private readonly IMapper _mapper;
@@ -30,8 +32,9 @@ namespace Medelit.Application
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             IServiceRepository serviceRepository,
-                            ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
+                            IProfessionalRepository professionalRepository,
+                            IFeeRepository feeRepository,
+                            ILanguageRepository langRepository
             
             )
         {
@@ -40,7 +43,8 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _serviceRepository = serviceRepository;
-            _titleRepository = titleRepository;
+            _professionalRepository = professionalRepository;
+            _feeRepository = feeRepository;
             _langRepository = langRepository;
         }
        
@@ -55,7 +59,7 @@ namespace Medelit.Application
 
             var service = _serviceRepository.GetByIdWithIncludes(serviceId);
             var viewModel = _mapper.Map<ServiceViewModel>(service);
-            viewModel.Professionals = service.ServiceProfessionalRelation.Select((s) => new FilterModel { Id = s.ProfessionalId }).ToList();
+            viewModel.Professionals = service.ServiceProfessionals.Select((s) => new FilterModel { Id = s.ProfessionalId }).ToList();
             return viewModel;
 
         }
@@ -63,7 +67,21 @@ namespace Medelit.Application
         public dynamic FindServices(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-            var query = _serviceRepository.GetAll().Where(x=>x.Status != eRecordStatus.Deleted);
+            var fees = _feeRepository.GetAll().ToList();
+            var professionals = _professionalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
+
+            var query = _serviceRepository.GetAllWithProfessionals().Where(x => x.Status != eRecordStatus.Deleted)
+                .Select((s) => new {
+                    s.Id,
+                    s.Name,
+                    PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId).A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId).A2),
+                    ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId).A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId).A2),
+                    Professionals = PopulateProfessionals(s.ServiceProfessionals, professionals),
+                    s.Covermap,
+                    s.Status,
+                    s.CreateDate,
+                    s.CreatedById,
+                });
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
             {
@@ -136,11 +154,35 @@ namespace Medelit.Application
             };
         }
 
+        private string GetString(decimal? a1, decimal? a2)
+        {
+            var sb = new StringBuilder();
+            if (a1.HasValue)
+                sb.Append(a1.Value.ToString("G29"));
+            if(a2.HasValue)
+            {
+                if (a1.HasValue)
+                    sb.Append(", ");
+                sb.Append(a2.Value.ToString("G29"));
+            }
+            return sb.ToString();
+        }
+
+        private string PopulateProfessionals(IEnumerable<ServiceProfessionalRelation> services, List<FilterModel> professionals)
+        {
+            var query = from s in services
+                        join
+                        p in professionals on s.ProfessionalId equals p.Id
+                        select p.Value;
+
+            return string.Join(",", query.ToArray());
+        }
+
 
         public void SaveService(ServiceViewModel viewModel)
         {
             var serviceModel = _mapper.Map<Service>(viewModel);
-            serviceModel.ServiceProfessionalRelation = viewModel.Professionals.Select((s) => new ServiceProfessionalRelation { ProfessionalId = s.Id }).ToList();
+            serviceModel.ServiceProfessionals = viewModel.Professionals.Select((s) => new ServiceProfessionalRelation { ProfessionalId = s.Id }).ToList();
             _bus.SendCommand(new SaveServiceCommand { Service = serviceModel });
         }
 

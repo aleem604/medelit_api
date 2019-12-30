@@ -8,9 +8,12 @@ namespace Medelit.Domain.Models
     [Table("lead_service_relation")]
     public class LeadServiceRelation
     {
-        public long Id { get; set; }     
+        public long Id { get; set; }
+
         [Column("pt_fee_id")]
-        public long? PTFeeId { get; set; }
+        public long? PtFeeId { get; set; }
+        [Column("is_pt_fee")]
+        public short IsPtFeeA1 { get; set; }
         [Column("pt_fee_a1")]
         public decimal? PTFeeA1 { get; set; }
         [Column("pt_fee_a2")]
@@ -18,6 +21,8 @@ namespace Medelit.Domain.Models
 
         [Column("pro_fee_id")]
         public long? PROFeeId { get; set; }
+        [Column("is_pro_fee")]
+        public short IsProFeeA1 { get; set; }
         [Column("pro_fee_a1")]
         public decimal? PROFeeA1 { get; set; }
         [Column("pro_fee_a2")]

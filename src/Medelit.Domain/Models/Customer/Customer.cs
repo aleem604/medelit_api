@@ -43,6 +43,7 @@ namespace Medelit.Domain.Models
         public string VisitStreetName { get; set; }
         [Column("home_city_id")]
         public short? HomeCityId { get; set; }
+
         [Column("visit_city_id")]
         public short? VisitCityId { get; set; }
         [Column("home_post_code")]

@@ -22,6 +22,10 @@ namespace Medelit.Application
         {
             return _acodeRepository.GetCustomersForImportFilter().ToList();
         }
+        public IEnumerable<FilterModel> GetInvoicesForFilter()
+        {
+            return _acodeRepository.GetInvoicesForFilter().ToList();
+        }
         public IEnumerable<FilterModel> GetInvoiceEntities()
         {
             return _acodeRepository.GetInvoiceEntities().ToList();
@@ -121,7 +125,7 @@ namespace Medelit.Application
 
         public IEnumerable<FilterModel> GetDurations()
         {
-            return _acodeRepository.GetDurations().Select(x => new FilterModel { Id = x.Id, Value = $"{x.Value} {x.Unit}" }).ToList();
+            return _acodeRepository.GetStaticData().Where(x => x.Durations != null).Select(x => new FilterModel { Id = x.Id, Value = $"{x.Durations} {x.DurationUnits}" }).ToList();
         }
 
         public IEnumerable<FilterModel> GetIERatings()
@@ -144,9 +148,9 @@ namespace Medelit.Application
             return _acodeRepository.GetLanguages().ToList();
         }
 
-        public IEnumerable<LeadCategory> GetLeadCategories()
+        public IEnumerable<FilterModel> GetLeadCategories()
         {
-            return _acodeRepository.GetLeadCategories().ToList();
+            return _acodeRepository.GetStaticData().Select(x => new FilterModel { Id = x.Id, Value = x.LeadCategories }).Where(x => x.Value != null).ToList();
         }
 
         public IEnumerable<FilterModel> GetLeadSources()
@@ -181,7 +185,7 @@ namespace Medelit.Application
 
         public IEnumerable<FilterModel> GetVats()
         {
-            return _acodeRepository.GetVats().Select(x => new FilterModel { Id = x.Id, Value = $"{Convert.ToInt64(x.Value)}{x.Unit}" });
+            return _acodeRepository.GetStaticData().Where(x => x.Vats != null).Select(x => new FilterModel { Id = x.Id, Value = $"{Convert.ToInt64(x.Vats)}{x.VatUnit}" });
         }
 
         public IEnumerable<FilterModel> GetVisitVenues()

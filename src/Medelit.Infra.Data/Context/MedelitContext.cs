@@ -14,14 +14,11 @@ namespace Medelit.Infra.Data.Context
         {
             _env = env;
         }
-
-        public DbSet<TinUser> User { get; set; }
         public DbSet<Lead> Lead { get; set; }
         public DbSet<LeadServiceRelation> LeadServiceRelation { get; set; }
         public DbSet<Customer> Customer { get; set; }
         public DbSet<CustomerServiceRelation> CustomerServiceRelation { get; set; }
         public DbSet<Booking> Booking { get; set; }
-        public DbSet<BookingServiceRelation> BookingServiceRelation { get; set; }
         public DbSet<FieldSubCategory> FieldSubCategory { get; set; }
         public DbSet<Service> Service { get; set; }
         public DbSet<ServiceProfessionalRelation> ServiceProfessionalRelation { get; set; }
@@ -29,41 +26,15 @@ namespace Medelit.Infra.Data.Context
         public DbSet<ProfessionalLanguageRelation> ProfessionalLanguageRelation { get; set; }
         public DbSet<Fee> Fee { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
-        public DbSet<InvoiceServiceRelation> InvoiceServiceRelation { get; set; }
+        public DbSet<InvoiceBookings> InvoiceBookings { get; set; }
         public DbSet<InvoiceEntity> InvoiceEntity { get; set; }
 
         #region static data models
         public DbSet<Lab> Lab { get; set; }
         public DbSet<StaticData> StaticData { get; set; }
-        public DbSet<ContractStatus> ContactStatus { get; set; }
-        public DbSet<DocumentListSent> DocumentListSent { get; set; }
-        public DbSet<ApplicationMethod> ApplicationMethod { get; set; }
-        public DbSet<ApplicationMean> ApplicationMean { get; set; }
-        public DbSet<CollaborationCode> CollaborationCode { get; set; }
-        public DbSet<AccountingCode> AccountingCode { get; set; }
-        public DbSet<BookingStatus> GetBookingStatus { get; set; }
-        public DbSet<BookingType> BookingType { get; set; }
-        public DbSet<BuildingType> BuildingType { get; set; }
         public DbSet<City> City { get; set; }
-        public DbSet<ContactMethod> ContactMethods { get; set; }
         public DbSet<Country> Countries { get; set; }
-        public DbSet<DiscountNetwork> DiscountNetworks { get; set; }
-        public DbSet<Duration> Durations { get; set; }
-        public DbSet<IERating> IERatings { get; set; }
-        public DbSet<IEType> IETypes { get; set; }
-        public DbSet<InvoiceStatus> InvoiceStatus { get; set; }
         public DbSet<Language> Languages { get; set; }
-        public DbSet<LeadCategory> LeadCategories { get; set; }
-        public DbSet<LeadSource> LeadSources { get; set; }
-        public DbSet<LeadStatus> LeadStatus { get; set; }
-        public DbSet<Title> Titles { get; set; }
-        public DbSet<PaymentMethods> PaymentMethods { get; set; }
-        public DbSet<PaymentStatus> PaymentStatus { get; set; }
-        public DbSet<Relationship> Relationships { get; set; }
-        public DbSet<Vat> Vats { get; set; }
-        public DbSet<VisitVenue> VisitVenues { get; set; }
-        public DbSet<BookingStatus> BookingStatus { get; set; }
-        public DbSet<ReportDeliveryOptions> ReportDeliveryOptions { get; set; }
 
         #endregion static data models
 

@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:61223/",
-      "sslPort": 44338
+      "applicationUrl": "http://localhost:6123/",
+      "sslPort": 44350
     }
   },
   "profiles": {
@@ -23,7 +23,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:61224/"
+      "applicationUrl": "http://localhost:61254/"
     },
     "Mock Lambda Test Tool": {
       "commandName": "Executable",

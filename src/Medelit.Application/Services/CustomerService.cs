@@ -19,6 +19,8 @@ namespace Medelit.Application
         private readonly ICustomerRepository _customerRepository;
         private readonly ILanguageRepository _langRepository;
         private readonly IStaticDataRepository _staticRepository;
+        private readonly IServiceRepository _serviceRepository;
+        private readonly IProfessionalRepository _professoinalRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
@@ -30,7 +32,9 @@ namespace Medelit.Application
                             IMediatorHandler bus,
                             ICustomerRepository customerRepository,
                             ILanguageRepository langRepository,
-                           IStaticDataRepository staticRepository)
+                           IStaticDataRepository staticRepository, 
+                           IServiceRepository serviceRepository,
+                            IProfessionalRepository professionalRepository)
 {
             _mapper = mapper;
             _httpContext = httpContext;
@@ -39,6 +43,8 @@ namespace Medelit.Application
             _customerRepository = customerRepository;
             _langRepository = langRepository;
             _staticRepository = staticRepository;
+            _serviceRepository = serviceRepository;
+            _professoinalRepository = professionalRepository;
         }
 
         public dynamic GetCustomers()
@@ -51,21 +57,25 @@ namespace Medelit.Application
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var langs = _langRepository.GetAll().ToList();
             var statics = _staticRepository.GetAll().ToList();
+            var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
+            var professionals = _professoinalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
 
-            var query = (from customer in _customerRepository.GetAll()
-          
-                         select new { customer})
+            var query = (from customer in _customerRepository.GetAllWithService()
+                         where customer.Status != eRecordStatus.Deleted
+                         select customer)
                         .Select((x) => new
                         {
-                            Id = x.customer.Id,
-                            Title = statics.FirstOrDefault(s => s.Id == x.customer.TitleId).Titles,
-                            Language = langs.FirstOrDefault(s => s.Id == x.customer.TitleId).Name,
-                            SurName = x.customer.SurName,
-                            Name = x.customer.Name,
-                            Email = x.customer.Email,
-                            MainPhone = x.customer.MainPhone,
-                            UpdateDate = x.customer.UpdateDate,
-                            Status = x.customer.Status
+                            Id = x.Id,
+                            Title = statics.FirstOrDefault(s => s.Id == x.TitleId).Titles,
+                            Language = langs.FirstOrDefault(s => s.Id == x.LanguageId).Name,
+                            Services = PopulateServices(x.Services, services),
+                            Professionals = PopulateProfessionals(x.Services, professionals),
+                            SurName = x.SurName,
+                            Name = x.Name,
+                            Email = x.Email,
+                            MainPhone = x.MainPhone,
+                            UpdateDate = x.UpdateDate,
+                            Status = x.Status
                         });
 
 
@@ -153,6 +163,26 @@ namespace Medelit.Application
                 items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
                 totalCount
             };
+        }
+
+        private string PopulateServices(ICollection<CustomerServiceRelation> services, List<FilterModel> oservices)
+        {
+            var query = from s in services
+                        join
+                        os in oservices on s.ServiceId equals os.Id
+                        select os.Value;
+
+            return string.Join(",", query.ToArray());
+        }
+
+        private string PopulateProfessionals(ICollection<CustomerServiceRelation> services, List<FilterModel> professionals)
+        {
+            var query = from s in services
+                        join
+                        os in professionals on s.ProfessionalId equals os.Id
+                        select os.Value;
+
+            return string.Join(",", query.ToArray());
         }
 
         public CustomerViewModel GetCustomerById(long customerId)

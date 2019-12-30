@@ -8,7 +8,6 @@ namespace Medelit.Application
     {
         public string Name { get; set; }
         public long? InvoiceEntityId { get; set; }
-        public string InvoiceEntityName { get; set; }
         public short? BookingStatusId { get; set; }
         public DateTime? BookingDate { get; set; }
         public short? BookingTypeId { get; set; }
@@ -36,6 +35,7 @@ namespace Medelit.Application
         public string Phone2Owner { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public short? CountryOfBirthId { get; set; }
+
         public short? HomeCountryId { get; set; }
         public short? VisitCountryId { get; set; }
         public string Details { get; set; }
@@ -65,6 +65,7 @@ namespace Medelit.Application
         public decimal? LabCostsForMedelit { get; set; }
         public DateTime? DateOnPrescription { get; set; }
         public string Lab { get; set; }
+        public int? LabId { get; set; }
         public short? Vials { get; set; }
         public int? RepeadPrescriptionNumber { get; set; }
         public int? PrescriptionNumber { get; set; }
@@ -73,25 +74,35 @@ namespace Medelit.Application
         public decimal? TicketFee { get; set; }
         public string ExcemptionCode { get; set; }
         public short? NHSOrPrivateId { get; set; }
-        public short? TaxType { get; set; }
         public decimal? SubTotal { get; set; }
         public decimal? TaxAmount { get; set; }
         public decimal? PatientDiscount { get; set; }
         public decimal? GrossTotal { get; set; }
-        public DateTime? VisitDate { get; set; }
-        public string VisitTime { get; set; }
+        public Boolean? IsAllDayVisit { get; set; }
+        public DateTime? VisitStartDate { get; set; }
+        public DateTime? VisitEndDate { get; set; }
+
         public decimal? ProDiscount { get; set; }
         public short? CashConfirmationMailId { get; set; }
-        public short? QuantityHours { get; set; }
+
         public short? PatientAge { get; set; }
         public short? Cycle { get; set; }
         public short? CycleNumber { get; set; }
         public string ProInvoiceNumber { get; set; }
-        public string BookingTime { get; set; }
+
         public decimal? TotalDue { get; set; }
         public decimal? TotalPaid { get; set; }
         public long? CustomerId { get; set; }
+        public long ServiceId { get; set; }
+        public decimal? TaxType { get; set; }
+        public long ProfessionalId { get; set; }
+        public decimal? PtFee { get; set; }
+        public decimal? ProFee { get; set; }
+
+        public short? QuantityHours { get; set; }
+
+        public long? AssignedToId { get; set; }
         public string CustomerName { get; set; }
-        public ICollection<BookingServiceRelationViewModel> Services { get; set; }
+        public string InvoiceEntityName { get; set; }
     }
 }

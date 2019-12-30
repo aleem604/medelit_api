@@ -17,9 +17,8 @@ namespace Medelit.Application
     public class InvoiceEntityService : IInvoiceEntityService
     {
         private readonly IInvoiceEntityRepository _invoiceEntityRepository;
-        private readonly ITitleRepository _titleRepository;
         private readonly ILanguageRepository _langRepository;
-
+        private readonly IStaticDataRepository _staticRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
@@ -31,7 +30,7 @@ namespace Medelit.Application
                             IMediatorHandler bus,
                             IInvoiceEntityRepository invoiceEntityRepository,
                             ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
+                            IStaticDataRepository staticRepository
             
             )
         {
@@ -40,8 +39,8 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _invoiceEntityRepository = invoiceEntityRepository;
-            _titleRepository = titleRepository;
             _langRepository = langRepository;
+            _staticRepository = staticRepository;
         }
        
         public dynamic GetInvoiceEntities()
@@ -52,8 +51,25 @@ namespace Medelit.Application
         public dynamic FindInvoiceEntities(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+            var ratings = _staticRepository.GetIERatings();
+            var ieTypes = _staticRepository.GetIETypes();
 
-            var query = _invoiceEntityRepository.GetAll();
+
+            var query = _invoiceEntityRepository.GetAll().Select((s)=> new {
+                s.Id,
+                s.Name,
+                s.Email,
+                rating = ratings.FirstOrDefault(x=>x.Id == s.RatingId).Value,
+                ieType = ieTypes.FirstOrDefault(x=>x.Id == s.IETypeId).Value,
+                s.BillingAddress,
+                s.VatNumber,
+                s.Bank,
+                s.Status,
+                s.CreateDate, 
+                s.CreatedById,
+                s.UpdateDate,
+                s.UpdatedById
+            });
 
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))

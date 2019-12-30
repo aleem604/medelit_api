@@ -7,18 +7,25 @@ using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace Equinox.Infra.Data.Repository
+namespace Medelit.Infra.Data.Repository
 {
+
     public class StaticDataRepository : Repository<StaticData>, IStaticDataRepository
     {
         public StaticDataRepository(MedelitContext context)
             : base(context)
-        {}
+        { }
 
         public IQueryable<FilterModel> GetCustomersForImportFilter()
         {
             return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.SurName} - {x.DateOfBirth.Value.ToString("yyyy-MM-dd")}" });
         }
+
+        public IQueryable<FilterModel> GetInvoicesForFilter()
+        {
+            return Db.Invoice.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = x.Subject });
+        }
+
         public IQueryable<FilterModel> GetInvoiceEntities()
         {
             return Db.InvoiceEntity.Select(x => new FilterModel { Id = x.Id, Value = x.Name });
@@ -26,13 +33,26 @@ namespace Equinox.Infra.Data.Repository
 
         public dynamic GetServicesForFitler()
         {
+            var vats = Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = $"{s.Vats} {s.VatUnit}", DecValue = s.Vats }).Where(x => x.Value != null);
+
             return (from s in Db.Service
                     join
                         ptFees in Db.Fee on s.PTFeeId equals ptFees.Id
                     join
                         proFees in Db.Fee on s.PROFeeId equals proFees.Id
-                    select new { Id = s.Id, Value = s.Name, ptFeeId = ptFees.Id, ptFeeA1 = ptFees.A1, ptFeeA2 = ptFees.A2, proFeeId = proFees.Id, proFeeA1 = proFees.A1, proFeeA2 = proFees.A2 }).ToList();
+                    select new { Id = s.Id,
+                        Value = s.Name,
+                        ptFeeId = ptFees.Id,
+                        ptFeeA1 = ptFees.A1.HasValue ? ptFees.A1 : 0,
+                        ptFeeA2 = ptFees.A2.HasValue ? ptFees.A2 : 0,
+                        proFeeId = proFees.Id,
+                        proFeeA1 = proFees.A1.HasValue ? proFees.A1 : 0,
+                        proFeeA2 = proFees.A2.HasValue ? proFees.A2 : 0,
+                        timeService = s.TimedServiceId,
+                        vat = s.VatId.HasValue ? vats.FirstOrDefault(x => x.Id == s.VatId.Value).DecValue : null
+                    }).ToList();
         }
+
         public dynamic GetProfessionalsForFitler(long? serviceId)
         {
             if (serviceId.HasValue)
@@ -66,64 +86,64 @@ namespace Equinox.Infra.Data.Repository
             return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.SubCategory }).Where(x => x.Value != null);
         }
 
-        public IQueryable<ContractStatus> GetContractStatus()
+        public IQueryable<FilterModel> GetContractStatus()
         {
             //return Db.ContactStatus;
-            return Db.StaticData.Select((s) => new ContractStatus { Id = s.Id, Value = s.ContractStatus }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.ContractStatus }).Where(x => x.Value != null);
         }
 
-        public IQueryable<ApplicationMethod> GetApplicationMethods()
+        public IQueryable<FilterModel> GetApplicationMethods()
         {
             //return Db.ApplicationMethod;
-            return Db.StaticData.Select((s) => new ApplicationMethod { Id = s.Id, Value = s.ApplicationMethods }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.ApplicationMethods }).Where(x => x.Value != null);
         }
 
-        public IQueryable<ApplicationMean> GetApplicationMeans()
+        public IQueryable<FilterModel> GetApplicationMeans()
         {
             //return Db.ApplicationMean;
-            return Db.StaticData.Select((s) => new ApplicationMean { Id = s.Id, Value = s.ApplicationMeans }).Where(x=> x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.ApplicationMeans }).Where(x => x.Value != null);
         }
 
-        public IQueryable<DocumentListSent> GetDocumentListSents()
+        public IQueryable<FilterModel> GetDocumentListSents()
         {
             //return Db.DocumentListSent;
-            return Db.StaticData.Select((s) => new DocumentListSent { Id = s.Id, Value = s.DocumentListSentOptions }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.DocumentListSentOptions }).Where(x => x.Value != null);
         }
 
-        public IQueryable<AccountingCode> GetAccountingCodes()
+        public IQueryable<FilterModel> GetAccountingCodes()
         {
             //return Db.AccountingCode;
-            return Db.StaticData.Select((s) => new AccountingCode { Id = s.Id, Value = s.AccountingCodes }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.AccountingCodes }).Where(x => x.Value != null);
         }
 
-        public IQueryable<CollaborationCode> GetCollaborationCodes()
+        public IQueryable<FilterModel> GetCollaborationCodes()
         {
             //return Db.CollaborationCode;
-            return Db.StaticData.Select((s) => new CollaborationCode { Id = s.Id, Value = s.CollaborationCodes }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.CollaborationCodes }).Where(x => x.Value != null);
         }
 
-        public IQueryable<BookingStatus> GetBookingStatus()
+        public IQueryable<FilterModel> GetBookingStatus()
         {
             //return Db.BookingStatus;
-            return Db.StaticData.Select((s) => new BookingStatus { Id = s.Id, Value = s.BookingStatus }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.BookingStatus }).Where(x => x.Value != null);
         }
 
-        public IQueryable<BookingType> GetBookingTypes()
+        public IQueryable<FilterModel> GetBookingTypes()
         {
             //return Db.BookingType;
-            return Db.StaticData.Select((s) => new BookingType { Id = s.Id, Value = s.BookingTypes }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.BookingTypes }).Where(x => x.Value != null);
         }
 
-        public IQueryable<BuildingType> GetBuildingTypes()
+        public IQueryable<FilterModel> GetBuildingTypes()
         {
             //return Db.BuildingType;
-            return Db.StaticData.Select((s) => new BuildingType { Id = s.Id, Value = s.BuildingTypes }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.BuildingTypes }).Where(x => x.Value != null);
         }
 
-        public IQueryable<ContactMethod> GetContactMethods()
+        public IQueryable<FilterModel> GetContactMethods()
         {
             //return Db.ContactMethods;
-            return Db.StaticData.Select((s) => new ContactMethod { Id = s.Id, Value = s.ContactMethods }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.ContactMethods }).Where(x => x.Value != null);
         }
 
         public IQueryable<Country> GetCountries()
@@ -136,34 +156,33 @@ namespace Equinox.Infra.Data.Repository
             return Db.City;
         }
 
-        public IQueryable<DiscountNetwork> GetDiscountNewtorks()
+        public IQueryable<FilterModel> GetDiscountNewtorks()
         {
             //return Db.DiscountNetworks;
-            return Db.StaticData.Select((s) => new DiscountNetwork { Id = s.Id, Value = s.DiscountNetworks }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.DiscountNetworks }).Where(x => x.Value != null);
         }
 
-        public IQueryable<Duration> GetDurations()
+        public IQueryable<FilterModel> GetDurations()
         {
-            return Db.Durations;
-            //return Db.StaticData.Select((s) => new Duration { Id = s.Id, Value = $"{s.Durations} {s.DurationUnits}" }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = $"{s.Durations} {s.DurationUnits}" }).Where(x => x.Value != null);
         }
 
-        public IQueryable<IERating> GetIERatings()
+        public IQueryable<FilterModel> GetIERatings()
         {
             //return Db.IERatings;
-            return Db.StaticData.Select((s) => new IERating { Id = s.Id, Value = s.IERatings }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.IERatings }).Where(x => x.Value != null);
         }
 
-        public IQueryable<IEType> GetIETypes()
+        public IQueryable<FilterModel> GetIETypes()
         {
             //return Db.IETypes;
-            return Db.StaticData.Select((s) => new IEType { Id = s.Id, Value = s.IETypes }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.IETypes }).Where(x => x.Value != null);
         }
 
-        public IQueryable<InvoiceStatus> GetInvoiceStatuses()
+        public IQueryable<FilterModel> GetInvoiceStatuses()
         {
             //return Db.InvoiceStatus;
-            return Db.StaticData.Select((s) => new InvoiceStatus { Id = s.Id, Value = s.InvoiceStatus }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.InvoiceStatus }).Where(x => x.Value != null);
         }
 
         public IQueryable<FilterModel> GetLanguages()
@@ -171,63 +190,62 @@ namespace Equinox.Infra.Data.Repository
             return Db.Languages.Select(x => new FilterModel { Id = x.Id, Value = x.Name });
         }
 
-        public IQueryable<LeadCategory> GetLeadCategories()
+        public IQueryable<FilterModel> GetLeadCategories()
         {
-            return Db.LeadCategories;
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.LeadCategories }).Where(x => x.Value != null);
         }
 
-        public IQueryable<LeadSource> GetLeadSources()
+        public IQueryable<FilterModel> GetLeadSources()
         {
             //return Db.LeadSources;
-            return Db.StaticData.Select((s) => new LeadSource { Id = s.Id, Value = s.LeadSources }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.LeadSources }).Where(x => x.Value != null);
         }
 
-        public IQueryable<LeadStatus> GetLeadStatuses()
+        public IQueryable<FilterModel> GetLeadStatuses()
         {
             //return Db.LeadStatus;
-            return Db.StaticData.Select((s) => new LeadStatus { Id = s.Id, Value = s.LeadStatus }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.LeadStatus }).Where(x => x.Value != null);
         }
 
-        public IQueryable<Title> GetTitles()
+        public IQueryable<FilterModel> GetTitles()
         {
             //return Db.Titles;
-            return Db.StaticData.Select((s) => new Title { Id = s.Id, Value = s.Titles }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.Titles }).Where(x => x.Value != null);
         }
 
-        public IQueryable<PaymentMethods> GetPaymentMethods()
+        public IQueryable<FilterModel> GetPaymentMethods()
         {
             //return Db.PaymentMethods;
-            return Db.StaticData.Select((s) => new PaymentMethods { Id = s.Id, Value = s.PaymentMethods }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.PaymentMethods }).Where(x => x.Value != null);
         }
 
-        public IQueryable<PaymentStatus> GetPaymentStatuses()
+        public IQueryable<FilterModel> GetPaymentStatuses()
         {
             //return Db.PaymentStatus;
-            return Db.StaticData.Select((s) => new PaymentStatus { Id = s.Id, Value = s.PaymentStatus }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.PaymentStatus }).Where(x => x.Value != null);
         }
 
-        public IQueryable<Relationship> GetRelationships()
+        public IQueryable<FilterModel> GetRelationships()
         {
             //return Db.Relationships;
-            return Db.StaticData.Select((s) => new Relationship { Id = s.Id, Value = s.Relationships }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.Relationships }).Where(x => x.Value != null);
         }
 
-        public IQueryable<Vat> GetVats()
+        public IQueryable<FilterModel> GetVats()
         {
-            return Db.Vats;
-            //return Db.StaticData.Select((s) => new Vat { Id = s.Id, Value = s.Vats }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = $"{s.Vats} {s.VatUnit}", DecValue = s.Vats.Value }).Where(x => x.Value != null);
         }
 
-        public IQueryable<VisitVenue> GetVisitVenues()
+        public IQueryable<FilterModel> GetVisitVenues()
         {
             //return Db.VisitVenues;
-            return Db.StaticData.Select((s) => new VisitVenue { Id = s.Id, Value = s.VisitVenues }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.VisitVenues }).Where(x => x.Value != null);
         }
 
-        public IQueryable<ReportDeliveryOptions> GetReportDeliveryOptions()
+        public IQueryable<FilterModel> GetReportDeliveryOptions()
         {
             //return Db.ReportDeliveryOptions;
-            return Db.StaticData.Select((s) => new ReportDeliveryOptions { Id = s.Id, Value = s.ReportDeliveryOptions }).Where(x => x.Value != null);
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.ReportDeliveryOptions }).Where(x => x.Value != null);
         }
 
         public IQueryable<FilterModel> GetAddedToAccountOptions()
@@ -235,7 +253,7 @@ namespace Equinox.Infra.Data.Repository
             return Db.StaticData.Where(x => x.AddToAccountOptions != null).Select(x => new FilterModel { Id = x.Id, Value = x.AddToAccountOptions });
         }
 
-         public IQueryable<StaticData> GetStaticData()
+        public IQueryable<StaticData> GetStaticData()
         {
             return Db.StaticData;
         }

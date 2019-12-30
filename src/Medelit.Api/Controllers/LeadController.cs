@@ -36,11 +36,13 @@ namespace Medelit.Api.Controllers
             return Response(_leadService.FindLeads(model));
         }
 
+        [Authorize]
         [HttpGet("leads")]
         public IActionResult GetLeads()
         {
 
-            return Response(_leadService.GetLeads());
+            return Response(User.Identity.Name);
+            //return Response(_leadService.GetLeads());
         }
 
         [HttpGet("leads/{leadId}")]

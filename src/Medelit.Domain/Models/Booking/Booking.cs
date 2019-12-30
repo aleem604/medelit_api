@@ -115,6 +115,8 @@ namespace Medelit.Domain.Models
         [Column("date_on_prescription")]
         public DateTime? DateOnPrescription { get; set; }
         public string Lab { get; set; }
+        [Column("lab_id")]
+        public int? LabId { get; set; }
         public short? Vials { get; set; }
         [Column("repeat_prescription_number")]
         public int? RepeadPrescriptionNumber { get; set; }
@@ -139,16 +141,19 @@ namespace Medelit.Domain.Models
         public decimal? PatientDiscount { get; set; }
         [Column("gross_total")]
         public decimal? GrossTotal { get; set; }
-        [Column("visit_date")]
-        public DateTime? VisitDate { get; set; }
-        [Column("visit_time")]
-        public string VisitTime { get; set; }
+        [Column("is_all_day_visit")]
+        public short? IsAllDayVisit { get; set; }
+        [Column("visit_start_date")]
+        public DateTime? VisitStartDate { get; set; }
+        [Column("visit_end_date")]
+        public DateTime? VisitEndDate { get; set; }
+       
+
         [Column("pro_discount")]
         public decimal? ProDiscount { get; set; }
         [Column("cash_confirmation_email_id")]
         public short? CashConfirmationMailId { get; set; }
-        [Column("quantity_hours")]
-        public short? QuantityHours { get; set; }
+        
         [Column("patient_age")]
         public short? PatientAge { get; set; }
         public short? Cycle { get; set; }
@@ -156,8 +161,7 @@ namespace Medelit.Domain.Models
         public short? CycleNumber { get; set; }
         [Column("pro_invoice_number")]
         public string ProInvoiceNumber { get; set; }
-        [Column("booking_time")]
-        public string BookingTime { get; set; }
+       
         [Column("total_due")]
         public decimal? TotalDue { get; set; }
         [Column("total_paid")]
@@ -165,9 +169,125 @@ namespace Medelit.Domain.Models
         [Column("customer_id")]
         public long? CustomerId { get; set; }
 
+        [Column("service_id")]
+        public long ServiceId { get; set; }
+        [ForeignKey("ServiceId")]
+        public Service Service { get; set; }
+
+
+        [Column("professional_id")]
+        public long ProfessionalId { get; set; }
+        [ForeignKey("ProfessionalId")]
+        public Professional Professional { get; set; }
+
+        [Column("pt_fee")]
+        public decimal? PtFee { get; set; }      
+        [Column("pro_fee")]
+        public decimal? ProFee { get; set; }
+
+        [Column("quantity_hours")]
+        public short? QuantityHours { get; set; }
+
         [Column("assigned_to_id")]
         public long? AssignedToId { get; set; }
+        public Booking Clone()
+        {
+            return new Booking {
+                CustomerId = this.CustomerId,
+                Name = this.Name,
+                InvoiceEntityId = this.InvoiceEntityId,
+                BookingStatusId = this.BookingStatusId,
+                BookingDate = this.BookingDate,
+                BookingTypeId = this.BookingTypeId,
+                VisitLanguageId = this.VisitLanguageId,
+                VisitVenueId = this.VisitVenueId,
+                VisitVenueDetail = this.VisitVenueDetail,
+                AddressNotes = this.AddressNotes,
+                Buzzer = this.Buzzer,
+                VisitRequestingPerson = this.VisitRequestingPerson,
+                VisitRequestingPersonRelationId = this.VisitRequestingPersonRelationId,
+                FlatNumber = this.FlatNumber,
+                Floor = this.Floor,
+                BuildingTypeId = this.BuildingTypeId,
+                VisitStreetName = this.VisitStreetName,
+                HomePostCode = this.HomePostCode,
+                VisitPostCode= this.VisitPostCode,
+                HomeCityId = this.HomeCityId,
+                VisitCityId = this.VisitCityId,
+                PhoneNumber = this.PhoneNumber,
+                Email = this.Email,
+                Email2 = this.Email2,
+                Phone2 = this.Phone2,
+                Phone2Owner = this.Phone2Owner,
+                DateOfBirth = this.DateOfBirth,
+                CountryOfBirthId = this.CountryOfBirthId,
+                HomeCountryId = this.HomeCountryId,
+                VisitCountryId = this.VisitCountryId,
+                Details = this.Details,
+                Diagnosis = this.Diagnosis,
+                ReasonForVisit = this.ReasonForVisit,
+                ImToProId = this.ImToProId,
+                PtCalledForAppointmentId = this.PtCalledForAppointmentId,
+                PaymentConcludedId= this.PaymentConcludedId,
+                PaymentMethodId = this.PaymentMethodId,
+                AddToAccountingId = this.AddToAccountingId,
+                PaymentStatusId = this.PaymentStatusId,
+                CCAuthorizationId = this.CCAuthorizationId,
+                BankTransfterReceiptId = this.BankTransfterReceiptId,
+                CCOwner = this.CCOwner,
+                PaymentArrivalDate = this.PaymentArrivalDate,
+                CashReturn = this.CashReturn,
+                InvoiceNumber = this.InvoiceNumber,
+                InvoicingNotes = this.InvoicingNotes,
+                InvoiceDueDate = this.InvoiceDueDate,
+                NotesOnPayment =   this.NotesOnPayment,
+                ReportDeliveredId = this.ReportDeliveredId,
+                AddToProAccountId = this.AddToProAccountId,
+                InsuranceCoverId = this.InsuranceCoverId,
+                FeedbackFromPro = this.FeedbackFromPro,
+                ProAvailabilityAskedId = this.ProAvailabilityAskedId,
+                LabCostsForMedelit = this.LabCostsForMedelit,
+                DateOnPrescription = this.DateOnPrescription,
+                Lab = this.Lab,
+                Vials = this.Vials,
+                RepeadPrescriptionNumber = this.RepeadPrescriptionNumber,
+                PrescriptionNumber = this.PrescriptionNumber,
+                Notes= this.Notes,
+                PrivateFee = this.PrivateFee,
+                TicketFee = this.TicketFee,
+                ExcemptionCode = this.ExcemptionCode,
+                NHSOrPrivateId = this.NHSOrPrivateId,
+                TaxType = this.TaxType,
+                SubTotal = this.SubTotal,
+                TaxAmount = this.TaxAmount,
+                PatientDiscount = this.PatientDiscount,
+                GrossTotal = this.GrossTotal,
+                IsAllDayVisit = this.IsAllDayVisit,
+                VisitStartDate = this.VisitStartDate,
+                VisitEndDate = this.VisitEndDate,
+                
 
-        public ICollection<BookingServiceRelation> Services { get; set; }
+                ProDiscount = this.ProDiscount,
+                CashConfirmationMailId = this.CashConfirmationMailId,
+                QuantityHours = this.QuantityHours,
+                //DiscountNetworkId = this.DiscountNetworkId,
+                PatientAge = this.PatientAge,
+                Cycle = this.Cycle,
+                CycleNumber = this.CycleNumber,
+                ProInvoiceNumber = this.ProInvoiceNumber,
+                TotalDue = this.TotalDue,
+                TotalPaid = this.TotalPaid,
+                ServiceId = this.ServiceId,
+                ProfessionalId = this.ProfessionalId,
+                PtFee = this.PtFee,
+                ProFee = this.ProFee,
+               
+                Status = this.Status,
+                CreateDate = DateTime.UtcNow,
+                CreatedById = this.CreatedById,
+
+            };
+
+        }
     }
 }

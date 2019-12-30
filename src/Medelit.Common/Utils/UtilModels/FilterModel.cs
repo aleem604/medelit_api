@@ -9,5 +9,6 @@ namespace Medelit.Common
         public long Id { get; set; }
         public string Value { get; set; }
         public string Email { get; set; }
+        public decimal? DecValue { get; set; }
     }
 }

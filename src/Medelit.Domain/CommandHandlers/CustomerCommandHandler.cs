@@ -102,7 +102,7 @@ namespace Medelit.Domain.CommandHandlers
                     customerModel.SortCode = request.Customer.SortCode;
                     customerModel.BlacklistId = request.Customer.BlacklistId;
 
-                   
+
                     customerModel.UpdateDate = DateTime.UtcNow;
                     _customerRepository.Update(customerModel);
                     commmitResult = Commit();
@@ -159,7 +159,6 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
-
         public Task<bool> Handle(DeleteCustomersCommand request, CancellationToken cancellationToken)
         {
             try
@@ -194,73 +193,52 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var customer = _customerRepository.GetByIdWithInclude(request.CustomerId);
-                var booking = _mapper.Map<Booking>(customer);
-
-                booking.InvoiceEntityId = customer.InvoiceEntityId;
-                booking.CustomerId = customer.Id;
-                booking.Name = _bookingRepository.GetBookingName(customer.Name, customer.SurName);
-
-
-                booking.DateOfBirth = customer.DateOfBirth;
-                booking.PhoneNumber = customer.MainPhone;
-                booking.PaymentMethodId = (short)customer.PaymentMethodId;
-                booking.Email2 = customer.Email2;
-                booking.HomeStreetName = customer.HomeStreetName;
-                booking.VisitLanguageId = (short?)customer.LanguageId;
-                booking.BuildingTypeId = (short?)customer.BuildingTypeId;
-                booking.PaymentConcludedId = 0;
-                booking.CCAuthorizationId = 0;
-                booking.CashConfirmationMailId = 0;
-                booking.BankTransfterReceiptId = 0;
-                booking.PaymentStatusId = 4;
-                booking.PaymentConcludedId = 0;
-                booking.ImToProId = 0;
-                booking.MailToPtId = 0;
-                booking.AddToAccountingId = 2;
-                booking.NHSOrPrivateId = 0;
-                booking.PtCalledForAppointmentId = 0;
-                booking.ProAvailabilityAskedId = 0;
-
-                booking.PatientAge = (short?)(DateTime.Now - customer.DateOfBirth).Value.Days;
-                booking.BookingTime = DateTime.Now.ToString("H:mm tt");
-
-                booking.Services = null;
-                booking.Id = 0;
-                _bookingRepository.Add(booking);
-                
-                if (Commit())
+                var services = customer.Services;
+                foreach (var service in services)
                 {
-                    if (booking.Id > 0)
-                    {
-                        var services = _mapper.Map<ICollection<CustomerServiceRelation>>(customer.Services);
-                        var newServices = new List<BookingServiceRelation>();
-                        foreach (var service in services)
-                        {
-                            newServices.Add(new BookingServiceRelation
-                            {
-                                BookingId = booking.Id,
-                                ServiceId = service.ServiceId,
-                                ProfessionalId = service.ProfessionalId,
-                                PTFeeId = service.PTFeeId,
-                                PTFeeA1 = service.PTFeeA1,
-                                PTFeeA2 = service.PTFeeA2,
-                                PROFeeId = service.PROFeeId,
-                                PROFeeA1 = service.PROFeeA1,
-                                PROFeeA2 = service.PROFeeA2
-                            });
-                        }
-                        _bookingRepository.RemoveBookingServices(booking.Id);
-                        _bookingRepository.SaveBookingRelation(newServices);
-                    }
+                    var booking = _mapper.Map<Booking>(customer);
 
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, booking.Id));
-                    return Task.FromResult(true);
+                    booking.InvoiceEntityId = customer.InvoiceEntityId;
+                    booking.CustomerId = customer.Id;
+
+                    booking.ServiceId = service.ServiceId;
+                    booking.ProfessionalId = service.ProfessionalId;
+                    booking.PtFee = service.IsPtFeeA1 == 1 ? service.PTFeeA1 : service.PTFeeA2;
+                    booking.ProFee = service.IsProFeeA1 == 1 ? service.PROFeeA1 : service.PROFeeA2;
+
+                    booking.Name = _bookingRepository.GetBookingName(customer.Name, customer.SurName);
+
+                    booking.DateOfBirth = customer.DateOfBirth;
+                    booking.PhoneNumber = customer.MainPhone;
+                    booking.PaymentMethodId = (short)customer.PaymentMethodId;
+                    booking.Email2 = customer.Email2;
+                    booking.HomeStreetName = customer.HomeStreetName;
+                    booking.VisitLanguageId = customer.LanguageId;
+                    booking.BuildingTypeId = customer.BuildingTypeId;
+                    booking.PaymentConcludedId = 0;
+                    booking.CCAuthorizationId = 0;
+                    booking.CashConfirmationMailId = 0;
+                    booking.BankTransfterReceiptId = 0;
+                    booking.PaymentStatusId = 4;
+                    booking.PaymentConcludedId = 0;
+                    booking.ImToProId = 0;
+                    booking.MailToPtId = 0;
+                    booking.AddToAccountingId = 2;
+                    booking.NHSOrPrivateId = 0;
+                    booking.PtCalledForAppointmentId = 0;
+                    booking.ProAvailabilityAskedId = 0;
+
+                    booking.PatientAge = (short?)((DateTime.Now - customer.DateOfBirth).Value.Days / 365.25);
+                    
+
+                    booking.Id = 0;
+                    _bookingRepository.Add(booking);
+                    Commit();
                 }
-                else
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
-                }
+
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, null));
+                return Task.FromResult(true);
+
             }
             catch (Exception ex)
             {

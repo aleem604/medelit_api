@@ -60,9 +60,10 @@ namespace Medelit.Application
             var langs = _langRepository.GetAll().ToList();
             var statics = _staticRepository.GetAll().ToList();
             var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
+            var professionals = _professoinalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
 
-            var query = (from lead in _leadRepository.GetAllWithService().Where(x => x.Status != eRecordStatus.Deleted)
-
+            var query = (from lead in _leadRepository.GetAllWithService()
+                         where lead.ConvertDate == null && lead.Status !=eRecordStatus.Deleted
                          select lead)
                         .Select((x) => new
                         {
@@ -70,13 +71,13 @@ namespace Medelit.Application
                             Title = statics.FirstOrDefault(s => s.Id == x.TitleId).Titles,
                             Language = langs.FirstOrDefault(s => s.Id == x.LanguageId).Name,
                             Services = PopulateServices(x.Services, services),
-                            
-                            SurName = x.SurName,
-                            Name = x.Name,
-                            Email = x.Email,
-                            MainPhone = x.MainPhone,
-                            UpdateDate = x.UpdateDate,
-                            Status = x.Status
+                            Professionals = PopulateProfessionals(x.Services, professionals),        
+                            x.SurName,
+                            x.Name,
+                            x.Email,
+                            x.MainPhone,
+                            x.UpdateDate,
+                            x.Status
                         });
 
 
@@ -176,6 +177,16 @@ namespace Medelit.Application
             return string.Join(",", query.ToArray());
         }
 
+        private string PopulateProfessionals(ICollection<LeadServiceRelation> services, List<FilterModel> professionals)
+        {
+            var query = from s in services
+                        join
+                        os in professionals on s.ProfessionalId equals os.Id
+                        select os.Value;
+
+            return string.Join(",", query.ToArray());
+        }
+
         public LeadViewModel GetLeadById(long leadId, long? fromCustomerId)
         {
             if (fromCustomerId.HasValue)
@@ -217,8 +228,6 @@ namespace Medelit.Application
         {
             _bus.SendCommand(new ConvertLeadToBookingCommand { LeadId = leadId });
         }
-
-
 
         public void Dispose()
         {

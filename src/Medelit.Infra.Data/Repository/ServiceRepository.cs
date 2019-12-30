@@ -3,9 +3,10 @@ using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace Equinox.Infra.Data.Repository
+namespace Medelit.Infra.Data.Repository
 {
     public class ServiceRepository : Repository<Service>, IServiceRepository
     {
@@ -14,9 +15,14 @@ namespace Equinox.Infra.Data.Repository
         {
         }
 
+        public IEnumerable<Service> GetAllWithProfessionals()
+        {
+            return Db.Service.Include(x => x.ServiceProfessionals);
+        }
+
         public Service GetByIdWithIncludes(long serviceId)
         {
-            return Db.Service.Include(x => x.ServiceProfessionalRelation).Where(x => x.Id == serviceId).FirstOrDefault();
+            return Db.Service.Include(x => x.ServiceProfessionals).Where(x => x.Id == serviceId).FirstOrDefault();
         }
 
         public void RemoveProfessionals(long serviceId)

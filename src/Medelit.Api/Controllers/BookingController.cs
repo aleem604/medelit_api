@@ -88,10 +88,18 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
-        [HttpGet("bookings/create-invoice/{bookingId}")]
-        public IActionResult CreateInvoice(long bookingId)
+
+        [HttpGet("bookings/create-clones/{bookingId}/{bookings}")]
+        public IActionResult CreateClones(long bookingId, short bookings)
         {
-            _bookingService.CreateInvoice(bookingId);
+            _bookingService.CreateClones(bookingId, bookings);
+            return Response();
+        }
+
+        [HttpGet("bookings/create-cycle/{bookingId}/{bookings}")]
+        public IActionResult CreateCycle(long bookingId, short bookings)
+        {
+            _bookingService.CreateCycle(bookingId, bookings);
             return Response();
         }
 

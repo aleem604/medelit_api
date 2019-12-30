@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Equinox.Infra.CrossCutting.Identity.Models.AccountViewModels
+namespace Medelit.Infra.CrossCutting.Identity.Models.AccountViewModels
 {
     public class LoginViewModel
     {

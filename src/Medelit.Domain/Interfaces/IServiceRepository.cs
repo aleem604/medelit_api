@@ -1,4 +1,5 @@
-﻿using Medelit.Domain.Models;
+﻿using System.Collections.Generic;
+using Medelit.Domain.Models;
 
 namespace Medelit.Domain.Interfaces
 {
@@ -6,5 +7,6 @@ namespace Medelit.Domain.Interfaces
     {
         void RemoveProfessionals(long serviceId);
         Service GetByIdWithIncludes(long serviceId);
+        IEnumerable<Service> GetAllWithProfessionals();
     }
 }

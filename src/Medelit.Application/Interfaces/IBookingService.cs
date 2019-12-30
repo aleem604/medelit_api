@@ -14,6 +14,7 @@ namespace Medelit.Application
         void UpdateStatus(IEnumerable<BookingViewModel> leads, eRecordStatus status);
         void DeleteBookings(IEnumerable<long> leadIds);
         void ConvertToBooking(long leadId);
-        void CreateInvoice(long leadId);
+        void CreateClones(long bookingId, short bookings);
+        void CreateCycle(long bookingId, short bookings);
     }
 }

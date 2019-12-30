@@ -22,7 +22,8 @@ namespace Medelit.Domain.CommandHandlers
         IRequestHandler<UpdateBookingsStatusCommand, bool>,
         IRequestHandler<DeleteBookingsCommand, bool>,
         IRequestHandler<BookingFromCustomerCommand, bool>,
-        IRequestHandler<CreateInvoiceCommand, bool>
+        IRequestHandler<CreateCloneCommand, bool>,
+        IRequestHandler<CreateCycleCommand, bool>
     {
         private readonly IMapper _mapper;
         private readonly IMediatorHandler _bus;
@@ -62,59 +63,65 @@ namespace Medelit.Domain.CommandHandlers
                 if (request.Booking.Id > 0)
                 {
                     var bookingModel = _bookingRepository.GetById(request.Booking.Id);
+                    //bookingModel.InvoiceEntityId = request.Booking.InvoiceEntityId;
+
                     bookingModel.Name = request.Booking.Name;
-                    bookingModel.BookingDate = request.Booking.BookingDate; 
-                    bookingModel.BookingTime = request.Booking.BookingTime; 
-                    bookingModel.VisitLanguageId = request.Booking.VisitLanguageId; 
-                    bookingModel.VisitStreetName = request.Booking.VisitStreetName; 
-                    bookingModel.HomeStreetName = request.Booking.HomeStreetName; 
-                    bookingModel.VisitPostCode = request.Booking.VisitPostCode; 
-                    bookingModel.HomePostCode = request.Booking.HomePostCode; 
-                    bookingModel.VisitCityId = request.Booking.VisitCityId; 
-                    bookingModel.PhoneNumber = request.Booking.PhoneNumber; 
-                    
-                    bookingModel.VisitCountryId = request.Booking.VisitCountryId; 
-                    bookingModel.HomeCountryId = request.Booking.HomeCountryId; 
+                    bookingModel.BookingDate = request.Booking.BookingDate;
+
+                    bookingModel.BookingTypeId = request.Booking.BookingTypeId;
+                    bookingModel.VisitLanguageId = request.Booking.VisitLanguageId;
+                    bookingModel.VisitStreetName = request.Booking.VisitStreetName;
+                    bookingModel.HomeStreetName = request.Booking.HomeStreetName;
+                    bookingModel.VisitPostCode = request.Booking.VisitPostCode;
+                    bookingModel.HomePostCode = request.Booking.HomePostCode;
+                    bookingModel.VisitCityId = request.Booking.VisitCityId;
+                    bookingModel.PhoneNumber = request.Booking.PhoneNumber;
+
+                    bookingModel.VisitCountryId = request.Booking.VisitCountryId;
+                    bookingModel.HomeCountryId = request.Booking.HomeCountryId;
                     bookingModel.Details = request.Booking.Details;
 
-                    bookingModel.Diagnosis = request.Booking.Diagnosis; 
-                    bookingModel.ReasonForVisit = request.Booking.ReasonForVisit; 
-                    bookingModel.ImToProId = request.Booking.ImToProId; 
-                    bookingModel.MailToPtId = request.Booking.MailToPtId; 
-                    bookingModel.PtCalledForAppointmentId = request.Booking.PtCalledForAppointmentId; 
-                    bookingModel.PaymentConcludedId = request.Booking.PaymentConcludedId; 
-                    bookingModel.PaymentMethodId = request.Booking.PaymentMethodId; 
-                    bookingModel.AddToAccountingId = request.Booking.AddToAccountingId; 
-                    bookingModel.PaymentStatusId = request.Booking.PaymentStatusId; 
+                    bookingModel.Diagnosis = request.Booking.Diagnosis;
+                    bookingModel.ReasonForVisit = request.Booking.ReasonForVisit;
+                    bookingModel.ImToProId = request.Booking.ImToProId;
+                    bookingModel.MailToPtId = request.Booking.MailToPtId;
+                    bookingModel.PtCalledForAppointmentId = request.Booking.PtCalledForAppointmentId;
+                    bookingModel.PaymentConcludedId = request.Booking.PaymentConcludedId;
+                    bookingModel.PaymentMethodId = request.Booking.PaymentMethodId;
+                    bookingModel.AddToAccountingId = request.Booking.AddToAccountingId;
+                    bookingModel.PaymentStatusId = request.Booking.PaymentStatusId;
                     bookingModel.CCAuthorizationId = request.Booking.CCAuthorizationId;
 
-                    bookingModel.BankTransfterReceiptId = request.Booking.BankTransfterReceiptId; 
-                    bookingModel.CCOwner = request.Booking.CCOwner; 
-                    bookingModel.PaymentArrivalDate = request.Booking.PaymentArrivalDate; 
-                    bookingModel.InvoiceDueDate = request.Booking.PaymentArrivalDate; 
-                    bookingModel.NotesOnPayment = request.Booking.NotesOnPayment; 
-                    bookingModel.ReportDeliveredId = request.Booking.ReportDeliveredId; 
-                    bookingModel.AddToProAccountId = request.Booking.AddToProAccountId; 
-                    bookingModel.FeedbackFromPro = request.Booking.FeedbackFromPro; 
-                    bookingModel.ProAvailabilityAskedId = request.Booking.ProAvailabilityAskedId; 
-                    bookingModel.LabCostsForMedelit = request.Booking.LabCostsForMedelit; 
-                    bookingModel.DateOnPrescription = request.Booking.DateOnPrescription; 
-                    bookingModel.Lab = request.Booking.Lab; 
-                    bookingModel.Vials = request.Booking.Vials; 
+                    bookingModel.BankTransfterReceiptId = request.Booking.BankTransfterReceiptId;
+                    bookingModel.CCOwner = request.Booking.CCOwner;
+                    bookingModel.PaymentArrivalDate = request.Booking.PaymentArrivalDate;
+                    bookingModel.InvoiceDueDate = request.Booking.PaymentArrivalDate;
+                    bookingModel.NotesOnPayment = request.Booking.NotesOnPayment;
+                    bookingModel.ReportDeliveredId = request.Booking.ReportDeliveredId;
+                    bookingModel.AddToProAccountId = request.Booking.AddToProAccountId;
+                    bookingModel.FeedbackFromPro = request.Booking.FeedbackFromPro;
+                    bookingModel.ProAvailabilityAskedId = request.Booking.ProAvailabilityAskedId;
+                    bookingModel.LabCostsForMedelit = request.Booking.LabCostsForMedelit;
+                    bookingModel.DateOnPrescription = request.Booking.DateOnPrescription;
+                    bookingModel.LabId = request.Booking.LabId;
+                    bookingModel.Vials = request.Booking.Vials;
 
-                    bookingModel.RepeadPrescriptionNumber = request.Booking.RepeadPrescriptionNumber; 
-                    bookingModel.PrescriptionNumber = request.Booking.PrescriptionNumber; 
-                    bookingModel.Notes = request.Booking.Notes; 
-                    bookingModel.PrivateFee = request.Booking.PrivateFee; 
-                    bookingModel.TicketFee = request.Booking.TicketFee; 
-                    bookingModel.ExcemptionCode = request.Booking.ExcemptionCode; 
-                    bookingModel.NHSOrPrivateId = request.Booking.NHSOrPrivateId; 
-                    bookingModel.PatientDiscount = request.Booking.PatientDiscount; 
-                    bookingModel.VisitDate = request.Booking.VisitDate; 
-                    bookingModel.VisitTime = request.Booking.VisitTime; 
-                    bookingModel.ProDiscount = request.Booking.ProDiscount; 
-                    bookingModel.CashConfirmationMailId = request.Booking.CashConfirmationMailId; 
-                    bookingModel.QuantityHours = request.Booking.QuantityHours; 
+                    bookingModel.RepeadPrescriptionNumber = request.Booking.RepeadPrescriptionNumber;
+                    bookingModel.PrescriptionNumber = request.Booking.PrescriptionNumber;
+                    bookingModel.Notes = request.Booking.Notes;
+                    bookingModel.PrivateFee = request.Booking.PrivateFee;
+                    bookingModel.TicketFee = request.Booking.TicketFee;
+                    bookingModel.ExcemptionCode = request.Booking.ExcemptionCode;
+                    bookingModel.NHSOrPrivateId = request.Booking.NHSOrPrivateId;
+                    bookingModel.PatientDiscount = request.Booking.PatientDiscount;
+
+                    bookingModel.IsAllDayVisit = request.Booking.IsAllDayVisit;
+                    bookingModel.VisitStartDate = request.Booking.VisitStartDate;
+                    bookingModel.VisitEndDate = request.Booking.VisitEndDate;
+
+                    bookingModel.ProDiscount = request.Booking.ProDiscount;
+                    bookingModel.CashConfirmationMailId = request.Booking.CashConfirmationMailId;
+
 
                     bookingModel.Phone2 = request.Booking.Phone2;
                     bookingModel.Phone2Owner = request.Booking.Phone2Owner;
@@ -127,7 +134,7 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.VisitRequestingPersonRelationId = request.Booking.VisitRequestingPersonRelationId;
 
                     bookingModel.InsuranceCoverId = request.Booking.InsuranceCoverId;
-                    bookingModel.InvoiceEntityId = request.Booking.InvoiceEntityId;
+
                     bookingModel.InvoicingNotes = request.Booking.Name;
 
                     bookingModel.BuildingTypeId = request.Booking.BuildingTypeId;
@@ -139,55 +146,31 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.BookingStatusId = request.Booking.BookingStatusId;
 
                     bookingModel.AddressNotes = request.Booking.AddressNotes;
-                    bookingModel.Services = request.Booking.Services;
+                    bookingModel.ServiceId = request.Booking.ServiceId;
+                    bookingModel.ProfessionalId = request.Booking.ProfessionalId;
+
+                    bookingModel.PtFee = request.Booking.PtFee;
+                    bookingModel.ProFee = request.Booking.ProFee;
+
+                    bookingModel.CashReturn = request.Booking.PtFee;
+                    bookingModel.QuantityHours = request.Booking.QuantityHours;
+                    bookingModel.TaxType = request.Booking.TaxType;
+                    bookingModel.SubTotal = GetSubTotal(request.Booking.PtFee, request.Booking.QuantityHours);
+                    bookingModel.TaxAmount = GetCusotmerTaxAmount(bookingModel.SubTotal, bookingModel.TaxType);
+                    bookingModel.GrossTotal = bookingModel.SubTotal + bookingModel.TaxAmount;
 
                     bookingModel.UpdateDate = DateTime.UtcNow;
-
-                    _bookingRepository.RemoveBookingServices(bookingModel.Id);
-
                     _bookingRepository.Update(bookingModel);
                     commmitResult = Commit();
-                    //if (commmitResult)
-                    //{
-                    //    var services = request.Booking.Services;
-                    //    var newServices = new List<BookingServiceRelation>();
-                    //    foreach (var service in services)
-                    //    {
-                    //        newServices.Add(new BookingServiceRelation
-                    //        {
-                    //            BookingId = bookingModel.Id,
-                    //            ServiceId = service.ServiceId,
-                    //            ProfessionalId = service.ProfessionalId,
-                    //            PTFeeId = service.PTFeeId,
-                    //            PTFeeA1 = service.PTFeeA1,
-                    //            PTFeeA2 = service.PTFeeA2,
-                    //            PROFeeId = service.PROFeeId,
-                    //            PROFeeA1 = service.PROFeeA1,
-                    //            PROFeeA2 = service.PROFeeA2
-                    //        });
-                    //    }
 
-                    //    _bookingRepository.SaveBookingRelation(newServices);
-                    //    request.Booking = bookingModel;
-                    //}
                     request.Booking = bookingModel;
-                    //var allBookings = _feeRepository.GetAll();
-                    //foreach (var fee in allBookings)
-                    //{
-
-                    //        fee.BookingCode = fee.BookingTypeId == eBookingType.PTBooking ? $"FP{fee.Id.ToString().PadLeft(6, '0')}" : $"FS{fee.Id.ToString().PadLeft(6, '0')}";
-                    //        fee.UpdateDate = DateTime.UtcNow;
-                    //        _feeRepository.Update(fee);
-
-                    //}
-                    //Commit();
                 }
                 else
                 {
-                    var feeModel = request.Booking;
-                    _bookingRepository.Add(feeModel);
+                    var bookingModel = request.Booking;
+                    _bookingRepository.Add(bookingModel);
                     commmitResult = Commit();
-                    request.Booking = feeModel;
+                    request.Booking = bookingModel;
                 }
                 if (commmitResult)
                 {
@@ -267,82 +250,9 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                //// User customer to booking instead
-                ///
 
-
-
-                var customer = _customerRepository.GetByIdWithInclude(request.CustomerId);
-                //var lead = _bookingRepository.GetById(request.LeadId);
-                var booking = new Booking();
-                booking.Name = $"{customer.Name} {customer.SurName}";
-                booking.CustomerId = customer.Id;
-                booking.InvoiceEntityId = customer.InvoiceEntityId;
-                booking.BookingDate = DateTime.UtcNow;
-                booking.BookingTime = DateTime.UtcNow.ToString("H:mm tt");
-                booking.VisitLanguageId = (short)customer.LanguageId;
-                booking.VisitVenueId = (short)customer.VisitVenueId;
-                booking.VisitVenueDetail = customer.VisitVenueDetail;
-                booking.AddressNotes = customer.AddressNotes;
-                booking.Buzzer = customer.Buzzer;
-                booking.VisitRequestingPerson = customer.VisitRequestingPerson;
-                booking.FlatNumber = customer.FlatNumber;
-                booking.VisitRequestingPersonRelationId = (short?)customer.VisitRequestingPersonRelationId;
-                booking.Floor = customer.Floor;
-                booking.BuildingTypeId = (short)customer.BuildingTypeId;
-                booking.VisitStreetName = customer.VisitStreetName;
-                booking.HomeStreetName = customer.HomeStreetName;
-                booking.VisitPostCode = customer.VisitPostCode;
-                booking.HomePostCode = customer.HomePostCode;
-                booking.VisitCityId = (short)customer.VisitCityId;
-                booking.HomeCityId = (short)customer.HomeCityId;
-                booking.VisitCountryId = (short)customer.VisitCountryId;
-                booking.HomeCountryId = (short)customer.HomeCountryId;
-                booking.PhoneNumber = customer.MainPhone;
-                booking.Email = customer.Email;
-                booking.Phone2 = customer.Phone2;
-                booking.Phone2Owner = customer.Phone2Owner;
-
-                booking.Details = customer.VisitVenueDetail;
-                booking.ReasonForVisit = customer.VisitVenueDetail;
-                booking.PaymentMethodId = (short)customer.PaymentMethodId;
-                booking.InvoicingNotes = customer.InvoicingNotes;
-                booking.InsuranceCoverId = customer.InsuranceCoverId;
-                booking.PatientDiscount = customer.Discount;
-
-                _bookingRepository.Add(booking);
-                if (Commit())
-                {
-                    if (booking.Id > 0)
-                    {
-                        var services = customer.Services;
-                        var newServices = new List<BookingServiceRelation>();
-                        foreach (var service in services)
-                        {
-                            newServices.Add(new BookingServiceRelation
-                            {
-                                BookingId = booking.Id,
-                                ServiceId = service.ServiceId,
-                                ProfessionalId = service.ProfessionalId,
-                                PTFeeId = service.PTFeeId,
-                                PTFeeA1 = service.PTFeeA1,
-                                PTFeeA2 = service.PTFeeA2,
-                                PROFeeId = service.PROFeeId,
-                                PROFeeA1 = service.PROFeeA1,
-                                PROFeeA2 = service.PROFeeA2
-                            });
-                        }
-                        _bookingRepository.SaveBookingRelation(newServices);
-                    }
-
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, booking));
-                    return Task.FromResult(true);
-                }
-                else
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
-                }
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
+                return Task.FromResult(false);
 
             }
             catch (Exception ex)
@@ -352,85 +262,90 @@ namespace Medelit.Domain.CommandHandlers
 
         }
 
-        public Task<bool> Handle(CreateInvoiceCommand request, CancellationToken cancellationToken)
+        public Task<bool> Handle(CreateCloneCommand request, CancellationToken cancellationToken)
         {
-            var booking = _bookingRepository.GetWithInclude(request.BookingId);
-            var invoiceEntity = booking.InvoiceEntityId.HasValue ? _ieRepository.GetById((long)booking.InvoiceEntityId) : new InvoiceEntity();
-            var customer = _customerRepository.GetAll().FirstOrDefault(x => x.Id == booking.CustomerId);
-            var invoice = new Invoice();
-            invoice.Subject = booking.InvoiceNumber ?? customer.Name;
-            invoice.InvoiceEntityId = booking.InvoiceEntityId;
-            invoice.CustomerId = booking.CustomerId;
-            invoice.InvoiceNumber = DateTime.Now.ToString("yyyy");
-            invoice.DueDate = booking.InvoiceDueDate ?? DateTime.Now;
-            invoice.InvoiceDate = booking.VisitDate;
-            //invoice.TaxCodeId = 
-            invoice.StatusId = booking.BookingStatusId;
-            invoice.PaymentDue = booking.InvoiceDueDate;
-            invoice.PaymentDue = DateTime.Now;
-            invoice.InvoiceSentByEmailId =0;
-            invoice.InvoiceSentByMailId =0;
-            invoice.PaymentMethodId = booking.PaymentMethodId;
-            invoice.PatientDateOfBirth = booking.DateOfBirth;
-
-            invoice.IEBillingAddress = invoice.IEBillingAddress;
-            invoice.MailingAddress = invoiceEntity.MailingAddress;
-
-            invoice.IEBillingPostCode = invoiceEntity.BillingPostCode;
-            invoice.MailingPostCode = invoiceEntity.MailingPostCode;
-
-            invoice.IEBillingCityId = invoiceEntity.BillingCityId;
-            invoice.MailingCityId = invoiceEntity.MailingCityId;
-
-            invoice.IEBillingCountryId = invoiceEntity.BillingCountryId;
-            invoice.MailingCountryId = invoiceEntity.MailingCountryId;
-
-            invoice.InvoiceNotes = booking.InvoicingNotes;
-            invoice.InsuranceCoverId = booking.InsuranceCoverId;
-            invoice.InvoiceDiagnosis = booking.Diagnosis;
-            invoice.InvoiceDiagnosis = booking.Diagnosis;
-            invoice.DateOfVisit = booking.VisitDate;
-            invoice.InvoiceDescription = customer.Name;
-            invoice.Quantity = booking.QuantityHours;
-            invoice.PaymentArrivalDate = booking.PaymentArrivalDate;
-            invoice.ProInvoiceDate = booking.InvoiceDueDate;
-            
-           _invoiceRepository.Add(invoice);
-            if (Commit())
+            var booking = _bookingRepository.GetById(request.BookingId);
+            try
             {
-                if (booking.Id > 0)
+                var clones = request.NumberOfClones;
+                if (clones > 0)
                 {
-                    var services = booking.Services;
-                    var newServices = new List<InvoiceServiceRelation>();
-                    foreach (var service in services)
+                    while (clones > 0)
                     {
-                        newServices.Add(new InvoiceServiceRelation
-                        {
-                            InvoiceId = booking.Id,
-                            ServiceId = service.ServiceId,
-                            ProfessionalId = service.ProfessionalId,
-                            PTFeeId = service.PTFeeId,
-                            PTFeeA1 = service.PTFeeA1,
-                            PTFeeA2 = service.PTFeeA2,
-                            PROFeeId = service.PROFeeId,
-                            PROFeeA1 = service.PROFeeA1,
-                            PROFeeA2 = service.PROFeeA2
-                        });
+                        var newBooking = booking.Clone();
+                        newBooking.Id = 0;
+                        newBooking.Name = _bookingRepository.GetBookingName(booking.Name, string.Empty);
+                        newBooking.VisitStartDate = null;
+                        newBooking.QuantityHours = null;
+                        _bookingRepository.Add(newBooking);
+                        Commit();
+                        clones--;
                     }
-                   
-                    var newInvoice = _invoiceRepository.GetById(invoice.Id);
-                    newInvoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(5, '0')}/{DateTime.Now.ToString("yyyy")}";
-                    _bookingRepository.SaveInvoiceRelation(newServices, newInvoice);
-                }
 
-                _bus.RaiseEvent(new DomainNotification(request.MessageType, null, booking));
-                return Task.FromResult(true);
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, clones));
+                    return Task.FromResult(true);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                return Task.FromResult(false);
+                return HandleException(request.MessageType, ex);
             }
+
+            _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.API_DATA_INVALID));
+            return Task.FromResult(false);
+
+        }
+
+        public Task<bool> Handle(CreateCycleCommand request, CancellationToken cancellationToken)
+        {
+            var booking = _bookingRepository.GetById(request.BookingId);
+            try
+            {
+
+                if (request.NumberOfCycles > 0)
+                {
+                    for (short i = 0; i < request.NumberOfCycles; i++)
+                    {
+                        var newBooking = booking.Clone();
+                        newBooking.Cycle = request.NumberOfCycles;
+                        newBooking.CycleNumber = Convert.ToInt16(i + 1);
+                        newBooking.Id = 0;
+                        newBooking.Name = _bookingRepository.GetBookingName(booking.Name, string.Empty);
+                        newBooking.VisitStartDate = null;
+                        newBooking.QuantityHours = null;
+                        _bookingRepository.Add(newBooking);
+                        Commit();
+
+                    }
+
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.NumberOfCycles));
+                    return Task.FromResult(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                return HandleException(request.MessageType, ex);
+            }
+
+            _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.API_DATA_INVALID));
+            return Task.FromResult(false);
+
+        }
+
+
+
+        private decimal? GetSubTotal(decimal? ptFee, short? quantityHours)
+        {
+            if (ptFee.HasValue && quantityHours.HasValue)
+                return ptFee.Value * quantityHours.Value;
+            return null;
+        }
+
+        private decimal? GetCusotmerTaxAmount(decimal? subTotal, short? taxType)
+        {
+            if (subTotal.HasValue && taxType.HasValue)
+                return subTotal.Value * taxType.Value * (decimal)0.01;
+            return null;
         }
 
         private Task<bool> HandleException(string messageType, Exception ex)

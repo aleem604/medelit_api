@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Equinox.Infra.CrossCutting.Identity.Services
+namespace Medelit.Infra.CrossCutting.Identity.Services
 {
     public interface ISmsSender
     {

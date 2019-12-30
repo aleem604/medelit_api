@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Equinox.Infra.CrossCutting.Identity.Models.ManageViewModels
+namespace Medelit.Infra.CrossCutting.Identity.Models.ManageViewModels
 {
     public class IndexViewModel
     {

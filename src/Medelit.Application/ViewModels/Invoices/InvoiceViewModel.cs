@@ -42,11 +42,12 @@ namespace Medelit.Application
         public string TermsAndConditions { get; set; }
         public string InvoiceDescription { get; set; }
         public string ItemNameOnInvoice { get; set; }
-        public int? Quantity { get; set; }
+
         public DateTime? PaymentArrivalDate { get; set; }
         public DateTime? ProInvoiceDate { get; set; }
         public long? AssignedToId { get; set; }
-        public ICollection<InvoiceServiceRelationViewModel> Services { get; set; }
+
+        public dynamic InvoiceBookings { get; set; }
 
     }
 }

@@ -23,7 +23,7 @@ namespace Medelit.Api.Configurations
         }
 
         // IMyScopedService is injected into Invoke
-        public async Task Invoke(HttpContext httpContext, IAuthService authService)
+        public async Task Invoke(HttpContext httpContext)
         {
             httpContext.Items.TryAdd(eTinUser.TinUser, ProcessToken(httpContext));
             await _next(httpContext);

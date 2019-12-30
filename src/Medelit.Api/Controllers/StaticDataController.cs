@@ -36,6 +36,12 @@ namespace Medelit.Api.Controllers
             return Response(_dataService.GetCustomersForImportFilter());
         }
 
+        [HttpGet("static/invoices")]
+        public IActionResult GetInvoicesFilter()
+        {
+            return Response(_dataService.GetInvoicesForFilter());
+        }
+
         [HttpGet("static/invoice-entities")]
         public IActionResult GetInvoiceEntities()
         {
@@ -83,27 +89,23 @@ namespace Medelit.Api.Controllers
         [HttpGet("static/fields")]
         public IActionResult GetFieldsForFilter()
         {
-
             return Response(_dataService.GetFieldsForFilter());
         }
 
         [HttpGet("static/categories")]
         public IActionResult GetSubCategoriesForFilter()
         {
-
             return Response(_dataService.GetSubCategoriesForFilter());
         }
 
         [HttpGet("static/application-methods")]
         public IActionResult GetApplicationMethods()
         {
-
             return Response(_dataService.GetApplicationMethods());
         }
         [HttpGet("static/application-means")]
         public IActionResult GetApplicationMeans()
         {
-
             return Response(_dataService.GetApplicationMeans());
         }
         [HttpGet("static/document-list-sent")]
@@ -122,14 +124,12 @@ namespace Medelit.Api.Controllers
         [HttpGet("static/collaboration-codes")]
         public IActionResult GetCollaborationCodes()
         {
-
             return Response(_dataService.GetCollaborationCodes());
         }
 
         [HttpGet("static/accounting-codes")]
         public IActionResult GetAccountingCodes()
         {
-         
             return Response(_dataService.GetAccountingCodes());
         }
 

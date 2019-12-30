@@ -9,9 +9,11 @@ namespace Medelit.Application
         public long Id { get; set; }
         public long? RequestedServiceId { get; set; }
         public long PTFeeId { get; set; }
+        public short IsPtFee { get; set; } = 1;
         public decimal? PTFeeA1 { get; set; }
         public decimal? PTFeeA2 { get; set; }
         public long PROFeeId { get; set; }
+        public short IsProFee { get; set; } = 1;
         public decimal? PROFeeA1 { get; set; }
         public decimal? PROFeeA2 { get; set; }
         public long CustomerId { get; set; }

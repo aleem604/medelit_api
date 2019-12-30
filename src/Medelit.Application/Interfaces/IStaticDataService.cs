@@ -9,6 +9,7 @@ namespace Medelit.Application
     public interface IStaticDataService : IDisposable
     {
         IEnumerable<FilterModel> GetCustomersForImportFilter();
+        IEnumerable<FilterModel> GetInvoicesForFilter();
         IEnumerable<FilterModel> GetInvoiceEntities();
         dynamic GetServicesForFitler();
         dynamic GetProfessionalsForFitler(long? serviceId);
@@ -36,7 +37,7 @@ namespace Medelit.Application
         IEnumerable<FilterModel> GetInvoiceStatuses();
         dynamic GetLanguages();
         
-        IEnumerable<LeadCategory> GetLeadCategories();
+        IEnumerable<FilterModel> GetLeadCategories();
         IEnumerable<FilterModel> GetLeadSources();
         IEnumerable<FilterModel> GetLeadStatuses();
         IEnumerable<FilterModel> GetTitles();

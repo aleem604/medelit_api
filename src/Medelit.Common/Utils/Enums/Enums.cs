@@ -1,10 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Medelit.Common
 {
+    public enum UserRoles
+    {
+        [Display(Name = "Admin")]
+        Admin = 0,
+
+        [Display(Name = "Manager")]
+        Manager = 1,
+
+        [Display(Name = "Member")]
+        Member = 2
+    }
+
+
+
     public enum eFeedbackType : short
     {
         All = -1,

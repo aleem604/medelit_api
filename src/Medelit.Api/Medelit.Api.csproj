@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Medelit.Application\Medelit.Application.csproj" />
     <ProjectReference Include="..\Medelit.Common\Medelit.Common.csproj" />
+    <ProjectReference Include="..\Medelit.Infra.CrossCutting.Identity\Medelit.Infra.CrossCutting.Identity.csproj" />
     <ProjectReference Include="..\Medelit.Infra.CrossCutting.IoC\Medelit.Infra.CrossCutting.IoC.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -17,7 +17,6 @@ namespace Medelit.Application
     public class ProfessionalService : IProfessionalService
     {
         private readonly IProfessionalRepository _professionalRepository;
-        private readonly ITitleRepository _titleRepository;
         private readonly ILanguageRepository _langRepository;
 
         private readonly IMapper _mapper;
@@ -30,8 +29,7 @@ namespace Medelit.Application
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             IProfessionalRepository professionalRepository,
-                            ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
+                            ILanguageRepository langRepository
             
             )
         {
@@ -40,7 +38,6 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _professionalRepository = professionalRepository;
-            _titleRepository = titleRepository;
             _langRepository = langRepository;
         }
        

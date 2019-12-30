@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Equinox.Infra.CrossCutting.Identity.Data.Migrations
+namespace Medelit.Infra.CrossCutting.Identity.Data.Migrations
 {
     public partial class CreateIdentitySchema : Migration
     {

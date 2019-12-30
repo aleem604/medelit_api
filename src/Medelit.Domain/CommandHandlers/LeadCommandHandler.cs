@@ -217,6 +217,7 @@ namespace Medelit.Domain.CommandHandlers
                 var lead = _leadRepository.GetWithInclude(request.LeadId);
                 var customer = _mapper.Map<Customer>(lead);
                 //customer.Services = _mapper.Map<ICollection<CustomerServiceRelation>>(lead.Services);
+
                 customer.PaymentMethodId = lead.PreferredPaymentMethodId;
                 customer.Email2 = lead.Email2;
                 customer.HomeStreetName = lead.AddressStreetName;
@@ -253,7 +254,7 @@ namespace Medelit.Domain.CommandHandlers
                                 CustomerId = customer.Id,
                                 ServiceId = service.ServiceId,
                                 ProfessionalId = service.ProfessionalId,
-                                PTFeeId = service.PTFeeId,
+                                PtFeeId = service.PtFeeId,
                                 PTFeeA1 = service.PTFeeA1,
                                 PTFeeA2 = service.PTFeeA2,
                                 PROFeeId = service.PROFeeId,

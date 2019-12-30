@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
-using Equinox.Domain.Interfaces;
+using Medelit.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 
-namespace Equinox.Infra.CrossCutting.Identity.Models
+namespace Medelit.Infra.CrossCutting.Identity.Models
 {
     public class AspNetUser : IUser
     {

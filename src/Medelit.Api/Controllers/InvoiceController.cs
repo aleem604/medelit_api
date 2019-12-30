@@ -77,8 +77,29 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
+        //api/v1/
+        [HttpPost("invoices/add-booking-to-invoice/{bookingId}")]
+        [HttpPost("invoices/add-booking-to-invoice/{bookingId}/{invoiceId}")]
+        public IActionResult AddBookingToInvoice(long bookingId, long invoiceId)
+        {
+            _invoiceService.AddBookingToInvoice(bookingId, invoiceId);
+            return Response();
+        }
 
+        //api/v1/
+        [HttpDelete("invoices/delete-invoice-booking/{ibid}")]
+        public IActionResult DeleteInvoiceBooking(long ibid)
+        {
+            _invoiceService.DeleteInvoiceBooking(ibid);
+            return Response();
+        }
 
+        //api/v1/
+        [HttpGet("invoices/view/{invoiceId}")]
+        public IActionResult GetInvoiceView(long invoiceId)
+        {
+            return Response(_invoiceService.GetInvoiceView(invoiceId));
+        }
 
     }
 }

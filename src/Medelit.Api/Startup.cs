@@ -1,12 +1,8 @@
-﻿using System.Net;
-using System.Text;
+﻿using System.Text;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
@@ -16,12 +12,22 @@ using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 using Medelit.Api.Configurations;
 using Medelit.Infra.CrossCutting.IoC;
+using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.EntityFrameworkCore;
+using Medelit.Infra.CrossCutting.Identity.Models;
+using Microsoft.AspNetCore.Identity;
+using Medelit.Infra.CrossCutting.Identity.Authorization;
+using System;
+using Medelit.Auth;
+using Medelit.Api.Configurations.Auth;
 
 namespace Medelit.Api
 {
     public class Startup
     {
         public const string AppS3BucketKey = "AppS3Bucket";
+        private const string SecretKey = "iNivDmHLpUA223sqsfhqGbMRdRj1PVkH"; // todo: get this from somewhere secure
+        private readonly SymmetricSecurityKey _signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey));
         public static IConfiguration _configuration { get; private set; }
         public Startup(IHostingEnvironment env)
         {
@@ -42,6 +48,19 @@ namespace Medelit.Api
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+               options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")));
+
+            //services.AddIdentity<ApplicationUser, IdentityRole>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
+
+            services.AddDefaultIdentity<ApplicationUser>()
+                    .AddRoles<IdentityRole>()
+                    .AddRoleManager<RoleManager<IdentityRole>>()
+                    .AddEntityFrameworkStores<ApplicationDbContext>();
+
             services.AddMvc(options =>
             {
                 options.OutputFormatters.Remove(new XmlDataContractSerializerOutputFormatter());
@@ -56,6 +75,9 @@ namespace Medelit.Api
            
             services.AddAutoMapperSetup();
 
+
+            JWTConfiguration(services, _configuration);
+           
             services.AddSwaggerGen(s =>
             {
                 s.SwaggerDoc("v1", new Info
@@ -73,15 +95,15 @@ namespace Medelit.Api
             services.AddMediatR(typeof(Startup));
 
             // .NET Native DI Abstraction
+            services.AddSingleton<IJwtFactory, JwtFactory>();
             RegisterServices(services);
         }
 
        
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, RoleManager<IdentityRole> roleManager)
         {
-            HandleJWTException(app);
             app.UseCors(c =>
             {
                 c.AllowAnyHeader();
@@ -105,6 +127,9 @@ namespace Medelit.Api
                 name: "default",
                 template: "{controller=Common}/{action=Get}/{id?}");
             });
+
+            var task = RolesExtensions.InitializeAsync(roleManager);
+            task.Wait();
         }
 
         private static void RegisterServices(IServiceCollection services)
@@ -113,85 +138,53 @@ namespace Medelit.Api
             NativeInjectorBootStrapper.RegisterServices(services);
         }
 
-        private static void AuthorizationSettings(IServiceCollection services)
+        public void JWTConfiguration(IServiceCollection services, IConfiguration configuration)
         {
-            string domain = $"https://{_configuration.GetSection("Jwt:domain").Value}/";
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]);
-            var audience = _configuration["Jwt:Audience"];
-            services.AddAuthorization(auth =>
+            var jwtAppSettingOptions = configuration.GetSection(nameof(JwtIssuerOptions));
+
+            // Configure JwtIssuerOptions
+            services.Configure<JwtIssuerOptions>(options =>
             {
-                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme‌​)
-                    .RequireAuthenticatedUser().Build());
+                options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
+                options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
+                options.SigningCredentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
             });
 
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+
+                ValidateAudience = true,
+                ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = _signingKey,
+
+                RequireExpirationTime = false,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
 
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-            }).AddJwtBearer(options =>
+            }).AddJwtBearer(configureOptions =>
             {
-                //options.Authority = domain;
-                options.Audience = audience;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = true,
-                    RequireExpirationTime = true
-                };
+                configureOptions.ClaimsIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
+                configureOptions.TokenValidationParameters = tokenValidationParameters;
+                configureOptions.SaveToken = true;
             });
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("read:messages", policy => policy.Requirements.Add(new HasScopeRequirement("read:messages", domain)));
+                options.AddPolicy("readonlypolicy", builder => builder.RequireRole("Admin", "Manager", "Member"));
+                options.AddPolicy("writepolicy", builder => builder.RequireRole("Admin", "Manager"));
             });
-
-            // register the scope authorization handler
-            services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
         }
 
-        private static void HandleJWTException(IApplicationBuilder app)
-        {
-            app.UseExceptionHandler(appBuilder =>
-            {
-                appBuilder.Use(async (context, next) =>
-                {
-                    var error = context.Features[typeof(IExceptionHandlerFeature)] as IExceptionHandlerFeature;
-
-                    //when authorization has failed, should retrun a json message to client
-                    if (error != null && error.Error is SecurityTokenExpiredException)
-                    {
-                        context.Response.StatusCode = 401;
-                        context.Response.ContentType = "application/json";
-
-                        await context.Response.WriteAsync(JsonConvert.SerializeObject(new
-                        {
-                            State = "Unauthorized",
-                            Msg = "token expired"
-                        }));
-                    }
-                    //when orther error, retrun a error message json to client
-                    else if (error != null && error.Error != null)
-                    {
-                        context.Response.StatusCode = 500;
-                        context.Response.ContentType = "application/json";
-                        await context.Response.WriteAsync(JsonConvert.SerializeObject(new
-                        {
-                            State = "Internal Server Error",
-                            Msg = error.Error.Message
-                        }));
-                    }
-                    //when no error, do next.
-                    else await next();
-                });
-            });
-        }
-
-        
     }
 }

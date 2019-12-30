@@ -11,11 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Interfaces\ModelRepos\YelpEntity\**" />
     <Compile Remove="Validations\EntityObject\**" />
-    <EmbeddedResource Remove="Interfaces\ModelRepos\YelpEntity\**" />
     <EmbeddedResource Remove="Validations\EntityObject\**" />
-    <None Remove="Interfaces\ModelRepos\YelpEntity\**" />
     <None Remove="Validations\EntityObject\**" />
   </ItemGroup>
 
@@ -52,6 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="EventHandlers\" />
     <Folder Include="Validations\" />
   </ItemGroup>
 

@@ -17,8 +17,8 @@ namespace Medelit.Application
     public class FeeService : IFeeService
     {
         private readonly IFeeRepository _feeRepository;
-        private readonly ITitleRepository _titleRepository;
         private readonly ILanguageRepository _langRepository;
+        private readonly IStaticDataRepository _staticRepository;
 
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
@@ -31,8 +31,8 @@ namespace Medelit.Application
                             IMediatorHandler bus,
                             IFeeRepository feeRepository,
                             ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
-            
+                            IStaticDataRepository staticRepository
+
             )
         {
             _mapper = mapper;
@@ -40,8 +40,8 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _feeRepository = feeRepository;
-            _titleRepository = titleRepository;
             _langRepository = langRepository;
+            _staticRepository = staticRepository;
         }
        
        
@@ -55,7 +55,7 @@ namespace Medelit.Application
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var langs = _langRepository.GetAll().ToList();
-            var titles = _titleRepository.GetAll().ToList();
+            var titles = _staticRepository.GetStaticData().Select(x=> new FilterModel { Id = x.Id, Value = x.Titles }).Where(x=>x.Value != null).ToList();
 
             var query = _feeRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new {
                 x.Id,

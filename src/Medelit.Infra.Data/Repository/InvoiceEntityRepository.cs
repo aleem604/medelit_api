@@ -5,7 +5,7 @@ using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace Equinox.Infra.Data.Repository
+namespace Medelit.Infra.Data.Repository
 {
     public class InvoiceEntityRepository : Repository<InvoiceEntity>, IInvoiceEntityRepository
     {

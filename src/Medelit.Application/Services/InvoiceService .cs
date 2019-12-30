@@ -9,16 +9,18 @@ using System.Linq;
 using Medelit.Domain.Models;
 using System.Collections.Generic;
 using Medelit.Domain.Commands;
+using Microsoft.EntityFrameworkCore;
 
 namespace Medelit.Application
 {
     public class InvoiceService : IInvoiceService
     {
         private readonly IInvoiceRepository _invoiceRepository;
+        private readonly IInvoiceEntityRepository _ieRepository;
         private readonly ICustomerRepository _customerRepository;
-        private readonly ITitleRepository _titleRepository;
         private readonly ILanguageRepository _langRepository;
         private readonly IStaticDataRepository _staticRepository;
+        private readonly IBookingRepository _bookingRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
@@ -29,10 +31,11 @@ namespace Medelit.Application
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             IInvoiceRepository invoiceRepository,
+                            IInvoiceEntityRepository ieRepository,
                             ICustomerRepository customerRepository,
                             ILanguageRepository langRepository,
-                            ITitleRepository titleRepository,
-                            IStaticDataRepository staticRepository
+                            IStaticDataRepository staticRepository,
+                            IBookingRepository bookingRepository
 
             )
         {
@@ -41,10 +44,11 @@ namespace Medelit.Application
             _configuration = configuration;
             _bus = bus;
             _invoiceRepository = invoiceRepository;
+            _ieRepository = ieRepository;
             _customerRepository = customerRepository;
-            _titleRepository = titleRepository;
             _langRepository = langRepository;
             _staticRepository = staticRepository;
+            _bookingRepository = bookingRepository;
         }
 
         public dynamic GetInvoices()
@@ -56,8 +60,7 @@ namespace Medelit.Application
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var customers = _customerRepository.GetAll().Select((s) => new { s.Id, s.Name }).ToList();
-            var invoiceStatus = _staticRepository.GetInvoiceStatuses().ToList();
-
+            var invoiceStatus = _staticRepository.GetStaticData().Select(x => new FilterModel { Id = x.Id, Value = x.InvoiceStatus }).Where(x => x.Value != null).ToList();
 
             var query = _invoiceRepository.GetAll().Select((x) => new
             {
@@ -76,7 +79,7 @@ namespace Medelit.Application
                 x.Status,
                 x.CreateDate,
                 x.UpdateDate,
-                
+
             });
 
 
@@ -135,7 +138,7 @@ namespace Medelit.Application
                     else
                         query = query.OrderByDescending(x => x.CreateDate);
                     break;
-               
+
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Id);
@@ -157,13 +160,46 @@ namespace Medelit.Application
 
         public InvoiceViewModel GetInvoiceById(long invoiceId)
         {
-            return _mapper.Map<InvoiceViewModel>(_invoiceRepository.GetWithInclude(invoiceId));
+            try
+            {
+                var invoice = _mapper.Map<InvoiceViewModel>(_invoiceRepository.GetById(invoiceId));
+
+                invoice.InvoiceBookings = (from ib in _invoiceRepository.GetInvoiceBookings()
+                                           join b in _bookingRepository.GetAll() on ib.BookingId equals b.Id 
+                                          
+                                           join c in _customerRepository.GetAll() on ib.Booking.CustomerId equals c.Id
+                                           where ib.InvoiceId == invoiceId
+                                           select new
+                                           {
+                                               ib.Id,
+                                               ib.InvoiceId,
+                                               ib.BookingId,
+                                               Booking = new
+                                               {
+                                                   b.Id,
+                                                   b.Name,
+                                                   b.CustomerId,
+                                                   CustomerName = c.Name,
+                                                   b.InvoiceEntityId,
+                                                   InvoiceEntity = b.InvoiceEntityId.HasValue ? _ieRepository.GetAll().FirstOrDefault(i=>i.Id == b.InvoiceEntityId).Name : string.Empty,
+                                                   b.Cycle,
+                                                   b.CycleNumber,
+                                                   subTotal = b.SubTotal,
+                                                   b.GrossTotal
+                                               }
+
+                                           }).ToList();
+            return invoice;
+            }
+            catch (Exception)
+            {
+                throw new Exception(MessageCodes.API_DATA_INVALID);
+            }
         }
 
         public void SaveInvoice(InvoiceViewModel viewModel)
         {
             var invoiceModel = _mapper.Map<Invoice>(viewModel);
-            invoiceModel.Services = _mapper.Map<ICollection<InvoiceServiceRelation>>(viewModel.Services);
             _bus.SendCommand(new SaveInvoiceCommand { Invoice = invoiceModel });
         }
 
@@ -177,6 +213,27 @@ namespace Medelit.Application
             _bus.SendCommand(new DeleteInvoicesCommand { InvoiceIds = invoiceIds });
         }
 
+        public void AddBookingToInvoice(long bookingId, long invoiceId)
+        {
+            if (invoiceId > 0)
+            {
+                _bus.SendCommand(new AddBookingToInvoiceCommand { BookingId = bookingId, InvoiceId = invoiceId });
+            }
+            else
+            {
+                _bus.SendCommand(new CreateInvoiceFromBookingCommand { BookingId = bookingId });
+            }
+        }
+
+        public void DeleteInvoiceBooking(long ibid)
+        {
+            _bus.SendCommand(new DeleteInvoiceBookingCommand { InvoiceBookingId = ibid });
+        }
+
+        public dynamic GetInvoiceView(long invoiceId)
+        {
+            return _invoiceRepository.GetInvoiceView(invoiceId);
+        }
 
         public void Dispose()
         {

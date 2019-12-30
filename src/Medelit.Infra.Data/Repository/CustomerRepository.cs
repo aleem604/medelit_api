@@ -6,7 +6,7 @@ using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace Equinox.Infra.Data.Repository
+namespace Medelit.Infra.Data.Repository
 {
     public class CustomerRepository : Repository<Customer>, ICustomerRepository
     {
@@ -15,6 +15,10 @@ namespace Equinox.Infra.Data.Repository
         {
         }
 
+        public IQueryable<Customer> GetAllWithService()
+        {
+            return Db.Customer.Include(x => x.Services);
+        }
         public Customer GetByIdWithInclude(long customerId)
         {
             return Db.Customer.Include(x => x.Services).FirstOrDefault(x => x.Id == customerId);

@@ -13,5 +13,8 @@ namespace Medelit.Application
         void SaveInvoice(InvoiceViewModel model);
         void UpdateStatus(IEnumerable<InvoiceViewModel> invoices, eRecordStatus status);
         void DeleteInvoices(IEnumerable<long> invoiceIds);
+        void AddBookingToInvoice(long bookingId, long invoiceId);
+        void DeleteInvoiceBooking(long ibid);
+        dynamic GetInvoiceView(long invoiceId);
     }
 }

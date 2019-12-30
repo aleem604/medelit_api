@@ -75,7 +75,7 @@ namespace Medelit.Domain.CommandHandlers
                     serviceModel.ServiceCode = $"{fieldCode}{vm.Id.ToString().PadLeft(6, '0')}";
                     _serviceRepository.RemoveProfessionals(request.Service.Id);
 
-                    serviceModel.ServiceProfessionalRelation = vm.ServiceProfessionalRelation;
+                    serviceModel.ServiceProfessionals = vm.ServiceProfessionals;
                     _serviceRepository.Update(serviceModel);
                     commmitResult = Commit();
                     request.Service = serviceModel;

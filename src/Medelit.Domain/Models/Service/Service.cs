@@ -46,7 +46,7 @@ namespace Medelit.Domain.Models
         public long? AssignedToId { get; set; }
 
         //public IEnumerable<ServiceFeeRelation> ServiceFeeRelation { get; set; }
-        public IEnumerable<ServiceProfessionalRelation> ServiceProfessionalRelation { get; set; }
+        public IEnumerable<ServiceProfessionalRelation> ServiceProfessionals { get; set; }
 
 
     }

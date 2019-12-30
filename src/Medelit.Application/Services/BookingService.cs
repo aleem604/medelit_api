@@ -19,9 +19,9 @@ namespace Medelit.Application
         private readonly ICustomerRepository _customerRepository;
         private readonly IInvoiceEntityRepository _ieRepository;
         private readonly IBookingRepository _bookingRepository;
-        private readonly ITitleRepository _titleRepository;
         private readonly ILanguageRepository _langRepository;
-
+        private readonly IServiceRepository _serviceRepository;
+        private readonly IStaticDataRepository _dataRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
@@ -35,8 +35,9 @@ namespace Medelit.Application
                             IInvoiceEntityRepository ieRepository,
                             IBookingRepository bookingRepository,
                             ILanguageRepository langRepository,
-                            ITitleRepository titleRepository
-            
+                            IServiceRepository serviceRepository,
+                            IStaticDataRepository dataRepository
+
             )
         {
             _mapper = mapper;
@@ -46,25 +47,27 @@ namespace Medelit.Application
             _ieRepository = ieRepository;
             _customerRepository = customerRepository;
             _bookingRepository = bookingRepository;
-            _titleRepository = titleRepository;
             _langRepository = langRepository;
+            _serviceRepository = serviceRepository;
+            _dataRepository = dataRepository;
         }
-       
+
         public dynamic GetBookings()
         {
-            return _bookingRepository.GetAll().Select(x=> new {x.Id, x.Name }).ToList();
+            return _bookingRepository.GetAll().Select(x => new { x.Id, x.Name }).ToList();
         }
 
         public dynamic FindBookings(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var langs = _langRepository.GetAll().ToList();
-       
+
 
             var query = (from b in _bookingRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted)
                          join c in _customerRepository.GetAll() on b.CustomerId equals c.Id
-                         
-                         select new {
+
+                         select new
+                         {
                              b.Id,
                              Language = langs.FirstOrDefault(l => l.Id == b.VisitLanguageId).Name,
                              b.Name,
@@ -74,6 +77,7 @@ namespace Medelit.Application
                              b.CreateDate,
                              b.UpdateDate,
                              b.AssignedToId,
+                             AssignedTo = "Admin",
                              b.Status
                          });
 
@@ -165,7 +169,12 @@ namespace Medelit.Application
 
         public BookingViewModel GetBookingById(long bookingId)
         {
-            var viewModel =  _mapper.Map<BookingViewModel>(_bookingRepository.GetWithInclude(bookingId));
+            var viewModel = _mapper.Map<BookingViewModel>(_bookingRepository.GetById(bookingId));
+            if (viewModel.ServiceId > 0)
+            {
+                var vatId = _serviceRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.ServiceId).VatId;
+                viewModel.TaxType = _dataRepository.GetVats().FirstOrDefault(x => x.Id == vatId)?.DecValue;
+            }
             viewModel.InvoiceEntityName = _ieRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.InvoiceEntityId)?.Name;
             viewModel.CustomerName = _customerRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.CustomerId)?.Name;
 
@@ -175,7 +184,7 @@ namespace Medelit.Application
         public void SaveBooking(BookingViewModel viewModel)
         {
             var bookingModel = _mapper.Map<Booking>(viewModel);
-            bookingModel.Services = _mapper.Map<ICollection<BookingServiceRelation>>(viewModel.Services);
+           
             _bus.SendCommand(new SaveBookingCommand { Booking = bookingModel });
         }
 
@@ -194,9 +203,14 @@ namespace Medelit.Application
             _bus.SendCommand(new ConvertCustomerToBookingCommand { CustomerId = customerId });
         }
 
-        public void CreateInvoice(long bookingId)
+        public void CreateClones(long bookingId, short bookings)
         {
-            _bus.SendCommand(new CreateInvoiceCommand { BookingId = bookingId });
+            _bus.SendCommand(new CreateCloneCommand { BookingId = bookingId, NumberOfClones = bookings });
+        }
+
+        public void CreateCycle(long bookingId, short bookings)
+        {
+            _bus.SendCommand(new CreateCycleCommand { BookingId = bookingId, NumberOfCycles = bookings });
         }
 
         public void Dispose()

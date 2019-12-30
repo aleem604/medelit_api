@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Equinox.Infra.CrossCutting.Identity.Data;
+using Medelit.Infra.CrossCutting.Identity.Data;
 
-namespace Equinox.Infra.CrossCutting.Identity.Migrations
+namespace Medelit.Infra.CrossCutting.Identity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20161206204752_Initial")]
@@ -17,7 +17,7 @@ namespace Equinox.Infra.CrossCutting.Identity.Migrations
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Equinox.Infra.CrossCutting.Identity.Models.ApplicationUser", b =>
+            modelBuilder.Entity("Medelit.Infra.CrossCutting.Identity.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
@@ -184,7 +184,7 @@ namespace Equinox.Infra.CrossCutting.Identity.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Equinox.Infra.CrossCutting.Identity.Models.ApplicationUser")
+                    b.HasOne("Medelit.Infra.CrossCutting.Identity.Models.ApplicationUser")
                         .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -192,7 +192,7 @@ namespace Equinox.Infra.CrossCutting.Identity.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Equinox.Infra.CrossCutting.Identity.Models.ApplicationUser")
+                    b.HasOne("Medelit.Infra.CrossCutting.Identity.Models.ApplicationUser")
                         .WithMany("Logins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -205,7 +205,7 @@ namespace Equinox.Infra.CrossCutting.Identity.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Equinox.Infra.CrossCutting.Identity.Models.ApplicationUser")
+                    b.HasOne("Medelit.Infra.CrossCutting.Identity.Models.ApplicationUser")
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
