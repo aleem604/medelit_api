@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
-namespace Medelit.Infra.CrossCutting.Identity.Models.ManageViewModels
+namespace Medelit.Application
 {
     public class ExternalLoginsViewModel
     {

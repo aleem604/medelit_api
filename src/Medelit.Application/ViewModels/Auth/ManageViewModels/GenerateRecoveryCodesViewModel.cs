@@ -1,4 +1,4 @@
-﻿namespace Medelit.Infra.CrossCutting.Identity.Models.ManageViewModels
+﻿namespace Medelit.Application
 {
     public class GenerateRecoveryCodesViewModel
     {

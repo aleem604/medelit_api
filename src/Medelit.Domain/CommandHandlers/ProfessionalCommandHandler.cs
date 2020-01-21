@@ -57,6 +57,8 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.Name = req.Name;
                     proModel.Email = req.Email;
                     proModel.Email2 = req.Email2;
+                    proModel.FieldId = req.FieldId;
+                    proModel.SubCategoryId = req.SubCategoryId;
                     proModel.Telephone = req.Telephone;
                     proModel.AccountingCodeId = req.AccountingCodeId;
                     proModel.Website = req.Website;
@@ -98,6 +100,10 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.ProtaxCode = req.ProtaxCode;
                     proModel.ProfessionalLangs = req.ProfessionalLangs;
                     proModel.UpdateDate = DateTime.UtcNow;
+                    proModel.UpdatedById = CurrentUser.Id;
+                    if (string.IsNullOrEmpty(proModel.AssignedToId))
+                        proModel.AssignedToId = CurrentUser.Id;
+
                     _professionalRepository.DeleteLangs(req.Id);
                     _professionalRepository.Update(proModel);
 
@@ -117,12 +123,19 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     var proModel = request.Model;
                     proModel.CreateDate = DateTime.UtcNow;
+                    proModel.CreatedById = CurrentUser.Id;
+                    proModel.AssignedToId = CurrentUser.Id;
+
                     _professionalRepository.Add(proModel);
                     commitResult = Commit();
                     if (commitResult && proModel.Id > 0)
                     {
                         var id = proModel.Id;
                         proModel.Code = $"V{id.ToString().PadLeft(6, '0')}";
+
+                        proModel.UpdatedById = CurrentUser.Id;
+                        proModel.UpdateDate = DateTime.UtcNow;
+
                         _professionalRepository.Update(proModel);
                         commitResult = Commit();
                     }
@@ -130,7 +143,7 @@ namespace Medelit.Domain.CommandHandlers
                 }
                 if (commitResult)
                 {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Model));
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Model.Id));
                     return Task.FromResult(true);
                 }
                 else
@@ -154,6 +167,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _professionalRepository.GetById(fee.Id);
                     feeModel.Status = request.Status;
                     feeModel.UpdateDate = DateTime.UtcNow;
+                    feeModel.UpdatedById = CurrentUser.Id;
                     _professionalRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -182,7 +196,8 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _professionalRepository.GetById(feeId);
                     feeModel.Status = eRecordStatus.Deleted;
                     feeModel.DeletedAt = DateTime.UtcNow;
-                    //proModel.DeletedById = 0;
+                    feeModel.DeletedById = CurrentUser.Id;
+
                     _professionalRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -202,12 +217,6 @@ namespace Medelit.Domain.CommandHandlers
             }
         }
 
-
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
-        }
         public void Dispose()
         {
 

@@ -12,14 +12,15 @@ namespace Medelit.Domain.Models
         [Column("title_id")]
         public short? TitleId { get; set; }
         public string Name { get; set; }
-       
-      
         [Column("main_phone")]
         public string MainPhone { get; set; }
         [Column("main_phone_owner")]
         public string MainPhoneOwner { get; set; }
         [Column("invoice_entity_id")]
         public long? InvoiceEntityId { get; set; }
+        [ForeignKey("InvoiceEntityId")]
+        public InvoiceEntity InvoiceEntity { get; set; }
+
         [Column("have_different_ie_id")]
         public short? HaveDifferentIEId { get; set; }
         public string Phone2 { get; set; }
@@ -35,7 +36,6 @@ namespace Medelit.Domain.Models
         [Column("visit_requestig_person_relation_id")]
         public short? VisitRequestingPersonRelationId { get; set; }
         public string Fax { get; set; }
-
         public string Email { get; set; }
         public string Email2 { get; set; }
         [Column("lead_source_id")]
@@ -68,9 +68,9 @@ namespace Medelit.Domain.Models
         [Column("post_code")]
         public string PostalCode { get; set; }
         [Column("city_id")]
-        public short? CityId { get; set; }
+        public short CityId { get; set; }
         [Column("country_id")]
-        public short? CountryId { get; set; }
+        public short CountryId { get; set; }
         [Column("building_type_id")]
         public short? BuildingTypeId { get; set; }
         [Column("flat_no")]
@@ -97,6 +97,8 @@ namespace Medelit.Domain.Models
 
         [Column("customer_id")]
         public long? CustomerId { get; set; }
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
         [Column("converted_at")]
         public DateTime? ConvertDate { get; set; }
         public ICollection<LeadServiceRelation> Services { get; set; }

@@ -15,16 +15,9 @@ namespace Medelit.Domain.Models
         
         [Column("fee_type_id")]
         public eFeeType FeeTypeId { get; set; }
-        public string Taxes { get; set; }
-        [Column("connected_services")]
-        public string ConnectedServices { get; set; }
         public string Tags { get; set; }
         public decimal? A1 { get; set; }
         public decimal? A2 { get; set; }
-
-        //public ICollection<FeeFieldRelation> FeeFieldRelation { get; set; }
-        //public ICollection<FeeCategoryRelation> FeeCategoryRelation { get; set; }
-        //public ICollection<FeeProfessionalRelation> FeeFieldRelation { get; set; }
 
     }
 }

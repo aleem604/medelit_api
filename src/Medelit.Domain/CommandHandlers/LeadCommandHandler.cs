@@ -53,6 +53,7 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 bool commmitResult;
+                var user = CurrentUser;
                 if (request.Lead.Id > 0)
                 {
                     var leadModel = _leadRepository.GetById(request.Lead.Id);
@@ -109,6 +110,7 @@ namespace Medelit.Domain.CommandHandlers
                         leadModel.CustomerId = request.FromCustomerId.Value;
 
                     leadModel.UpdateDate = DateTime.UtcNow;
+                    leadModel.UpdatedById = CurrentUser.Id;
                     leadModel.Services = request.Lead.Services;
                     _leadRepository.RemoveLeadServices(leadModel.Id);
 
@@ -116,21 +118,13 @@ namespace Medelit.Domain.CommandHandlers
                     commmitResult = Commit();
                     request.Lead = leadModel;
 
-                    //var allLeads = _feeRepository.GetAll();
-                    //foreach (var fee in allLeads)
-                    //{
-
-                    //        fee.LeadCode = fee.LeadTypeId == eLeadType.PTLead ? $"FP{fee.Id.ToString().PadLeft(6, '0')}" : $"FS{fee.Id.ToString().PadLeft(6, '0')}";
-                    //        fee.UpdateDate = DateTime.UtcNow;
-                    //        _feeRepository.Update(fee);
-
-                    //}
-                    //Commit();
                 }
                 else
                 {
                     var leadModel = request.Lead;
                     leadModel.CustomerId = request.FromCustomerId;
+                    leadModel.AssignedToId = CurrentUser.Id;
+                    leadModel.CreatedById = CurrentUser.Id;
 
                     _leadRepository.Add(leadModel);
                     commmitResult = Commit();
@@ -138,7 +132,7 @@ namespace Medelit.Domain.CommandHandlers
                 }
                 if (commmitResult)
                 {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Lead));
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Lead.Id));
                     return Task.FromResult(true);
                 }
                 else
@@ -162,6 +156,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _leadRepository.GetById(fee.Id);
                     feeModel.Status = request.Status;
                     feeModel.UpdateDate = DateTime.UtcNow;
+                    feeModel.UpdatedById = CurrentUser.Id;
                     _leadRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -190,7 +185,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _leadRepository.GetById(feeId);
                     feeModel.Status = eRecordStatus.Deleted;
                     feeModel.DeletedAt = DateTime.UtcNow;
-                    //feeModel.DeletedById = 0;
+                    feeModel.DeletedById = CurrentUser.Id;
                     _leadRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -230,15 +225,17 @@ namespace Medelit.Domain.CommandHandlers
                 customer.VisitCountryId = lead.CountryId;
                 customer.HomePostCode = lead.PostalCode;
                 customer.VisitPostCode = lead.PostalCode;
+                customer.ContactPhone = lead.ContactPhone;
 
 
                 customer.LeadId = lead.Id;
                 customer.Id = 0;
                 customer.Services = new List<CustomerServiceRelation>();
-
+                customer.CreatedById = CurrentUser.Id;
                 _customerRepository.Add(customer);
 
                 lead.ConvertDate = DateTime.UtcNow;
+                lead.UpdatedById = CurrentUser.Id;
                 _leadRepository.Update(lead);
 
                 if (Commit())
@@ -263,9 +260,7 @@ namespace Medelit.Domain.CommandHandlers
                             });
                         }
                         _customerRepository.SaveCustomerRelation(newServices);
-
                         _bus.SendCommand(new ConvertCustomerToBookingCommand { CustomerId = customer.Id }).Wait();
-
                     }
 
                     _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.LeadId));
@@ -283,12 +278,7 @@ namespace Medelit.Domain.CommandHandlers
             }
         }
 
-
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
-        }
+        
         public void Dispose()
         {
 

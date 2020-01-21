@@ -9,5 +9,6 @@ namespace Medelit.Domain.Interfaces
         Lead GetWithInclude(long leadId);
         void RemoveLeadServices(long leadId);
         Customer GetCustomerId(long? fromCustomerId);
+        IQueryable<LeadServiceRelation> GetLeadServiceRelations();
     }
 }

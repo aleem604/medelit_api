@@ -18,7 +18,7 @@ namespace Medelit.Application.AutoMapper
             //    .ForAllOtherMembers(opts => opts.Ignore());
 
             CreateMap<FeeViewModel, Fee>((MemberList.Source));
-            CreateMap<ProfessionalRequestViewModel, Professional>((MemberList.Destination));
+            CreateMap<ProfessionalViewModel, Professional>((MemberList.Destination));
             CreateMap<FilterModel, ProfessionalLanguageRelation>()
                .ForMember(dest => dest.LanguageId,
                    opts => opts.MapFrom(
@@ -26,6 +26,9 @@ namespace Medelit.Application.AutoMapper
                    )).ReverseMap();
             // Services
             CreateMap<ServiceViewModel, Service>((MemberList.Source));
+            CreateMap<AddUpdateFeeToServiceViewModel, AddUpdateFeeToService>((MemberList.Source));
+
+            // Leads
             CreateMap<LeadViewModel, Lead>((MemberList.Source));
             CreateMap<LeadServiceRelationViewModel, LeadServiceRelation>();
             CreateMap<Lead, Customer>((MemberList.Source));

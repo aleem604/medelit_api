@@ -3,14 +3,15 @@ using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Medelit.Infra.Data.Repository
 {
     public class LeadRepository : Repository<Lead>, ILeadRepository
     {
-        public LeadRepository(MedelitContext context)
-            : base(context)
+        public LeadRepository(MedelitContext context, IHttpContextAccessor contextAccessor)
+            : base(context, contextAccessor)
         {
 
         }
@@ -37,6 +38,10 @@ namespace Medelit.Infra.Data.Repository
             return customer;
         }
 
+        public IQueryable<LeadServiceRelation> GetLeadServiceRelations()
+        {
+            return Db.LeadServiceRelation;
+        }
 
     }
 }

@@ -45,7 +45,7 @@ namespace Medelit.Application
         public string PersonOfReferenceEmail { get; set; }
         public string PersonOfReferencePhone { get; set; }
         public short? BlackListId { get; set; }
-        public long? AssignedToId { get; set; }
+        public short? ContractedId { get; set; }
 
     }
 }

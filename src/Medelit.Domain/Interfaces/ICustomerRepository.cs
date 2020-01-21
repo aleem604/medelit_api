@@ -10,5 +10,12 @@ namespace Medelit.Domain.Interfaces
         Customer GetByIdWithInclude(long customerId);
         void RemoveCustomerServices(long id);
         IQueryable<Customer> GetAllWithService();
+        dynamic GetCustomerConnectedCustomers(long customerId);
+        dynamic GetCustomerConnectedServices(long customerId);
+        dynamic GetCustomerConnectedProfessionals(long customerId);
+        dynamic GetCustomerConnectedBookings(long customerId);
+        dynamic GetCustomerConnectedInvoices(long customerId);
+        dynamic GetCustomerConnectedLeads(long customerId);
+
     }
 }

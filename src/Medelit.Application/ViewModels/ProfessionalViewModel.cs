@@ -5,28 +5,30 @@ using System.Text;
 
 namespace Medelit.Application
 {
-    public class ProfessionalRequestViewModel : BaseViewModel
+    public class ProfessionalViewModel : BaseViewModel
     {
         public string Code { get; set; }
-        public int TitleId { get; set; }
+        public short TitleId { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public string Telephone { get; set; }
-        public int AccountingCodeId { get; set; }
+        public short AccountingCodeId { get; set; }
         public string Website { get; set; }
         public string MobilePhone { get; set; }
         public string HomePhone { get; set; }
         public string Email2 { get; set; }
+        public long FieldId { get; set; }
+        public long SubCategoryId { get; set; }
         public string Fax { get; set; }
         public string CoverMap { get; set; }
         public string StreetName { get; set; }
-        public int CityId { get; set; }
+        public short CityId { get; set; }
         public string PostCode { get; set; }
-        public int CountryId { get; set; }
+        public short CountryId { get; set; }
         public string Description { get; set; }
         public string ClinicStreetName { get; set; }
         public string ClinicPostCode { get; set; }
-        public int? ClinicCityId { get; set; }
+        public short? ClinicCityId { get; set; }
         public string ClinicPhoneNumber { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string CompanyName { get; set; }
@@ -42,18 +44,18 @@ namespace Medelit.Application
         public string WorkPlace { get; set; }
         public string ColleagueReferring { get; set; }
         public DateTime? InsuranceExpiryDate { get; set; }
-        public int ActiveCollaborationId { get; set; }
+        public short ActiveCollaborationId { get; set; }
         public short ClinicAgreement { get; set; }
-        public int ApplicationMethodId { get; set; }
-        public int ApplicationMeansId { get; set; }
+        public short ApplicationMethodId { get; set; }
+        public short ApplicationMeansId { get; set; }
         public DateTime FirstContactDate { get; set; }
         public DateTime? LastContactDate { get; set; }
-        public int ContractStatusId { get; set; }
-        public int DocumentListSentId { get; set; }
+        public short ContractStatusId { get; set; }
+        public short DocumentListSentId { get; set; }
         public short CalendarActivation { get; set; }
         public string ProOnlineCV { get; set; }
         public string ProtaxCode { get; set; }
-        public long? AssignedToId { get; set; }
-        public IList<FilterModel> Languages { get; set; }
+        public IEnumerable<FilterModel> Languages { get; set; }
+        public IEnumerable<ServiceProfessionalRelationVeiwModel> ProfessionalServices { get; set; }
     }
 }

@@ -160,6 +160,7 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.GrossTotal = bookingModel.SubTotal + bookingModel.TaxAmount;
 
                     bookingModel.UpdateDate = DateTime.UtcNow;
+                    bookingModel.UpdatedById = CurrentUser.Id;
                     _bookingRepository.Update(bookingModel);
                     commmitResult = Commit();
 
@@ -193,12 +194,13 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                foreach (var fee in request.Bookings)
+                foreach (var booking in request.Bookings)
                 {
-                    var feeModel = _bookingRepository.GetById(fee.Id);
-                    feeModel.Status = request.Status;
-                    feeModel.UpdateDate = DateTime.UtcNow;
-                    _bookingRepository.Update(feeModel);
+                    var bookingModel = _bookingRepository.GetById(booking.Id);
+                    bookingModel.Status = request.Status;
+                    bookingModel.UpdateDate = DateTime.UtcNow;
+                    bookingModel.UpdatedById = CurrentUser.Id;
+                    _bookingRepository.Update(bookingModel);
                 }
                 if (Commit())
                 {
@@ -221,13 +223,13 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                foreach (var feeId in request.BookingIds)
+                foreach (var bookingId in request.BookingIds)
                 {
-                    var feeModel = _bookingRepository.GetById(feeId);
-                    feeModel.Status = eRecordStatus.Deleted;
-                    feeModel.DeletedAt = DateTime.UtcNow;
-                    //feeModel.DeletedById = 0;
-                    _bookingRepository.Update(feeModel);
+                    var bookingModel = _bookingRepository.GetById(bookingId);
+                    bookingModel.Status = eRecordStatus.Deleted;
+                    bookingModel.DeletedAt = DateTime.UtcNow;
+                    bookingModel.DeletedById = CurrentUser.Id;
+                    _bookingRepository.Update(bookingModel);
                 }
                 if (Commit())
                 {
@@ -277,6 +279,9 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.Name = _bookingRepository.GetBookingName(booking.Name, string.Empty);
                         newBooking.VisitStartDate = null;
                         newBooking.QuantityHours = null;
+                        newBooking.CreatedById = CurrentUser.Id;
+                        newBooking.AssignedToId = CurrentUser.Id;
+
                         _bookingRepository.Add(newBooking);
                         Commit();
                         clones--;
@@ -313,6 +318,9 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.Name = _bookingRepository.GetBookingName(booking.Name, string.Empty);
                         newBooking.VisitStartDate = null;
                         newBooking.QuantityHours = null;
+                        newBooking.CycleBookingId = booking.Id;
+                        newBooking.CreatedById = CurrentUser.Id;
+                        newBooking.AssignedToId = CurrentUser.Id;
                         _bookingRepository.Add(newBooking);
                         Commit();
 
@@ -347,13 +355,6 @@ namespace Medelit.Domain.CommandHandlers
                 return subTotal.Value * taxType.Value * (decimal)0.01;
             return null;
         }
-
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
-        }
-
 
         public void Dispose()
         {

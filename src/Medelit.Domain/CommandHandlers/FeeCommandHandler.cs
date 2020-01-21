@@ -52,9 +52,14 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     var feeModel = _feeRepository.GetById(request.Fee.Id);
                     feeModel.FeeName = request.Fee.FeeName;
-                    feeModel.FeeTypeId = request.Fee.FeeTypeId;
+                    //feeModel.FeeTypeId = request.Fee.FeeTypeId;
                     feeModel.A1 = request.Fee.A1;
                     feeModel.A2 = request.Fee.A2;
+                    feeModel.Tags = request.Fee.Tags;
+                    feeModel.UpdateDate = DateTime.UtcNow;
+                    feeModel.UpdatedById = CurrentUser.Id;
+                    if (string.IsNullOrEmpty(feeModel.AssignedToId))
+                        feeModel.AssignedToId = CurrentUser.Id;
                     _feeRepository.Update(feeModel);
                     commmitResult = Commit();
                     request.Fee = feeModel;
@@ -62,11 +67,11 @@ namespace Medelit.Domain.CommandHandlers
                     //var allFees = _feeRepository.GetAll();
                     //foreach (var fee in allFees)
                     //{
-                       
+
                     //        fee.FeeCode = fee.FeeTypeId == eFeeType.PTFee ? $"FP{fee.Id.ToString().PadLeft(6, '0')}" : $"FS{fee.Id.ToString().PadLeft(6, '0')}";
                     //        fee.UpdateDate = DateTime.UtcNow;
                     //        _feeRepository.Update(fee);
-                        
+
                     //}
                     //Commit();
                 }
@@ -74,6 +79,8 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     var feeModel = request.Fee;
                     feeModel.CreateDate = DateTime.UtcNow;
+                    feeModel.CreatedById = CurrentUser.Id;
+                    feeModel.AssignedToId = CurrentUser.Id;
                     _feeRepository.Add(feeModel);
                     commmitResult = Commit();
                     if (commmitResult && feeModel.Id > 0)
@@ -111,6 +118,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _feeRepository.GetById(fee.Id);
                     feeModel.Status = request.Status;
                     feeModel.UpdateDate = DateTime.UtcNow;
+                    feeModel.UpdatedById = CurrentUser.Id;
                     _feeRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -139,7 +147,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _feeRepository.GetById(feeId);
                     feeModel.Status = eRecordStatus.Deleted;
                     feeModel.DeletedAt = DateTime.UtcNow;
-                    //feeModel.DeletedById = 0;
+                    feeModel.DeletedById = CurrentUser.Id;
                     _feeRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -157,14 +165,8 @@ namespace Medelit.Domain.CommandHandlers
             {
                 return HandleException(request.MessageType, ex);
             }
-            }
-
-       
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
         }
+
         public void Dispose()
         {
 

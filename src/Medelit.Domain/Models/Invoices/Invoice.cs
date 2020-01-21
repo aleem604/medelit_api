@@ -10,6 +10,8 @@ namespace Medelit.Domain.Models
         public string Subject { get; set; }
         [Column("invoicing_entity_id")]
         public long? InvoiceEntityId { get; set; }
+        [ForeignKey("InvoiceEntityId")]
+        public InvoiceEntity InvoiceEntity { get; set; }
         
         [Column("invoice_number")]
         public string InvoiceNumber { get; set; }
@@ -75,8 +77,6 @@ namespace Medelit.Domain.Models
         [Column("pro_invoice_date")]
         public DateTime? ProInvoiceDate { get; set; }
        
-        [Column("assigned_to_id")]
-        public long? AssignedToId { get; set; }
         [Column("customer_id")]
         public long? CustomerId { get; set; }
         [ForeignKey("CustomerId")]

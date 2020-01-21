@@ -16,5 +16,8 @@ namespace Medelit.Application
         void ConvertToBooking(long leadId);
         void CreateClones(long bookingId, short bookings);
         void CreateCycle(long bookingId, short bookings);
+        dynamic GetBookingCycleConnectedBookings(long bookingId);
+        dynamic BookingConnectedProfessional(long bookingId);
+        dynamic BookingConnectedInvoices(long bookingId);
     }
 }

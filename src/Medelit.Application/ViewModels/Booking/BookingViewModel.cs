@@ -100,8 +100,6 @@ namespace Medelit.Application
         public decimal? ProFee { get; set; }
 
         public short? QuantityHours { get; set; }
-
-        public long? AssignedToId { get; set; }
         public string CustomerName { get; set; }
         public string InvoiceEntityName { get; set; }
     }

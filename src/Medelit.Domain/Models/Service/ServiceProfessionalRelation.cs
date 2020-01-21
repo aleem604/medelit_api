@@ -14,5 +14,6 @@ namespace Medelit.Domain.Models
         [Column("professional_id")]
         public long ProfessionalId { get; set; }
         public virtual Service Service { get; set; }
+        public virtual Professional Professional { get; set; }
     }
 }

@@ -45,8 +45,6 @@ namespace Medelit.Application
 
         public DateTime? PaymentArrivalDate { get; set; }
         public DateTime? ProInvoiceDate { get; set; }
-        public long? AssignedToId { get; set; }
-
         public dynamic InvoiceBookings { get; set; }
 
     }

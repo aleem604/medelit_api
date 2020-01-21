@@ -11,15 +11,18 @@ namespace Medelit.Domain.Models
         [Column("created_at")]
         public DateTime CreateDate { get; set; } = DateTime.UtcNow;
         [Column("created_by_id")]
-        public long? CreatedById { get; set; }
+        public string CreatedById { get; set; }
         [Column("updated_at")]
         public DateTime? UpdateDate { get; set; }
         [Column("updated_by_id")]
-        public long? UpdatedById { get; set; }
+        public string UpdatedById { get; set; }
         [Column("deleted_at")]
         public DateTime? DeletedAt { get; set; }
         [Column("deleted_by_id")]
-        public long? DeletedById { get; set; }
+        public string DeletedById { get; set; }
+
+        [Column("assigned_to_id")]
+        public string AssignedToId { get; set; }
 
     }
 }

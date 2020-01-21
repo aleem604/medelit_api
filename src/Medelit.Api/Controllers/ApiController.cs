@@ -3,17 +3,19 @@ using System.Linq;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Medelit.Api.Controllers
 {
+    [Authorize]
     public abstract class ApiController : ControllerBase
     {
         private readonly DomainNotificationHandler _notifications;
         private readonly IMediatorHandler _mediator;
 
-        protected ApiController(INotificationHandler<DomainNotification> notifications, 
+        protected ApiController(INotificationHandler<DomainNotification> notifications,
                                 IMediatorHandler mediator)
         {
             _notifications = (DomainNotificationHandler)notifications;
@@ -22,14 +24,23 @@ namespace Medelit.Api.Controllers
 
         protected IEnumerable<DomainNotification> Notifications => _notifications.GetNotifications();
 
+
         protected bool IsValidOperation()
         {
             return (!_notifications.HasNotifications());
         }
 
-        protected new IActionResult Response(object result = null)
+        protected new IActionResult Response(object result = null, string message = null)
         {
-            if (IsValidOperation())
+            if (!string.IsNullOrEmpty(message))
+            {
+                return Ok(new
+                {
+                    success = false,
+                    errors = message
+                });
+            }
+            else if (IsValidOperation())
             {
                 return Ok(new
                 {
@@ -37,12 +48,14 @@ namespace Medelit.Api.Controllers
                     data = result ?? _notifications.GetDomainData()?.FirstOrDefault()?.Data
                 });
             }
-
-            return Ok(new
+            else
             {
-                success = false,
-                errors = _notifications.GetNotifications().Select(n => n.Value)
-            });
+                return Ok(new
+                {
+                    success = false,
+                    errors = string.IsNullOrEmpty(message) ? string.Join("<br/> ", _notifications.GetNotifications().Select(n => n.Value).ToArray()) : message
+                });
+            }
         }
 
         protected void NotifyModelStateErrors()
@@ -67,12 +80,12 @@ namespace Medelit.Api.Controllers
                 NotifyError(result.ToString(), error.Description);
             }
         }
-    protected dynamic GetModelStateErrors()
-    {
-      var errors = ModelState.Select(x => x.Value.Errors)
-                           .Where(y => y.Count > 0).SelectMany(x=>x.Select(y=>y.ErrorMessage))
-                           .ToList();
-      return errors.ToList();
-    }
+        protected string GetModelStateErrors()
+        {
+            var errors = ModelState.Select(x => x.Value.Errors)
+                                 .Where(y => y.Count > 0).SelectMany(x => x.Select(y => y.ErrorMessage))
+                                 .ToArray();
+            return string.Join("<br/> ", errors);
+        }
     }
 }

@@ -4,15 +4,17 @@ using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Medelit.Infra.Data.Repository
 {
     public class BookingRepository : Repository<Booking>, IBookingRepository
     {
-        public BookingRepository(MedelitContext context)
-            : base(context)
-        {}
+
+        public BookingRepository(MedelitContext context, IHttpContextAccessor contextAccessor)
+            : base(context, contextAccessor)
+        { }
 
 
         public string GetBookingName(string name, string surName)
@@ -20,9 +22,56 @@ namespace Medelit.Infra.Data.Repository
             name = $"{name} {surName}";
             var bookingCount = Db.Booking.Where(x => x.Name.StartsWith(name)).Count();
 
-            return $"{name} {++ bookingCount}";
+            return $"{name} {++bookingCount}";
         }
 
+        public dynamic GetBookingCycleConnectedBookings(long bookingId)
+        {
+            var cycleBooking = Db.Booking.FirstOrDefault(x => x.Id == bookingId).CycleBookingId;
+            return (from b in Db.Booking
+                    where b.CycleBookingId == cycleBooking && b.Id != bookingId && b.Cycle.HasValue
+                    select new
+                    {
+                        bookingName = b.Name,
+                        serviceName = b.Service.Name,
+                        professional = b.Professional.Name,
+                        cycleNumber = b.CycleNumber,
+                        ptFee = b.PtFee,
+                        proFee = b.ProFee,
+                        b.SubTotal
+                    }).ToList();
+        }
+
+        public dynamic BookingConnectedProfessional(long bookingId)
+        {
+            var collaborations = Db.StaticData.Select((s) => new { s.Id, Value = s.CollaborationCodes }).Where(x => x.Value != null).ToList();
+
+            return (from b in Db.Booking
+                    where b.Id == bookingId
+                    select new
+                    {
+                        professional = b.Professional.Name,
+                        phoneNumber = b.Professional.Telephone,
+                        email = b.Professional.Email,
+                        lastVisitDate = b.VisitStartDate,
+                        Status = b.Professional.ActiveCollaborationId > 0 ? collaborations.FirstOrDefault(x => x.Id == b.Professional.ActiveCollaborationId).Value : string.Empty
+                    }).ToList();
+        }
+
+        public dynamic BookingConnectedInvoices(long bookingId)
+        {
+            return (from ib in Db.InvoiceBookings
+                    where ib.BookingId == bookingId
+                    select new
+                    {
+                        subject = ib.Invoice.Subject,
+                        invoiceNumber = ib.Invoice.InvoiceNumber,
+                        ieName = ib.Booking.InvoiceEntityId.HasValue ? ib.Booking.InvoiceEntity.Name : string.Empty,
+                        invoiceDate = ib.Invoice.InvoiceDate,
+                        totalInvoice = ib.Invoice.TotalInvoice
+                    }).ToList();
+
+        }
 
     }
 }

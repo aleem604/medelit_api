@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Medelit.Common;
 using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Models;
 
 namespace Medelit.Application.AutoMapper
 {
@@ -8,7 +9,11 @@ namespace Medelit.Application.AutoMapper
     {
         public DomainToViewModelMappingProfile()
         {
+            CreateMap<MedelitUser, UserViewModel>();
+
+            CreateMap<Fee, FeeViewModel>();
             CreateMap<Lead, LeadViewModel>();
+            CreateMap<Customer, CustomerViewModel>((MemberList.Source));
             CreateMap<Customer, LeadViewModel>()
                 .ForMember(dest => dest.AddressStreetName,
                     opts => opts.MapFrom(
@@ -34,13 +39,16 @@ namespace Medelit.Application.AutoMapper
             CreateMap<CustomerServiceRelation, LeadServiceRelationViewModel>();
             CreateMap<Customer, Booking>();
 
-            CreateMap<Professional, ProfessionalRequestViewModel>();
+            CreateMap<Professional, ProfessionalViewModel>();
             CreateMap<ProfessionalLanguageRelation, FilterModel>()
                 .ForMember(dest => dest.Id,
                     opts => opts.MapFrom(
                         src => src.LanguageId
                     )).ReverseMap();
             CreateMap<Service, ServiceViewModel>();
+            CreateMap<ServiceProfessionalRelation, ServiceProfessionalRelationVeiwModel>();
+            CreateMap<FieldSubCategory, FieldSubCategoryViewModel>();
+
             CreateMap<LeadServiceRelation, LeadServiceRelationViewModel>();
             CreateMap<CustomerServiceRelation, CustomerServiceRelationViewModel>();
 
@@ -48,6 +56,7 @@ namespace Medelit.Application.AutoMapper
             CreateMap<Invoice, InvoiceViewModel>((MemberList.Source));
             CreateMap<InvoiceBookings, InvoiceBookingsViewModel>((MemberList.Source));
             
+
             CreateMap<Booking, BookingViewModel>((MemberList.Source)).ForMember(dest => dest.IsAllDayVisit,
                    opts => opts.MapFrom(
                        src => src.IsAllDayVisit.Value == 0 ? false : true

@@ -35,7 +35,6 @@ namespace Medelit.Application
                             IProfessionalRepository professionalRepository,
                             IFeeRepository feeRepository,
                             ILanguageRepository langRepository
-            
             )
         {
             _mapper = mapper;
@@ -59,7 +58,7 @@ namespace Medelit.Application
 
             var service = _serviceRepository.GetByIdWithIncludes(serviceId);
             var viewModel = _mapper.Map<ServiceViewModel>(service);
-            viewModel.Professionals = service.ServiceProfessionals.Select((s) => new FilterModel { Id = s.ProfessionalId }).ToList();
+            viewModel.Professionals = service.ServiceProfessionals.Select((s) => new FilterModel { Id = s.ProfessionalId, Value = s.Professional?.Name }).ToList();
             return viewModel;
 
         }
@@ -74,8 +73,8 @@ namespace Medelit.Application
                 .Select((s) => new {
                     s.Id,
                     s.Name,
-                    PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId).A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId).A2),
-                    ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId).A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId).A2),
+                    PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A2),
+                    ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A2),
                     Professionals = PopulateProfessionals(s.ServiceProfessionals, professionals),
                     s.Covermap,
                     s.Status,
@@ -196,7 +195,56 @@ namespace Medelit.Application
             _bus.SendCommand(new DeleteServicesCommand { ServiceIds = serviceIds });
         }
 
+        public dynamic GetProfessionalServices(ServicFilterViewModel viewModel)
+        {
+            return _serviceRepository.GetProfessionalServices(viewModel.ProfessionalId, viewModel.FieldId, viewModel.SubCategoryId, viewModel.Tag);
+        }
 
+        public void SaveProfessionalServices(IEnumerable<long> serviceIds, long proId)
+        {
+            _bus.SendCommand(new AddProfessionalToServicesCommand { ServiceIds = serviceIds, ProfessionalId = proId });
+        }
+
+        public void DetachProfessional(long serviceId, long proId)
+        {
+            _bus.SendCommand(new DetachProfessionalCommand { ServiceId = serviceId, ProfessionalId = proId });
+        }
+
+        public void AddUpdateFeeForService(AddUpdateFeeToServiceViewModel viewModel) {
+            var model = _mapper.Map<AddUpdateFeeToService>(viewModel);
+
+            _serviceRepository.AddUpdateFeeForService(model);
+        }
+
+
+
+        public dynamic GetProfessionalRelations(long proId)
+        {
+            return _serviceRepository.GetProfessionalServicesWithInclude(proId);
+        }
+        public dynamic GetProfessionalFeesDetail(long serviceId)
+        {
+            return _serviceRepository.GetProfessionalFeesDetail(serviceId);
+        }
+
+        public dynamic GetServiceConnectedProfessionals(long serviceId)
+        {
+            return _serviceRepository.GetServiceConnectedProfessionals(serviceId);
+        }
+         public dynamic GetConnectedCustomersInvoicingEntities(long serviceId)
+        {
+            return _serviceRepository.GetConnectedCustomersInvoicingEntities(serviceId);
+        }
+
+        public dynamic GetConnectedBookings(long serviceId) {
+            return _serviceRepository.GetConnectedBookings(serviceId);
+        }
+        public dynamic GetConnectedCustomerInvoices(long serviceId) {
+            return _serviceRepository.GetConnectedCustomerInvoices(serviceId);
+        }
+        public dynamic GetConnectedLeads(long serviceId) {
+            return _serviceRepository.GetConnectedLeads(serviceId);
+        }
 
         public void Dispose()
         {

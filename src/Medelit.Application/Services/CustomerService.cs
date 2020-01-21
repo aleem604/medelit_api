@@ -11,10 +11,11 @@ using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using System.Linq;
 using System.Collections.Generic;
+using Medelit.Infra.CrossCutting.Identity.Data;
 
 namespace Medelit.Application
 {
-    public class CustomerService : ICustomerService
+    public class CustomerService : BaseService, ICustomerService
     {
         private readonly ICustomerRepository _customerRepository;
         private readonly ILanguageRepository _langRepository;
@@ -27,6 +28,7 @@ namespace Medelit.Application
         private readonly IMediatorHandler _bus;
 
         public CustomerService(IMapper mapper,
+            ApplicationDbContext context,
                             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
@@ -34,7 +36,7 @@ namespace Medelit.Application
                             ILanguageRepository langRepository,
                            IStaticDataRepository staticRepository, 
                            IServiceRepository serviceRepository,
-                            IProfessionalRepository professionalRepository)
+                            IProfessionalRepository professionalRepository):base(context)
 {
             _mapper = mapper;
             _httpContext = httpContext;
@@ -55,27 +57,18 @@ namespace Medelit.Application
         public dynamic FindCustomers(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-            var langs = _langRepository.GetAll().ToList();
-            var statics = _staticRepository.GetAll().ToList();
-            var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
-            var professionals = _professoinalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
-
             var query = (from customer in _customerRepository.GetAllWithService()
                          where customer.Status != eRecordStatus.Deleted
                          select customer)
                         .Select((x) => new
                         {
-                            Id = x.Id,
-                            Title = statics.FirstOrDefault(s => s.Id == x.TitleId).Titles,
-                            Language = langs.FirstOrDefault(s => s.Id == x.LanguageId).Name,
-                            Services = PopulateServices(x.Services, services),
-                            Professionals = PopulateProfessionals(x.Services, professionals),
-                            SurName = x.SurName,
-                            Name = x.Name,
-                            Email = x.Email,
-                            MainPhone = x.MainPhone,
-                            UpdateDate = x.UpdateDate,
-                            Status = x.Status
+                            x.Id,
+                            x.SurName,
+                            x.Name,
+                            Age = $"{Utils.GetAge(x.DateOfBirth).Item1} years and {Utils.GetAge(x.DateOfBirth).Item2} months  ",
+                            x.Email,
+                            Address = x.HomeStreetName,
+                            x.MainPhone
                         });
 
 
@@ -86,17 +79,11 @@ namespace Medelit.Application
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.SurName.Equals(viewModel.Filter.Search))
-                //|| (!string.IsNullOrEmpty(x.currency) && x.currency.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
 
-            }
-
-            if (viewModel.Filter.Status != eRecordStatus.All)
-            {
-                query = query.Where(x => x.Status == viewModel.Filter.Status);
             }
 
             switch (viewModel.SortField)
@@ -121,31 +108,13 @@ namespace Medelit.Application
                     else
                         query = query.OrderByDescending(x => x.Email);
                     break;
-                case "language":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Language);
-                    else
-                        query = query.OrderByDescending(x => x.Language);
-                    break;
 
-                case "status":
+                case "age":
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Status);
+                        query = query.OrderBy(x => x.Age);
                     else
-                        query = query.OrderByDescending(x => x.Status);
+                        query = query.OrderByDescending(x => x.Age);
                     break;
-                //case "createDate":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.CreateDate);
-                //    else
-                //        query = query.OrderByDescending(x => x.CreateDate);
-                //    break;
-                //case "createdBy":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.CreatedBy);
-                //    else
-                //        query = query.OrderByDescending(x => x.CreatedBy);
-                //    break;
 
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
@@ -165,30 +134,12 @@ namespace Medelit.Application
             };
         }
 
-        private string PopulateServices(ICollection<CustomerServiceRelation> services, List<FilterModel> oservices)
-        {
-            var query = from s in services
-                        join
-                        os in oservices on s.ServiceId equals os.Id
-                        select os.Value;
-
-            return string.Join(",", query.ToArray());
-        }
-
-        private string PopulateProfessionals(ICollection<CustomerServiceRelation> services, List<FilterModel> professionals)
-        {
-            var query = from s in services
-                        join
-                        os in professionals on s.ProfessionalId equals os.Id
-                        select os.Value;
-
-            return string.Join(",", query.ToArray());
-        }
-
         public CustomerViewModel GetCustomerById(long customerId)
         {
             var customer = _customerRepository.GetById(customerId);
-            return _mapper.Map<CustomerViewModel>(customer);
+            var vm = _mapper.Map<CustomerViewModel>(customer);
+            vm.AssignedTo = GetAssignedUser(vm.AssignedToId);
+            return vm;
         }
 
         public void SaveCustomer(CustomerViewModel viewModel)
@@ -210,6 +161,31 @@ namespace Medelit.Application
         public void CreateBooking(CustomerViewModel viewModel)
         {
             _bus.SendCommand(new ConvertCustomerToBookingCommand { CustomerId = viewModel.Id });
+        }
+
+        public dynamic GetCustomerConnectedCustomers(long customerId)
+        {
+            return _customerRepository.GetCustomerConnectedCustomers(customerId);
+        }
+        public dynamic GetCustomerConnectedServices(long customerId)
+        {
+            return _customerRepository.GetCustomerConnectedServices(customerId);
+        }
+        public dynamic GetCustomerConnectedProfessionals(long customerId)
+        {
+            return _customerRepository.GetCustomerConnectedProfessionals(customerId);
+        }
+        public dynamic GetCustomerConnectedBookings(long customerId)
+        {
+            return _customerRepository.GetCustomerConnectedBookings(customerId);
+        }
+        public dynamic GetCustomerConnectedInvoices(long customerId)
+        {
+            return _customerRepository.GetCustomerConnectedInvoices(customerId);
+        }
+        public dynamic GetCustomerConnectedLeads(long customerId)
+        {
+            return _customerRepository.GetCustomerConnectedLeads(customerId);
         }
 
         public void Dispose()

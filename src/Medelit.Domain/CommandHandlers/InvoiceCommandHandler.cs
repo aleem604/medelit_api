@@ -93,7 +93,11 @@ namespace Medelit.Domain.CommandHandlers
                     invoiceModel.InvoiceDiagnosis = request.Invoice.InvoiceDiagnosis;
                     invoiceModel.TotalInvoice = UpdateInvoiceTotals(request.Invoice.Id);
 
+                    invoiceModel.UpdateDate = DateTime.UtcNow;
+                    invoiceModel.UpdatedById = CurrentUser.Id;
+
                     _invoiceRepository.Update(invoiceModel);
+                    
                     commmitResult = Commit();
                     request.Invoice = invoiceModel;
 
@@ -110,10 +114,14 @@ namespace Medelit.Domain.CommandHandlers
                 }
                 else
                 {
-                    var feeModel = request.Invoice;
-                    _invoiceRepository.Add(feeModel);
+                    var invoiceModel = request.Invoice;
+                    invoiceModel.AssignedToId = CurrentUser.Id;
+                    invoiceModel.CreatedById = CurrentUser.Id;
+                    invoiceModel.CreateDate = DateTime.UtcNow;
+
+                    _invoiceRepository.Add(invoiceModel);
                     commmitResult = Commit();
-                    request.Invoice = feeModel;
+                    request.Invoice = invoiceModel;
                 }
                 if (commmitResult)
                 {
@@ -136,12 +144,14 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                foreach (var fee in request.Invoices)
+                foreach (var invoice in request.Invoices)
                 {
-                    var feeModel = _invoiceRepository.GetById(fee.Id);
-                    feeModel.Status = request.Status;
-                    feeModel.UpdateDate = DateTime.UtcNow;
-                    _invoiceRepository.Update(feeModel);
+                    var invoiceModel = _invoiceRepository.GetById(invoice.Id);
+                    invoiceModel.Status = request.Status;
+                    invoiceModel.UpdateDate = DateTime.UtcNow;
+                    invoiceModel.UpdatedById = CurrentUser.Id;
+
+                    _invoiceRepository.Update(invoiceModel);
                 }
                 if (Commit())
                 {
@@ -169,7 +179,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _invoiceRepository.GetById(feeId);
                     feeModel.Status = eRecordStatus.Deleted;
                     feeModel.DeletedAt = DateTime.UtcNow;
-                    //feeModel.DeletedById = 0;
+                    feeModel.DeletedById = CurrentUser.Id;
                     _invoiceRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -215,6 +225,9 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     var updateInvoice = _invoiceRepository.GetById(request.InvoiceId);
                     updateInvoice.TotalInvoice = UpdateInvoiceTotals(request.InvoiceId);
+                    updateInvoice.UpdatedById = CurrentUser.Id;
+                    updateInvoice.UpdateDate = DateTime.UtcNow;
+
                     _invoiceRepository.Update(updateInvoice);
                     Commit();
                     _bus.RaiseEvent(new DomainNotification(request.MessageType, null, invoiceBookingModel));
@@ -275,10 +288,12 @@ namespace Medelit.Domain.CommandHandlers
                 invoice.DateOfVisit = booking.VisitStartDate;
                 invoice.InvoiceDescription = customer.Name;
 
-                
-
                 invoice.PaymentArrivalDate = booking.PaymentArrivalDate;
                 invoice.ProInvoiceDate = booking.InvoiceDueDate;
+
+                invoice.CreateDate = DateTime.UtcNow;
+                invoice.CreatedById = CurrentUser.Id;
+                invoice.AssignedToId = CurrentUser.Id;
 
                 _invoiceRepository.Add(invoice);
                 if (Commit())
@@ -289,6 +304,9 @@ namespace Medelit.Domain.CommandHandlers
                         var newInvoice = _invoiceRepository.GetById(invoice.Id);
                         newInvoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(5, '0')}/{DateTime.Now.ToString("ddMM/yyyy")} PROFORMA";
                         newInvoice.TotalInvoice = UpdateInvoiceTotals(newInvoice.Id);
+                        newInvoice.UpdateDate = DateTime.UtcNow;
+                        newInvoice.UpdatedById = CurrentUser.Id;
+
                         _invoiceRepository.Update(newInvoice);
                         Commit();
                     }
@@ -329,6 +347,9 @@ namespace Medelit.Domain.CommandHandlers
                 }
                 invoice.TotalInvoice = totals;
                 _invoiceRepository.DeleteInvoiceBooking(ib);
+
+                invoice.UpdateDate = DateTime.UtcNow;
+                invoice.UpdatedById = CurrentUser.Id;
                 _invoiceRepository.Update(invoice);
 
                 _bus.RaiseEvent(new DomainNotification(request.MessageType, null, Commit()));
@@ -339,13 +360,7 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
-
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
-        }
-
+      
         public decimal? UpdateInvoiceTotals(long invoiceId)
         {
             var invoiceBookings = _invoiceRepository.GetInvoiceBookings().Where(x => x.InvoiceId == invoiceId).ToList();

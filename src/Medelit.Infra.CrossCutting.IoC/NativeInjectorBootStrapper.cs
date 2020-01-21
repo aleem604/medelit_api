@@ -133,6 +133,8 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<IRequestHandler<SaveServiceCommand, bool>, ServiceCommandHandler>();
             services.AddScoped<IRequestHandler<UpdateServicesStatusCommand, bool>, ServiceCommandHandler>();
             services.AddScoped<IRequestHandler<DeleteServicesCommand, bool>, ServiceCommandHandler>();
+            services.AddScoped<IRequestHandler<AddProfessionalToServicesCommand, bool>, ServiceCommandHandler>();
+            services.AddScoped<IRequestHandler<DetachProfessionalCommand, bool>, ServiceCommandHandler>();
 
 
         }

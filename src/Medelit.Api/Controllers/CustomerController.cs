@@ -77,5 +77,40 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
+        [HttpGet("customers/customer-connected-customers/{customerId}")]
+        public IActionResult GetCustomerConnectedCustomers(long customerId)
+        {
+            return Response(_customerService.GetCustomerConnectedCustomers(customerId));
+        }
+
+        [HttpGet("customers/customer-requested-services/{customerId}")]
+        public IActionResult GetCustomerConnectedServices(long customerId)
+        {
+            return Response(_customerService.GetCustomerConnectedServices(customerId));
+        }
+
+        [HttpGet("customers/customer-connected-professionals/{customerId}")]
+        public IActionResult GetCustomerConnectedProfessionals(long customerId)
+        {
+            return Response(_customerService.GetCustomerConnectedProfessionals(customerId));
+        }
+
+        [HttpGet("customers/customer-connected-bookings/{customerId}")]
+        public IActionResult GetCustomerConnectedBookings(long customerId)
+        {
+            return Response(_customerService.GetCustomerConnectedBookings(customerId));
+        }
+
+        [HttpGet("customers/customer-connected-invoices/{customerId}")]
+        public IActionResult GetCustomerConnectedInvoices(long customerId)
+        {
+            return Response(_customerService.GetCustomerConnectedInvoices(customerId));
+        }
+
+        [HttpGet("customers/customer-connected-leads/{customerId}")]
+        public IActionResult GetCustomerConnectedLeads(long customerId)
+        {
+            return Response(_customerService.GetCustomerConnectedLeads(customerId));
+        }
     }
 }

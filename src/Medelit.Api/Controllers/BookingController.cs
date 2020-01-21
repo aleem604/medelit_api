@@ -27,8 +27,6 @@ namespace Medelit.Api.Controllers
             _logger = logger;
         }
 
-        
-
         [HttpPost("bookings/find")]
         public IActionResult FindBookings([FromBody] SearchViewModel model)
         {
@@ -102,6 +100,26 @@ namespace Medelit.Api.Controllers
             _bookingService.CreateCycle(bookingId, bookings);
             return Response();
         }
+
+        [HttpGet("bookings/booking-cycle-connected-bookings/{bookingId}")]
+        public IActionResult GetBookingCycleConnectedBookings(long bookingId)
+        {      
+            return Response(_bookingService.GetBookingCycleConnectedBookings(bookingId));
+        }
+
+        [HttpGet("bookings/booking-connected-professionals/{bookingId}")]
+        public IActionResult GetBookingConnectedProfessionals(long bookingId)
+        {
+            return Response(_bookingService.BookingConnectedProfessional(bookingId));
+        }
+
+        [HttpGet("bookings/booking-connected-invoices/{bookingId}")]
+        public IActionResult GetBookingConnectedInvoices(long bookingId)
+        {
+            return Response(_bookingService.BookingConnectedInvoices(bookingId));
+        }
+
+
 
     }
 }

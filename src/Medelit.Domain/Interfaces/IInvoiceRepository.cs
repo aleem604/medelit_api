@@ -10,5 +10,9 @@ namespace Medelit.Domain.Interfaces
         IQueryable<InvoiceBookings> GetInvoiceBookings();
         void DeleteInvoiceBooking(InvoiceBookings invoiceBooking);
         dynamic GetInvoiceView(long invoiceId);
+        dynamic InvoiceConnectedProfessional(long invoiceId);
+        dynamic InvoiceConnectedCustomers(long invoiceId);
+        dynamic InvoiceConnectedInvoiceEntity(long invoiceId);
+        dynamic InvoiceConnectedBookings(long invoiceId);
     }
 }

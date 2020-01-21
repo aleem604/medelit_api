@@ -1,4 +1,5 @@
 ﻿
+using Medelit.Application;
 using Medelit.Common;
 using Medelit.Infra.CrossCutting.Identity.Models;
 using Microsoft.AspNetCore.Identity;
@@ -10,7 +11,7 @@ namespace Medelit.Auth
 {
     public interface IJwtFactory
     {
-        Task<string> GenerateEncodedToken(string userName, ClaimsIdentity identity);
-        ClaimsIdentity GenerateClaimsIdentity(string userName, ApplicationUser user, IEnumerable<string> roles );
+        Task<string> GenerateEncodedToken(CurrentUserInfo userName, ClaimsIdentity identity);
+        ClaimsIdentity GenerateClaimsIdentity(CurrentUserInfo ususerInfo, MedelitUser user, IEnumerable<string> roles );
     }
 }

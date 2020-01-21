@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Medelit.Domain.Models
@@ -15,8 +16,12 @@ namespace Medelit.Domain.Models
         public short? ActiveServiceId { get; set; }
         [Column("field_id")]
         public long? FieldId { get; set; }
+        [ForeignKey("FieldId")]
+        public FieldSubCategory Field { get; set; }
         [Column("sub_category_id")]
         public long? SubcategoryId { get; set; }
+        [ForeignKey("SubcategoryId")]
+        public FieldSubCategory SubCategory { get; set; }
         [Column("duration_id")]
         public int? DurationId { get; set; }
         [Column("timed_service_id")]
@@ -38,16 +43,40 @@ namespace Medelit.Domain.Models
         public string Tags { get; set; }
         [Column("pt_fee_id")]
         public long? PTFeeId { get; set; }
+        [ForeignKey("PTFeeId")]
+        public Fee PtFee { get; set; }
+
         [Column("pro_fee_id")]
         public long? PROFeeId { get; set; }
-
-
-        [Column("assigned_to_id")]
-        public long? AssignedToId { get; set; }
+        [ForeignKey("PROFeeId")]
+        public Fee ProFee { get; set; }
 
         //public IEnumerable<ServiceFeeRelation> ServiceFeeRelation { get; set; }
         public IEnumerable<ServiceProfessionalRelation> ServiceProfessionals { get; set; }
 
-
+        public Service Clone()
+        {
+            return new Service
+            {
+                Name = this.Name,
+                CycleId = this.CycleId,
+                ServiceCode = this.ServiceCode,
+                ActiveServiceId = this.ActiveServiceId,
+                TimedServiceId = this.TimedServiceId,
+                ContractedServiceId = this.ContractedServiceId,
+                InformedConsentId = this.InformedConsentId,
+                FieldId = this.FieldId,
+                SubcategoryId = this.SubcategoryId,
+                Tags = this.Tags,
+                DurationId = this.DurationId,
+                VatId = this.VatId,
+                Covermap = this.Covermap,
+                PTFeeId = this.PTFeeId,
+                PROFeeId = this.PROFeeId,
+                InvoicingNotes = this.InvoicingNotes,
+                Description = this.Description
+            };
+        }
+       
     }
 }

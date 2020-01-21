@@ -1,4 +1,5 @@
-﻿using Medelit.Infra.CrossCutting.Identity.Models;
+﻿using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Medelit.Infra.CrossCutting.Identity.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<MedelitUser>
     {
         private readonly IHostingEnvironment _env;
 
@@ -45,8 +46,8 @@ namespace Medelit.Infra.CrossCutting.Identity.Data
                 NormalizedName = "admin"
             });
 
-            var hasher = new PasswordHasher<ApplicationUser>();
-            builder.Entity<ApplicationUser>().HasData(new ApplicationUser
+            var hasher = new PasswordHasher<MedelitUser>();
+            builder.Entity<MedelitUser>().HasData(new MedelitUser
             {
                 Id = ADMIN_ID,
                 UserName = "admin",

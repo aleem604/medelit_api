@@ -11,29 +11,36 @@ using Medelit.Domain.Interfaces;
 using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Data;
 
 namespace Medelit.Application
 {
-    public class FeeService : IFeeService
+    public class FeeService : BaseService, IFeeService
     {
         private readonly IFeeRepository _feeRepository;
         private readonly ILanguageRepository _langRepository;
         private readonly IStaticDataRepository _staticRepository;
-
+        private readonly IFieldSubcategoryRepository _fieldSubcategoryRepository;
+        private readonly IServiceRepository _serviceRepository;
+        private readonly IProfessionalRepository _professionalRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContext;
         private readonly IMediatorHandler _bus;
 
         public FeeService(IMapper mapper,
+            ApplicationDbContext context,
                             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             IFeeRepository feeRepository,
                             ILanguageRepository langRepository,
-                            IStaticDataRepository staticRepository
+                            IStaticDataRepository staticRepository,
+                            IFieldSubcategoryRepository fieldSubcategoryRepository,
+                            IServiceRepository serviceRepository,
+                            IProfessionalRepository professionalRepository
 
-            )
+            ):base(context)
         {
             _mapper = mapper;
             _httpContext = httpContext;
@@ -42,6 +49,9 @@ namespace Medelit.Application
             _feeRepository = feeRepository;
             _langRepository = langRepository;
             _staticRepository = staticRepository;
+            _fieldSubcategoryRepository = fieldSubcategoryRepository;
+            _serviceRepository = serviceRepository;
+            _professionalRepository = professionalRepository;
         }
        
        
@@ -54,28 +64,19 @@ namespace Medelit.Application
         public dynamic FindFees(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-            var langs = _langRepository.GetAll().ToList();
-            var titles = _staticRepository.GetStaticData().Select(x=> new FilterModel { Id = x.Id, Value = x.Titles }).Where(x=>x.Value != null).ToList();
-
+         
             var query = _feeRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new {
                 x.Id,
+                x.FeeName,
                 x.FeeTypeId,
                 FeeType = x.FeeTypeId.GetDescription(),
                 x.FeeCode,
-                x.FeeName,
-                Fields = new List<string>(),
-                SubCategories = new List<string>(),
+                x.Tags,
                 x.A1,
                 x.A2,
-                x.Status,
-                x.Tags,
-                x.ConnectedServices,
                 x.CreateDate,
-                x.CreatedById,
                 x.UpdateDate,
-                x.UpdatedById,
-                x.DeletedAt,
-                x.DeletedById
+                AssignedTo = GetAssignedUser(x.AssignedToId)
             });
            
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
@@ -84,19 +85,18 @@ namespace Medelit.Application
                 query = query.Where(x =>
                 (
                     (!string.IsNullOrEmpty(x.FeeName) && x.FeeName.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.FeeName.Equals(viewModel.Filter.Search))
-                //|| (!string.IsNullOrEmpty(x.currency) && x.currency.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.FeeCode) && x.FeeCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.FeeType) && x.FeeType.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.A1.ToString()) && x.A1.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.AssignedTo) && x.AssignedTo.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Tags) && x.Tags.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
-
             }
 
-            if (viewModel.Filter.Status != eRecordStatus.All)
-            {
-                query = query.Where(x => x.Status == viewModel.Filter.Status);
-            }
             if (viewModel.Filter.FeeType != eFeeType.All)
             {
                 query = query.Where(x => x.FeeTypeId == viewModel.Filter.FeeType);
@@ -111,18 +111,18 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.FeeName);
                     break;
 
+                case "feetype":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.FeeType);
+                    else
+                        query = query.OrderByDescending(x => x.FeeType);
+                    break;
+
                 case "feecode":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.FeeCode);
                     else
                         query = query.OrderByDescending(x => x.FeeCode);
-                    break;
-
-                case "connectedservices":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.ConnectedServices);
-                    else
-                        query = query.OrderByDescending(x => x.ConnectedServices);
                     break;
                 case "a1":
                     if (viewModel.SortOrder.Equals("asc"))
@@ -135,25 +135,6 @@ namespace Medelit.Application
                         query = query.OrderBy(x => x.A2);
                     else
                         query = query.OrderByDescending(x => x.A2);
-                    break;
-
-                case "status":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Status);
-                    else
-                        query = query.OrderByDescending(x => x.Status);
-                    break;
-                case "createDate":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CreateDate);
-                    else
-                        query = query.OrderByDescending(x => x.CreateDate);
-                    break;
-                case "createdBy":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CreatedById);
-                    else
-                        query = query.OrderByDescending(x => x.CreatedById);
                     break;
 
                 default:
@@ -174,6 +155,14 @@ namespace Medelit.Application
             };
         }
 
+        public FeeViewModel GetFeeById(long feeId)
+        {
+            var feeModel = _feeRepository.GetById(feeId);
+            var vm = _mapper.Map<FeeViewModel>(feeModel);
+            vm.FeeType = vm.FeeTypeId.GetDescription();
+            return vm;
+        }
+
         public void SaveFee(FeeViewModel viewModel)
         {
             var feeModel = _mapper.Map<Fee>(viewModel);
@@ -188,6 +177,26 @@ namespace Medelit.Application
         public void DeleteFees(IList<long> feeIds)
         {
             _bus.SendCommand(new DeleteFeesCommand { FeeIds = feeIds });
+        }
+
+        public dynamic GetConnectedServices(long feeId)
+        {
+            return _feeRepository.GetConnectedServices(feeId);
+        }
+
+        public dynamic GetConnectedProfessionalsCustomers(long feeId)
+        {
+            return _feeRepository.GetConnectedProfessionalsCustomers(feeId);
+        }
+
+        public dynamic GetServicesToConnectWithFee(long feeId)
+        {
+            return _feeRepository.GetServicesToConnectWithFee(feeId);
+        }
+
+        public void SaveServicesToConnectWithFee(IEnumerable<long> serviceIds, long feeId)
+        {
+            _feeRepository.SaveServicesToConnectWithFee(serviceIds, feeId);
         }
 
         public void Dispose()

@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Medelit.Application
+﻿namespace Medelit.Application
 {
   public  class ServiceProfessionalRelationVeiwModel
     {
         public long Id { get; set; }
         public long ServiceId { get; set; }
+        public ServiceViewModel Service { get; set; }
         public long ProfessionalId { get; set; }
+        public ProfessionalViewModel Professional { get; set; }
     }
 }

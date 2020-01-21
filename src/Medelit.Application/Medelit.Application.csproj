@@ -35,6 +35,7 @@
     <ProjectReference Include="..\Medelit.Common\Medelit.Common.csproj" />
     <ProjectReference Include="..\Medelit.Domain.Core\Medelit.Domain.Core.csproj" />
     <ProjectReference Include="..\Medelit.Domain\Medelit.Domain.csproj" />
+    <ProjectReference Include="..\Medelit.Infra.CrossCutting.Identity\Medelit.Infra.CrossCutting.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

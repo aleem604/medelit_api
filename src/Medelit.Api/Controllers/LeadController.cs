@@ -7,6 +7,7 @@ using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Medelit.Api.Controllers
 {
@@ -15,24 +16,25 @@ namespace Medelit.Api.Controllers
         private readonly ILeadService _leadService;
         private readonly INotificationHandler<DomainNotification> _notifications;
         private readonly ILogger<LeadController> _logger;
+        private readonly IMediatorHandler _bus;
 
         public LeadController(
             ILeadService leadService,
             INotificationHandler<DomainNotification> notifications,
             ILogger<LeadController> logger,
-            IMediatorHandler mediator) : base(notifications, mediator)
+            IMediatorHandler bus) : base(notifications, bus)
         {
             _leadService = leadService;
             _notifications = notifications;
+            _bus = bus;
             _logger = logger;
         }
 
-        
+
 
         [HttpPost("leads/find")]
         public IActionResult FindLeads([FromBody] SearchViewModel model)
         {
-
             return Response(_leadService.FindLeads(model));
         }
 
@@ -40,9 +42,7 @@ namespace Medelit.Api.Controllers
         [HttpGet("leads")]
         public IActionResult GetLeads()
         {
-
-            return Response(User.Identity.Name);
-            //return Response(_leadService.GetLeads());
+            return Response(_leadService.GetLeads());
         }
 
         [HttpGet("leads/{leadId}")]
@@ -57,7 +57,12 @@ namespace Medelit.Api.Controllers
         [HttpPut("leads")]
         public IActionResult SaveProvessional([FromBody] LeadViewModel model)
         {
-            _leadService.SaveLead(model);
+            if (!ModelState.IsValid)
+            {
+                return Response(null, GetModelStateErrors());
+            }
+            else
+                _leadService.SaveLead(model);
             return Response();
         }
 
@@ -72,7 +77,7 @@ namespace Medelit.Api.Controllers
         [HttpDelete("leads/{leadId}")]
         public IActionResult DeleteLead(long leadId)
         {
-            _leadService.DeleteLeads(new List<long> {leadId });
+            _leadService.DeleteLeads(new List<long> { leadId });
             return Response();
         }
 
@@ -90,8 +95,5 @@ namespace Medelit.Api.Controllers
             _leadService.ConvertToBooking(leadId);
             return Response();
         }
-
-
-
     }
 }

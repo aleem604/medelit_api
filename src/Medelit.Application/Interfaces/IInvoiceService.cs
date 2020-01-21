@@ -16,5 +16,9 @@ namespace Medelit.Application
         void AddBookingToInvoice(long bookingId, long invoiceId);
         void DeleteInvoiceBooking(long ibid);
         dynamic GetInvoiceView(long invoiceId);
+        dynamic InvoiceConnectedProfessional(long bookingId);
+        dynamic InvoiceConnectedCustomers(long invoiceId);
+        dynamic InvoiceConnectedInvoiceEntity(long invoiceId);
+        dynamic InvoiceConnectedBookings(long invoiceId);
     }
 }

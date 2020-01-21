@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -11,10 +9,13 @@ using Medelit.Domain.Interfaces;
 using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
+using Microsoft.AspNet.Identity;
+using Medelit.Infra.CrossCutting.Identity.Models;
+using Medelit.Infra.CrossCutting.Identity.Data;
 
 namespace Medelit.Application
 {
-    public class LeadService : ILeadService
+    public class LeadService : BaseService, ILeadService
     {
         private readonly ILeadRepository _leadRepository;
         private readonly IStaticDataRepository _staticRepository;
@@ -27,6 +28,7 @@ namespace Medelit.Application
         private readonly IMediatorHandler _bus;
 
         public LeadService(IMapper mapper,
+            ApplicationDbContext context,
                             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
@@ -36,7 +38,7 @@ namespace Medelit.Application
                             IServiceRepository serviceRepository,
                             IProfessionalRepository professionalRepository
 
-            )
+            ):base(context)
         {
             _mapper = mapper;
             _httpContext = httpContext;
@@ -59,27 +61,29 @@ namespace Medelit.Application
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var langs = _langRepository.GetAll().ToList();
             var statics = _staticRepository.GetAll().ToList();
-            var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
-            var professionals = _professoinalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
+            //var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
+            //var professionals = _professoinalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
+
 
             var query = (from lead in _leadRepository.GetAllWithService()
-                         where lead.ConvertDate == null && lead.Status !=eRecordStatus.Deleted
+                         where lead.ConvertDate == null && lead.Status != eRecordStatus.Deleted
                          select lead)
                         .Select((x) => new
                         {
                             x.Id,
-                            Title = statics.FirstOrDefault(s => s.Id == x.TitleId).Titles,
                             Language = langs.FirstOrDefault(s => s.Id == x.LanguageId).Name,
-                            Services = PopulateServices(x.Services, services),
-                            Professionals = PopulateProfessionals(x.Services, professionals),        
+                            //Services = PopulateServices(x.Services, services),
+                            //Professionals = PopulateProfessionals(x.Services, professionals),
+                            //PtFees = PopulatePtFees(x.Services, services),
+                            //ProFees = PopulateProFees(x.Services, services),
+                            x.LeadStatusId,
                             x.SurName,
                             x.Name,
                             x.Email,
                             x.MainPhone,
-                            x.UpdateDate,
-                            x.Status
+                            x.CreateDate,
+                            AssignedTo = GetAssignedUser(x.AssignedToId)
                         });
-
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
             {
@@ -87,21 +91,22 @@ namespace Medelit.Application
                 query = query.Where(x =>
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.SurName.Equals(viewModel.Filter.Search))
-                //|| (!string.IsNullOrEmpty(x.currency) && x.currency.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.SurName) && x.SurName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.MainPhone) && x.MainPhone.CLower().Contains(viewModel.Filter.Search.CLower()))
+                //|| (!string.IsNullOrEmpty(x.Services) && x.Services.CLower().Contains(viewModel.Filter.Search.CLower()))
+                //|| (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.CreateDate.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
-
             }
 
-            if (viewModel.Filter.Status != eRecordStatus.All)
+            if (viewModel.Filter.Filter == eLeadsFilter.HotLeads)
             {
-                query = query.Where(x => x.Status == viewModel.Filter.Status);
+                query = query.Where(x => x.LeadStatusId == (int)eLeadsStatus.Hot);
             }
 
-            switch (viewModel.SortField)
+            switch (viewModel.SortField.ToLower())
             {
                 case "name":
                     if (viewModel.SortOrder.Equals("asc"))
@@ -130,18 +135,12 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.Language);
                     break;
 
-                case "status":
+                case "createDate":
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Status);
+                        query = query.OrderBy(x => x.CreateDate);
                     else
-                        query = query.OrderByDescending(x => x.Status);
+                        query = query.OrderByDescending(x => x.CreateDate);
                     break;
-                //case "createDate":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.CreateDate);
-                //    else
-                //        query = query.OrderByDescending(x => x.CreateDate);
-                //    break;
                 //case "createdBy":
                 //    if (viewModel.SortOrder.Equals("asc"))
                 //        query = query.OrderBy(x => x.CreatedBy);
@@ -151,9 +150,9 @@ namespace Medelit.Application
 
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Id);
+                        query = query.OrderBy(x => x.AssignedTo);
                     else
-                        query = query.OrderByDescending(x => x.Id);
+                        query = query.OrderByDescending(x => x.AssignedTo);
 
                     break;
             }
@@ -174,7 +173,33 @@ namespace Medelit.Application
                         os in oservices on s.ServiceId equals os.Id
                         select os.Value;
 
-            return string.Join(",", query.ToArray());
+            return string.Join(", ", query.ToArray());
+        }
+
+        private string PopulatePtFees(ICollection<LeadServiceRelation> services, List<FilterModel> oservices)
+        {
+            var query = (from s in services
+                         join
+                        os in oservices on s.ServiceId equals os.Id
+                         select new
+                         {
+                             PtFees = s.IsPtFeeA1 == 1 ? s.PTFeeA1 : s.PTFeeA2
+                         }).ToList();
+
+            return string.Join(", ", query.Select(x => x.PtFees.HasValue ? x.PtFees.Value.ToString("G29") : "").ToArray());
+        }
+
+        private string PopulateProFees(ICollection<LeadServiceRelation> services, List<FilterModel> oservices)
+        {
+            var query = (from s in services
+                         join
+                        os in oservices on s.ServiceId equals os.Id
+                         select new
+                         {
+                             PtFees = s.IsProFeeA1 == 1 ? s.PROFeeA1 : s.PROFeeA2
+                         }).ToList();
+
+            return string.Join(", ", query.Select(x => x.PtFees.HasValue ? x.PtFees.Value.ToString("G29") : "").ToArray());
         }
 
         private string PopulateProfessionals(ICollection<LeadServiceRelation> services, List<FilterModel> professionals)
@@ -184,7 +209,7 @@ namespace Medelit.Application
                         os in professionals on s.ProfessionalId equals os.Id
                         select os.Value;
 
-            return string.Join(",", query.ToArray());
+            return string.Join(", ", query.ToArray());
         }
 
         public LeadViewModel GetLeadById(long leadId, long? fromCustomerId)
@@ -192,17 +217,20 @@ namespace Medelit.Application
             if (fromCustomerId.HasValue)
             {
                 var customerObj = _leadRepository.GetCustomerId(fromCustomerId);
-
                 var model = _mapper.Map<LeadViewModel>(customerObj);
-                model.FromCustomerId = customerObj.Id;
-                model.FromCustomer = customerObj.Name;
+                model.CustomerId = customerObj.Id;
+                model.Customer = customerObj.Name;
                 model.Id = leadId;
-
+                model.AssignedTo = GetAssignedUser(model.AssignedToId);
                 return model;
             }
             else
             {
-                return _mapper.Map<LeadViewModel>(_leadRepository.GetWithInclude(leadId));
+                var model = _leadRepository.GetWithInclude(leadId);
+                var vm = _mapper.Map<LeadViewModel>(model);
+                vm.AssignedTo = GetAssignedUser(vm.AssignedToId);
+
+                return vm;
             }
         }
 
@@ -211,7 +239,7 @@ namespace Medelit.Application
             var leadModel = _mapper.Map<Lead>(viewModel);
 
             leadModel.Services = _mapper.Map<ICollection<LeadServiceRelation>>(viewModel.Services);
-            _bus.SendCommand(new SaveLeadCommand { Lead = leadModel, FromCustomerId = viewModel.FromCustomerId });
+            _bus.SendCommand(new SaveLeadCommand { Lead = leadModel, FromCustomerId = viewModel.CustomerId });
         }
 
         public void UpdateStatus(IEnumerable<LeadViewModel> leads, eRecordStatus status)

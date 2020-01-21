@@ -10,10 +10,11 @@ using Medelit.Domain.Models;
 using System.Collections.Generic;
 using Medelit.Domain.Commands;
 using Microsoft.EntityFrameworkCore;
+using Medelit.Infra.CrossCutting.Identity.Data;
 
 namespace Medelit.Application
 {
-    public class InvoiceService : IInvoiceService
+    public class InvoiceService : BaseService, IInvoiceService
     {
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly IInvoiceEntityRepository _ieRepository;
@@ -27,6 +28,7 @@ namespace Medelit.Application
         private readonly IMediatorHandler _bus;
 
         public InvoiceService(IMapper mapper,
+                            ApplicationDbContext context,
                             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
@@ -37,7 +39,7 @@ namespace Medelit.Application
                             IStaticDataRepository staticRepository,
                             IBookingRepository bookingRepository
 
-            )
+            ) : base(context)
         {
             _mapper = mapper;
             _httpContext = httpContext;
@@ -65,24 +67,21 @@ namespace Medelit.Application
             var query = _invoiceRepository.GetAll().Select((x) => new
             {
                 x.Id,
-                x.Subject,
                 x.InvoiceNumber,
+                x.Subject,
                 Amount = x.TotalInvoice,
                 x.InvoiceDate,
                 x.DueDate,
                 x.CustomerId,
                 Customer = customers.FirstOrDefault(c => c.Id == x.CustomerId).Name,
                 x.StatusId,
+
                 InvoiceStatus = invoiceStatus.FirstOrDefault(i => i.Id == x.StatusId).Value,
-                x.AssignedToId,
-                AssignedTo = "Admin",
                 x.Status,
                 x.CreateDate,
-                x.UpdateDate,
+                x.PaymentMethodId
 
             });
-
-
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
             {
@@ -92,15 +91,27 @@ namespace Medelit.Application
                     (!string.IsNullOrEmpty(x.InvoiceNumber) && x.InvoiceNumber.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.InvoiceNumber.Equals(viewModel.Filter.Search))
                 || (!string.IsNullOrEmpty(x.Subject) && x.Subject.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.CreateDate.ToString("yyyy-MM-dd").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Customer) && x.Customer.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.InvoiceStatus) && x.InvoiceStatus.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.DueDate.HasValue && x.DueDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.Amount.HasValue && x.Amount.Value.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
                 ));
             }
 
-            if (viewModel.Filter.Status != eRecordStatus.All)
+            if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.ToBeSent)
             {
-                query = query.Where(x => x.Status == viewModel.Filter.Status);
+                query = query.Where(x => x.StatusId != (short?)eInvoiceStatus.Sent);
             }
+            else if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.InsurancePending)
+            {
+                query = query.Where(x => x.StatusId != (short?)eInvoiceStatus.Pending && x.PaymentMethodId == (short)ePaymentMethods.Insurance);
+            }
+            //else if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.Refunded)
+            //{
+            //    query = query.Where(x => x.);
+            //}
 
             switch (viewModel.SortField)
             {
@@ -118,20 +129,13 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.InvoiceNumber);
                     break;
 
-                case "customerid":
+                case "customer":
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CustomerId);
+                        query = query.OrderBy(x => x.Customer);
                     else
-                        query = query.OrderByDescending(x => x.CustomerId);
+                        query = query.OrderByDescending(x => x.Customer);
                     break;
 
-
-                case "status":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Status);
-                    else
-                        query = query.OrderByDescending(x => x.Status);
-                    break;
                 case "createDate":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.CreateDate);
@@ -144,7 +148,6 @@ namespace Medelit.Application
                         query = query.OrderBy(x => x.Id);
                     else
                         query = query.OrderByDescending(x => x.Id);
-
                     break;
             }
 
@@ -163,10 +166,11 @@ namespace Medelit.Application
             try
             {
                 var invoice = _mapper.Map<InvoiceViewModel>(_invoiceRepository.GetById(invoiceId));
+                invoice.AssignedTo = GetAssignedUser(invoice.AssignedToId);
 
                 invoice.InvoiceBookings = (from ib in _invoiceRepository.GetInvoiceBookings()
-                                           join b in _bookingRepository.GetAll() on ib.BookingId equals b.Id 
-                                          
+                                           join b in _bookingRepository.GetAll() on ib.BookingId equals b.Id
+
                                            join c in _customerRepository.GetAll() on ib.Booking.CustomerId equals c.Id
                                            where ib.InvoiceId == invoiceId
                                            select new
@@ -181,19 +185,18 @@ namespace Medelit.Application
                                                    b.CustomerId,
                                                    CustomerName = c.Name,
                                                    b.InvoiceEntityId,
-                                                   InvoiceEntity = b.InvoiceEntityId.HasValue ? _ieRepository.GetAll().FirstOrDefault(i=>i.Id == b.InvoiceEntityId).Name : string.Empty,
+                                                   InvoiceEntity = b.InvoiceEntityId.HasValue ? _ieRepository.GetAll().FirstOrDefault(i => i.Id == b.InvoiceEntityId).Name : string.Empty,
                                                    b.Cycle,
                                                    b.CycleNumber,
                                                    subTotal = b.SubTotal,
                                                    b.GrossTotal
                                                }
-
                                            }).ToList();
-            return invoice;
+                return invoice;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new Exception(MessageCodes.API_DATA_INVALID);
+                throw new Exception(MessageCodes.API_DATA_INVALID, ex.InnerException);
             }
         }
 
@@ -234,6 +237,25 @@ namespace Medelit.Application
         {
             return _invoiceRepository.GetInvoiceView(invoiceId);
         }
+
+        public dynamic InvoiceConnectedProfessional(long invoiceId)
+        {
+            return _invoiceRepository.InvoiceConnectedProfessional(invoiceId);
+        }
+
+        public dynamic InvoiceConnectedCustomers(long invoiceId)
+        {
+            return _invoiceRepository.InvoiceConnectedCustomers(invoiceId);
+        }
+        public dynamic InvoiceConnectedInvoiceEntity(long invoiceId)
+        {
+            return _invoiceRepository.InvoiceConnectedInvoiceEntity(invoiceId);
+        }
+        public dynamic InvoiceConnectedBookings(long invoiceId)
+        {
+            return _invoiceRepository.InvoiceConnectedBookings(invoiceId);
+        }
+
 
         public void Dispose()
         {

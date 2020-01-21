@@ -1,6 +1,8 @@
-﻿using Medelit.Common;
+﻿using Medelit.Application;
+using Medelit.Common;
 using Medelit.Infra.CrossCutting.Identity.Models;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,12 +23,14 @@ namespace Medelit.Auth
             ThrowIfInvalidOptions(_jwtOptions);
         }
 
-        public async Task<string> GenerateEncodedToken(string userName, ClaimsIdentity identity)
+        public async Task<string> GenerateEncodedToken(CurrentUserInfo userInfo, ClaimsIdentity identity)
         {
-            var claims = new[]
+            IEnumerable<Claim> claims = new[]
          {
-                 new Claim(JwtRegisteredClaimNames.UniqueName, userName),
-                 new Claim(JwtRegisteredClaimNames.Sub, userName),
+                 new Claim("user_id", identity.Claims.Single(c => c.Type == "id").Value),
+                 new Claim("user_info", JsonConvert.SerializeObject(userInfo)),
+                 new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.Email),
+                 new Claim(JwtRegisteredClaimNames.Sub, userInfo.Email),
                  new Claim(JwtRegisteredClaimNames.Jti, await _jwtOptions.JtiGenerator()),
                  new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
                  identity.FindFirst(Helpers.Constants.Strings.JwtClaimIdentifiers.Rol),
@@ -47,7 +51,7 @@ namespace Medelit.Auth
             return encodedJwt;
         }
 
-        public ClaimsIdentity GenerateClaimsIdentity(string userName, ApplicationUser user, IEnumerable<string> roles)
+        public ClaimsIdentity GenerateClaimsIdentity(CurrentUserInfo userInfo, MedelitUser user, IEnumerable<string> roles)
         {
             
             var claims = new List<Claim>
@@ -56,13 +60,13 @@ namespace Medelit.Auth
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Id, user.Id),
-                //new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Rol, Helpers.Constants.Strings.JwtClaims.ApiAccess)
-                new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Rol, UserRoles.Admin.ToString())
+                new Claim("user_info", JsonConvert.SerializeObject(userInfo)),
+               
             };
 
             claims.AddRange(roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role)));
 
-            return new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims);
+            return new ClaimsIdentity(new GenericIdentity(userInfo.Email, "Token"), claims);
         }
 
         /// <returns>Date converted to seconds since Unix epoch (Jan 1, 1970, midnight UTC).</returns>

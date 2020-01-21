@@ -11,16 +11,18 @@ using Medelit.Domain.Interfaces;
 using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Data;
 
 namespace Medelit.Application
 {
-    public class BookingService : IBookingService
+    public class BookingService : BaseService, IBookingService
     {
         private readonly ICustomerRepository _customerRepository;
         private readonly IInvoiceEntityRepository _ieRepository;
         private readonly IBookingRepository _bookingRepository;
         private readonly ILanguageRepository _langRepository;
         private readonly IServiceRepository _serviceRepository;
+        private readonly IProfessionalRepository _professionalRepository;
         private readonly IStaticDataRepository _dataRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
@@ -28,6 +30,7 @@ namespace Medelit.Application
         private readonly IMediatorHandler _bus;
 
         public BookingService(IMapper mapper,
+            ApplicationDbContext context,
                             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
@@ -36,9 +39,10 @@ namespace Medelit.Application
                             IBookingRepository bookingRepository,
                             ILanguageRepository langRepository,
                             IServiceRepository serviceRepository,
+                            IProfessionalRepository professionalRepository,
                             IStaticDataRepository dataRepository
 
-            )
+            ) : base(context)
         {
             _mapper = mapper;
             _httpContext = httpContext;
@@ -49,6 +53,7 @@ namespace Medelit.Application
             _bookingRepository = bookingRepository;
             _langRepository = langRepository;
             _serviceRepository = serviceRepository;
+            _professionalRepository = professionalRepository;
             _dataRepository = dataRepository;
         }
 
@@ -60,8 +65,10 @@ namespace Medelit.Application
         public dynamic FindBookings(SearchViewModel viewModel)
         {
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-            var langs = _langRepository.GetAll().ToList();
-
+            var invoicingEntities = _ieRepository.GetAll().ToList();
+            var services = _serviceRepository.GetAll().ToList();
+            var professionals = _professionalRepository.GetAll().ToList();
+            var paymentMethods = _dataRepository.GetPaymentMethods().ToList();
 
             var query = (from b in _bookingRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted)
                          join c in _customerRepository.GetAll() on b.CustomerId equals c.Id
@@ -69,16 +76,20 @@ namespace Medelit.Application
                          select new
                          {
                              b.Id,
-                             Language = langs.FirstOrDefault(l => l.Id == b.VisitLanguageId).Name,
                              b.Name,
-                             CustomerName = c.Name,
-                             b.Email,
-                             b.PhoneNumber,
-                             b.CreateDate,
-                             b.UpdateDate,
-                             b.AssignedToId,
-                             AssignedTo = "Admin",
-                             b.Status
+                             Customer = c.Name,
+                             InvoicingEntity = b.InvoiceEntityId.HasValue ? invoicingEntities.FirstOrDefault(x => x.Id == b.InvoiceEntityId).Name : "",
+                             Service = b.ServiceId > 0 ? services.FirstOrDefault(x => x.Id == b.ServiceId).Name : "",
+                             Professional = b.ProfessionalId > 0 ? professionals.FirstOrDefault(x => x.Id == b.ProfessionalId).Name : "",
+                             b.BookingDate,
+                             VisitDate = b.VisitStartDate,
+                             b.PaymentMethodId,
+                             PaymentMethod = b.PaymentMethodId.HasValue ? paymentMethods.FirstOrDefault(x => x.Id == b.PaymentMethodId).Value : "",
+                             b.PtFee,
+                             b.BookingStatusId,
+                             b.PaymentStatusId,
+                             b.InsuranceCoverId,
+                             b.InvoiceNumber
                          });
 
 
@@ -88,17 +99,47 @@ namespace Medelit.Application
                 query = query.Where(x =>
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-                //|| (!string.IsNullOrEmpty(x.currency) && x.currency.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Customer) && x.Customer.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.InvoicingEntity) && x.InvoicingEntity.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Service) && x.Service.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Professional) && x.Professional.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.PtFee.ToString()) && x.PtFee.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+
+                || (x.BookingDate.HasValue && x.BookingDate.Value.ToString("YYYY-MM-DD").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.VisitDate.HasValue && x.VisitDate.Value.ToString("YYYY-MM-DD").CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
-
             }
 
-            if (viewModel.Filter.Status != eRecordStatus.All)
+            if (viewModel.Filter.BookingFilter == eBookingFilter.Pending)
             {
-                query = query.Where(x => x.Status == viewModel.Filter.Status);
+                query = query.Where(x => x.BookingStatusId.Value == (short?)eBookingStatus.PendingConfirmation);
+            }
+            else if (viewModel.Filter.BookingFilter == eBookingFilter.AwaitingPayment)
+            {
+                query = query.Where(x => x.BookingStatusId.Value == (short?)eBookingStatus.Confirmed && x.PaymentStatusId == (short?)ePaymentStatus.Pending);
+            }
+            else if (viewModel.Filter.BookingFilter == eBookingFilter.TodayVisits)
+            {
+                query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value.ToString("YYYYMMDD").Equals(DateTime.UtcNow.ToString("YYYYMMDD"), StringComparison.InvariantCultureIgnoreCase));
+            }
+            else if (viewModel.Filter.BookingFilter == eBookingFilter.FutureVisits)
+            {
+                query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value > DateTime.UtcNow);
+            }
+            else if (viewModel.Filter.BookingFilter == eBookingFilter.Delivered)
+            {
+                query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value < DateTime.UtcNow);
+            }
+            else if (viewModel.Filter.BookingFilter == eBookingFilter.ToBeInvoicesPaid)
+            {
+                query = query.Where(x => x.PaymentStatusId == (short)ePaymentStatus.Paid && x.PaymentMethodId != (short)ePaymentMethods.Insurance && string.IsNullOrEmpty(x.InvoiceNumber));
+            }
+            else if (viewModel.Filter.BookingFilter == eBookingFilter.ToBeInvoicedNotPaid)
+            {
+                query = query.Where(x => x.PaymentStatusId != (short)ePaymentStatus.Paid && x.PaymentMethodId == (short)ePaymentMethods.Insurance && string.IsNullOrEmpty(x.InvoiceNumber));
             }
 
             switch (viewModel.SortField)
@@ -110,50 +151,65 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.Name);
                     break;
 
-                case "customername":
+                case "customer":
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CustomerName);
+                        query = query.OrderBy(x => x.Customer);
                     else
-                        query = query.OrderByDescending(x => x.CustomerName);
+                        query = query.OrderByDescending(x => x.Customer);
                     break;
 
-                case "assignedto":
+                case "invoicingentity":
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.AssignedToId);
+                        query = query.OrderBy(x => x.InvoicingEntity);
                     else
-                        query = query.OrderByDescending(x => x.AssignedToId);
-                    break;
-                case "language":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Language);
-                    else
-                        query = query.OrderByDescending(x => x.Language);
+                        query = query.OrderByDescending(x => x.InvoicingEntity);
                     break;
 
-                case "status":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Status);
-                    else
-                        query = query.OrderByDescending(x => x.Status);
-                    break;
-                //case "createDate":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.CreateDate);
-                //    else
-                //        query = query.OrderByDescending(x => x.CreateDate);
-                //    break;
-                //case "createdBy":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.CreatedBy);
-                //    else
-                //        query = query.OrderByDescending(x => x.CreatedBy);
-                //    break;
 
+                case "service":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.Service);
+                    else
+                        query = query.OrderByDescending(x => x.Service);
+                    break;
+                case "professional":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.Professional);
+                    else
+                        query = query.OrderByDescending(x => x.Professional);
+                    break;
+
+                case "bookingdate":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.BookingDate);
+                    else
+                        query = query.OrderByDescending(x => x.BookingDate);
+                    break;
+
+                case "visitdate":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.VisitDate);
+                    else
+                        query = query.OrderByDescending(x => x.VisitDate);
+                    break;
+                case "paymentmethod":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.PaymentMethod);
+                    else
+                        query = query.OrderByDescending(x => x.PaymentMethod);
+                    break;
+
+                case "ptfee":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.PtFee);
+                    else
+                        query = query.OrderByDescending(x => x.PtFee);
+                    break;
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Id);
+                        query = query.OrderBy(x => x.BookingDate);
                     else
-                        query = query.OrderByDescending(x => x.Id);
+                        query = query.OrderByDescending(x => x.BookingDate);
 
                     break;
             }
@@ -177,6 +233,7 @@ namespace Medelit.Application
             }
             viewModel.InvoiceEntityName = _ieRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.InvoiceEntityId)?.Name;
             viewModel.CustomerName = _customerRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.CustomerId)?.Name;
+            viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
 
             return viewModel;
         }
@@ -184,7 +241,7 @@ namespace Medelit.Application
         public void SaveBooking(BookingViewModel viewModel)
         {
             var bookingModel = _mapper.Map<Booking>(viewModel);
-           
+
             _bus.SendCommand(new SaveBookingCommand { Booking = bookingModel });
         }
 
@@ -211,6 +268,20 @@ namespace Medelit.Application
         public void CreateCycle(long bookingId, short bookings)
         {
             _bus.SendCommand(new CreateCycleCommand { BookingId = bookingId, NumberOfCycles = bookings });
+        }
+
+        public dynamic GetBookingCycleConnectedBookings(long bookingId)
+        {
+            return _bookingRepository.GetBookingCycleConnectedBookings(bookingId);
+        }
+
+        public dynamic BookingConnectedProfessional(long bookingId)
+        {
+            return _bookingRepository.BookingConnectedProfessional(bookingId);
+        }
+        public dynamic BookingConnectedInvoices(long bookingId)
+        {
+            return _bookingRepository.BookingConnectedInvoices(bookingId);
         }
 
         public void Dispose()

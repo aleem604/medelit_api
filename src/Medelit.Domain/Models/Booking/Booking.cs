@@ -11,6 +11,8 @@ namespace Medelit.Domain.Models
         public string Name { get; set; }
         [Column("invoice_entity_id")]
         public long? InvoiceEntityId { get; set; }
+        [ForeignKey("InvoiceEntityId")]
+        public InvoiceEntity InvoiceEntity { get; set; }
         [Column("booking_status_id")]
         public short? BookingStatusId { get; set; }
         [Column("booking_date")]
@@ -168,6 +170,8 @@ namespace Medelit.Domain.Models
         public decimal? TotalPaid { get; set; }
         [Column("customer_id")]
         public long? CustomerId { get; set; }
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
 
         [Column("service_id")]
         public long ServiceId { get; set; }
@@ -188,8 +192,9 @@ namespace Medelit.Domain.Models
         [Column("quantity_hours")]
         public short? QuantityHours { get; set; }
 
-        [Column("assigned_to_id")]
-        public long? AssignedToId { get; set; }
+        [Column("cycle_booking_id")]
+        public long? CycleBookingId { get; set; }
+
         public Booking Clone()
         {
             return new Booking {
@@ -284,8 +289,6 @@ namespace Medelit.Domain.Models
                
                 Status = this.Status,
                 CreateDate = DateTime.UtcNow,
-                CreatedById = this.CreatedById,
-
             };
 
         }

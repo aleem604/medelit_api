@@ -79,7 +79,47 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
+        //api/v1/
+        [HttpGet("invoice-entities/invoice-entity-connected-services/{ieId}")]
+        public IActionResult InvoiceEntityConnectedServices(long ieId)
+        {
+            return Response(_invoiceEntityService.InvoiceEntityConnectedServices(ieId));
+        }
 
+        //api/v1/
+        [HttpGet("invoice-entities/invoice-entity-connected-invoices/{ieId}")]
+        public IActionResult InvoiceEntityConnectedInvoices(long ieId)
+        {
+            return Response(_invoiceEntityService.InvoiceEntityConnectedInvoices(ieId));
+        }
+
+        //api/v1/
+        [HttpGet("invoice-entities/invoice-entity-connected-professionals/{ieId}")]
+        public IActionResult InvoiceEntityConnectedProfessionals(long ieId)
+        {
+            return Response(_invoiceEntityService.InvoiceEntityConnectedProfessionals(ieId));
+        }
+
+        //api/v1/
+        [HttpGet("invoice-entities/invoice-entity-connected-customers/{ieId}")]
+        public IActionResult InvoiceEntityConnectedCustomers(long ieId)
+        {
+            return Response(_invoiceEntityService.InvoiceEntityConnectedCustomers(ieId));
+        }
+
+        //api/v1/
+        [HttpGet("invoice-entities/invoice-entity-connected-bookings/{ieId}")]
+        public IActionResult InvoiceEntityConnectedBookings(long ieId)
+        {
+            return Response(_invoiceEntityService.InvoiceEntityConnectedBookings(ieId));
+        }
+
+        //api/v1/
+        [HttpGet("invoice-entities/invoice-entity-connected-leads/{ieId}")]
+        public IActionResult InvoiceEntityConnectedLeads(long ieId)
+        {
+            return Response(_invoiceEntityService.InvoiceEntityConnectedLeads(ieId));
+        }
 
     }
 }

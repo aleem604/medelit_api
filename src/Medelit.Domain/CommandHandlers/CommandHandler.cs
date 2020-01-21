@@ -7,7 +7,7 @@ using System;
 using Medelit.Common;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
-using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Medelit.Domain.CommandHandlers
 {
@@ -31,6 +31,11 @@ namespace Medelit.Domain.CommandHandlers
             {
                 return _httpContext.HttpContext.Items.Where(x => x.Key.Equals(eTinUser.TinUser)).FirstOrDefault().Value as AuthClaims;
             }
+        }
+        public Task<bool> HandleException(string messageType, Exception ex)
+        {
+            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
+            return Task.FromResult(false);
         }
 
         protected void NotifyValidationErrors(Command message)

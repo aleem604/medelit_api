@@ -101,5 +101,29 @@ namespace Medelit.Api.Controllers
             return Response(_invoiceService.GetInvoiceView(invoiceId));
         }
 
+        [HttpGet("invoices/invoice-connected-professionals/{invoiceId}")]
+        public IActionResult GetBookingConnectedProfessionals(long invoiceId)
+        {
+            return Response(_invoiceService.InvoiceConnectedProfessional(invoiceId));
+        }
+
+        [HttpGet("invoices/invoice-connected-customers/{invoiceId}")]
+        public IActionResult GetBookingConnectedCustomers(long invoiceId)
+        {
+            return Response(_invoiceService.InvoiceConnectedCustomers(invoiceId));
+        }
+
+        [HttpGet("invoices/invoice-connected-invoice-entities/{invoiceId}")]
+        public IActionResult InvoiceConnectedInvoiceEntity(long invoiceId)
+        {
+            return Response(_invoiceService.InvoiceConnectedInvoiceEntity(invoiceId));
+        }
+
+        [HttpGet("invoices/invoice-connected-bookings/{invoiceId}")]
+        public IActionResult InvoiceConnectedInvoiceBooking(long invoiceId)
+        {
+            return Response(_invoiceService.InvoiceConnectedBookings(invoiceId));
+        }
+
     }
 }

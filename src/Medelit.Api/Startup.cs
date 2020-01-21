@@ -52,14 +52,17 @@ namespace Medelit.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")));
 
-            //services.AddIdentity<ApplicationUser, IdentityRole>()
-            //    .AddEntityFrameworkStores<ApplicationDbContext>()
-            //    .AddDefaultTokenProviders();
-
-            services.AddDefaultIdentity<ApplicationUser>()
-                    .AddRoles<IdentityRole>()
-                    .AddRoleManager<RoleManager<IdentityRole>>()
-                    .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddIdentity<MedelitUser, IdentityRole>(
+                opts =>
+                {
+                    opts.Password.RequireDigit = false;
+                    opts.Password.RequireLowercase = false;
+                    opts.Password.RequireUppercase = false;
+                    opts.Password.RequireNonAlphanumeric = false;
+                    opts.Password.RequiredLength = 5;
+                })
+                .AddRoleManager<RoleManager<IdentityRole>>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddMvc(options =>
             {
@@ -71,13 +74,11 @@ namespace Medelit.Api
            {
                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
            });
-            
-           
+
+
             services.AddAutoMapperSetup();
-
-
             JWTConfiguration(services, _configuration);
-           
+
             services.AddSwaggerGen(s =>
             {
                 s.SwaggerDoc("v1", new Info
@@ -87,7 +88,7 @@ namespace Medelit.Api
                     Description = "Medelit API Swagger surface"
                 });
             });
-            
+
 
             // Add S3 to the ASP.NET Core dependency injection framework.
             services.AddAWSService<Amazon.S3.IAmazonS3>();
@@ -99,7 +100,7 @@ namespace Medelit.Api
             RegisterServices(services);
         }
 
-       
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, RoleManager<IdentityRole> roleManager)

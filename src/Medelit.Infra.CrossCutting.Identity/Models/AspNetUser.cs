@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Medelit.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 
-namespace Medelit.Infra.CrossCutting.Identity.Models
+namespace Medelit.Domain.Models
 {
     public class AspNetUser : IUser
     {

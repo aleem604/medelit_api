@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using Medelit.Common;
 using Medelit.Domain.Interfaces;
 using Medelit.Infra.Data.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Medelit.Infra.Data.Repository
@@ -10,11 +12,13 @@ namespace Medelit.Infra.Data.Repository
     {
         protected readonly MedelitContext Db;
         protected readonly DbSet<TEntity> DbSet;
+        private IHttpContextAccessor _httpContext;
 
-        public Repository(MedelitContext context)
+        public Repository(MedelitContext context, IHttpContextAccessor httpContext)
         {
             Db = context;
             DbSet = Db.Set<TEntity>();
+            _httpContext = httpContext;
         }
 
         public virtual void Add(TEntity obj)
@@ -45,6 +49,14 @@ namespace Medelit.Infra.Data.Repository
         public int SaveChanges()
         {
             return Db.SaveChanges();
+        }
+
+        public AuthClaims CurrentUser
+        {
+            get
+            {
+                return _httpContext.HttpContext.Items.Where(x => x.Key.Equals(eTinUser.TinUser)).FirstOrDefault().Value as AuthClaims;
+            }
         }
 
         public void Dispose()

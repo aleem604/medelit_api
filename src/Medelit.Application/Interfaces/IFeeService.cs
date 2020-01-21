@@ -12,5 +12,10 @@ namespace Medelit.Application
         dynamic FindFees(SearchViewModel model);
         void UpdateStatus(IList<FeeViewModel> fees, eRecordStatus status);
         void DeleteFees(IList<long> feeIds);
+        FeeViewModel GetFeeById(long feeId);
+        dynamic GetConnectedServices(long feeId);
+        dynamic GetConnectedProfessionalsCustomers(long feeId);
+        dynamic GetServicesToConnectWithFee(long feeId);
+        void SaveServicesToConnectWithFee(IEnumerable<long> serviceIds, long feeId);
     }
 }

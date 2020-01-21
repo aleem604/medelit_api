@@ -17,7 +17,9 @@ namespace Medelit.Domain.CommandHandlers
     public class ServiceCommandHandler : CommandHandler,
         IRequestHandler<SaveServiceCommand, bool>,
         IRequestHandler<UpdateServicesStatusCommand, bool>,
-        IRequestHandler<DeleteServicesCommand, bool>
+        IRequestHandler<DeleteServicesCommand, bool>,
+        IRequestHandler<AddProfessionalToServicesCommand, bool>,
+        IRequestHandler<DetachProfessionalCommand, bool>
     {
         private readonly IMapper _mapper;
         private readonly IMediatorHandler _bus;
@@ -76,6 +78,10 @@ namespace Medelit.Domain.CommandHandlers
                     _serviceRepository.RemoveProfessionals(request.Service.Id);
 
                     serviceModel.ServiceProfessionals = vm.ServiceProfessionals;
+
+                    serviceModel.UpdateDate = DateTime.UtcNow;
+                    serviceModel.UpdatedById = CurrentUser.Id;
+
                     _serviceRepository.Update(serviceModel);
                     commmitResult = Commit();
                     request.Service = serviceModel;
@@ -83,11 +89,11 @@ namespace Medelit.Domain.CommandHandlers
                     //var allServices = _serviceRepository.GetAll();
                     //foreach (var service in allServices)
                     //{
-                       
+
                     //        service.ServiceCode = service.ServiceTypeId == eServiceType.PTService ? $"FP{service.Id.ToString().PadLeft(6, '0')}" : $"FS{service.Id.ToString().PadLeft(6, '0')}";
                     //        service.UpdateDate = DateTime.UtcNow;
                     //        _serviceRepository.Update(service);
-                        
+
                     //}
                     //Commit();
                 }
@@ -96,6 +102,10 @@ namespace Medelit.Domain.CommandHandlers
                     var serviceModel = request.Service;
                     serviceModel.CreateDate = DateTime.UtcNow;
                     serviceModel.Status = eRecordStatus.Pending;
+
+                    serviceModel.CreateDate = DateTime.UtcNow;
+                    serviceModel.CreatedById = CurrentUser.Id;
+
                     _serviceRepository.Add(serviceModel);
                     commmitResult = Commit();
                     if (commmitResult && serviceModel.Id > 0)
@@ -103,6 +113,10 @@ namespace Medelit.Domain.CommandHandlers
                         var id = serviceModel.Id;
                         var fieldCode = _fieldSubcategoryRepository.GetAll().Where(x => x.Id == serviceModel.FieldId).FirstOrDefault().Code;
                         serviceModel.ServiceCode = $"{fieldCode}{id.ToString().PadLeft(6, '0')}";
+
+                        serviceModel.UpdateDate = DateTime.UtcNow;
+                        serviceModel.UpdatedById = CurrentUser.Id;
+
                         _serviceRepository.Update(serviceModel);
                         commmitResult = Commit();
                     }
@@ -134,6 +148,8 @@ namespace Medelit.Domain.CommandHandlers
                     var serviceModel = _serviceRepository.GetById(service.Id);
                     serviceModel.Status = request.Status;
                     serviceModel.UpdateDate = DateTime.UtcNow;
+                    service.UpdatedById = CurrentUser.Id;
+
                     _serviceRepository.Update(serviceModel);
                 }
                 if (Commit())
@@ -162,7 +178,7 @@ namespace Medelit.Domain.CommandHandlers
                     var serviceModel = _serviceRepository.GetById(serviceId);
                     serviceModel.Status = eRecordStatus.Deleted;
                     serviceModel.DeletedAt = DateTime.UtcNow;
-                    //serviceModel.DeletedById = 0;
+                    serviceModel.DeletedById = CurrentUser.Id;
                     _serviceRepository.Update(serviceModel);
                 }
                 if (Commit())
@@ -180,14 +196,59 @@ namespace Medelit.Domain.CommandHandlers
             {
                 return HandleException(request.MessageType, ex);
             }
-            }
-
-       
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
         }
+
+        public Task<bool> Handle(AddProfessionalToServicesCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                foreach (var serviceId in request.ServiceIds)
+                {
+                    _serviceRepository.AddProfessionalToService(serviceId, request.ProfessionalId);
+
+                }
+                if (Commit())
+                {
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.ServiceIds));
+                    return Task.FromResult(true);
+                }
+                else
+                {
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
+                    return Task.FromResult(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                return HandleException(request.MessageType, ex);
+            }
+        }
+
+        public Task<bool> Handle(DetachProfessionalCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                _serviceRepository.DetachProfessional(request.ServiceId, request.ProfessionalId);
+                
+
+                if (Commit())
+                {
+                    var relations = _serviceRepository.GetProfessionalServicesWithInclude(request.ProfessionalId);
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, relations));
+                    return Task.FromResult(true);
+                }
+                else
+                {
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
+                    return Task.FromResult(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                return HandleException(request.MessageType, ex);
+            }
+        }
+
         public void Dispose()
         {
 

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace Medelit.Infra.CrossCutting.Identity.Models.ManageViewModels
+namespace Medelit.Application
 {
     public class EnableAuthenticatorViewModel
     {

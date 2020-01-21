@@ -36,15 +36,14 @@ namespace Medelit.Api.Configurations
                 ClaimsPrincipal user = _httpContext.User;
                 var claims = user.Claims.ToList();
 
-                var info = claims.Where(x => x.Type.Contains("info", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
+                var id = claims.Where(x => x.Type.StartsWith("id", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
+                var email = claims.Where(x => x.Type.EndsWith("nameidentifier", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
 
-                AuthClaims jwtPayload = JsonConvert.DeserializeObject<AuthClaims>(info);
+                return new AuthClaims { Id = id, Email = email };
 
-                //var updatedAt = claims.Where(x => x.Type.Equals("updated_at", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
-                //if (DateTime.TryParse(JsonConvert.DeserializeObject<string>(updatedAt), out DateTime outDate))
-                //    jwtPayload.UpdatedAt = outDate;
+                //AuthClaims jwtPayload = JsonConvert.DeserializeObject<AuthClaims>(nameIdentifier);
 
-                return jwtPayload;
+                //return jwtPayload;
             }
             catch
             {

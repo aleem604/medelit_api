@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Medelit.Api.Controllers;
+using Medelit.Application;
 using Medelit.Auth;
 using Medelit.Common;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Helpers;
 using Medelit.Infra.CrossCutting.Identity.Models;
-using Medelit.Infra.CrossCutting.Identity.Models.AccountViewModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,23 +21,23 @@ using Newtonsoft.Json;
 
 namespace Medelit.Api.Controllers
 {
-    [Authorize]
     public class AccountController : ApiController
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<MedelitUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly SignInManager<MedelitUser> _signInManager;
         private readonly ILogger _logger;
         private readonly IJwtFactory _jwtFactory;
         private readonly JwtIssuerOptions _jwtOptions;
+        private readonly INotificationHandler<DomainNotification> _notifications;
 
         public AccountController(
             RoleManager<IdentityRole> rolesManager,
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            UserManager<MedelitUser> userManager,
+            SignInManager<MedelitUser> signInManager,
             INotificationHandler<DomainNotification> notifications,
             ILoggerFactory loggerFactory,
-            IMediatorHandler mediator, 
+            IMediatorHandler mediator,
             IJwtFactory jwtFactory, IOptions<JwtIssuerOptions> jwtOptions) : base(notifications, mediator)
         {
             _roleManager = rolesManager;
@@ -44,6 +45,7 @@ namespace Medelit.Api.Controllers
             _signInManager = signInManager;
             _jwtFactory = jwtFactory;
             _jwtOptions = jwtOptions.Value;
+            _notifications = notifications;
             _logger = loggerFactory.CreateLogger<AccountController>();
         }
 
@@ -55,21 +57,24 @@ namespace Medelit.Api.Controllers
             if (!ModelState.IsValid)
             {
                 NotifyModelStateErrors();
-                return Response(model);
+                return Response(null, "Required data is missing");
             }
 
-            //var identity = await GetClaimsIdentity(model.Email, model.Password);
             var identity = await GetClaimsIdentity(model.Email, model.Password);
             if (identity == null)
             {
-                return BadRequest(Errors.AddErrorToModelState("login_failure", "Invalid username or password.", ModelState));
+                return Response(null, "Invalid email or password");
             }
-
-            var jwt = await Tokens.GenerateJwt(identity, _jwtFactory, model.Email, _jwtOptions, new JsonSerializerSettings { Formatting = Formatting.Indented });
-            return new OkObjectResult(jwt);
+            CurrentUserInfo userInfo = await GetUserInfo(model.Email);
+            var jwt = await Tokens.GenerateJwt(identity, _jwtFactory, userInfo, _jwtOptions, new JsonSerializerSettings { Formatting = Formatting.Indented });
+            return Ok(new
+            {
+                success = true,
+                data = JsonConvert.DeserializeObject(jwt)
+            });
         }
 
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpPost("account/register")]
         public async Task<IActionResult> Register([FromBody]RegisterViewModel model)
         {
@@ -79,7 +84,7 @@ namespace Medelit.Api.Controllers
                 return Response(model);
             }
 
-            var user = new ApplicationUser {FirstName = model.FirstName, LastName = model.LastName, UserName = model.Email, Email = model.Email };
+            var user = new MedelitUser { FirstName = model.FirstName, LastName = model.LastName, UserName = model.Email, Email = model.Email };
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
@@ -88,7 +93,6 @@ namespace Medelit.Api.Controllers
                 // User claim for write customers data
                 await _userManager.AddClaimAsync(user, new Claim("Customers", "Write"));
                 await _userManager.AddToRoleAsync(user, nameof(UserRoles.Admin));
-                await _userManager.AddToRoleAsync(user, nameof(UserRoles.Manager));
 
                 await _signInManager.SignInAsync(user, false);
                 _logger.LogInformation(3, "User created a new account with password.");
@@ -113,11 +117,36 @@ namespace Medelit.Api.Controllers
             if (await _userManager.CheckPasswordAsync(userToVerify, password))
             {
                 var roles = await _userManager.GetRolesAsync(userToVerify);
-                return await Task.FromResult(_jwtFactory.GenerateClaimsIdentity(userName, userToVerify,roles));
+                var currentUser = await GetUserInfo(userName);
+                return await Task.FromResult(_jwtFactory.GenerateClaimsIdentity(currentUser, userToVerify, roles));
             }
 
             // Credentials are invalid, or account doesn't exist
             return await Task.FromResult<ClaimsIdentity>(null);
         }
+
+        private async Task<CurrentUserInfo> GetUserInfo(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Contains(UserRoles.Admin.ToString()))
+            {
+                foreach (var role in Enum.GetValues(typeof(UserRoles)))
+                {
+                    roles.Add(role.ToString());
+                }
+            }
+            return new CurrentUserInfo
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Roles = roles
+            };
+        }
+
+
     }
 }

@@ -11,13 +11,54 @@ namespace Medelit.Common
         [Display(Name = "Admin")]
         Admin = 0,
 
-        [Display(Name = "Manager")]
-        Manager = 1,
+        [Display(Name = "UserManagementModule")]
+        UserManagementModule = 1,
 
-        [Display(Name = "Member")]
-        Member = 2
+        [Display(Name = "LeadManagementModule")]
+        LeadManagementModule = 3,
+
+        [Display(Name = "CustomerManagementModule")]
+        CustomerManagementModule = 4,
+
+        [Display(Name = "BookingManagementModule")]
+        BookingManagementModule = 5,
+
+        [Display(Name = "InvoiceManagementModule")]
+        InvoiceManagementModule = 6,
+
+        [Display(Name = "InvoiceEntityManagementModule")]
+        InvoiceEntityManagementModule = 7,
+
+        [Display(Name = "FeeManagementModule")]
+        FeeManagementModule = 8,
+
+        [Display(Name = "ProfessionalManagementModule")]
+        ProfessionalManagementModule = 9,
+
+        [Display(Name = "ServiceManagementModule")]
+        ServiceManagementModule = 10,
+
+
     }
 
+    public enum eLeadsFilter : short
+    {
+        All,
+        HotLeads,
+    }
+
+    public enum eLeadsStatus : short
+    {
+        Hot = 1,
+        Warm = 2,
+        Cold = 3
+    }
+
+    public enum eIEFilter : short
+    {
+        All,
+        Contracted,
+    }
 
 
     public enum eFeedbackType : short

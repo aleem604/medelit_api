@@ -11,8 +11,12 @@ namespace Medelit.Application
         public string Name { get; set; }
         public short CycleId { get; set; }
         public short ActiveServiceId { get; set; }
-        public long? FieldId { get; set; }
+        public long? FieldId { get; set; }  
+        public FieldSubCategoryViewModel Field { get; set; }
+
         public long? SubcategoryId { get; set; }
+        public FieldSubCategoryViewModel SubCategory { get; set; }
+
         public int? DurationId { get; set; }
         public short TimedServiceId { get; set; }
         public int? VatId { get; set; }
@@ -25,9 +29,20 @@ namespace Medelit.Application
         public short InformedConsentId { get; set; }
         public string Tags { get; set; }
         public long? PTFeeId { get; set; }
+        public FeeViewModel PtFee { get; set; }
         public long? PROFeeId { get; set; }
-        public long? AssignedToId { get; set; }
+        public FeeViewModel ProFee { get; set; }
         public IEnumerable<FilterModel> Professionals { get; set; }
-
     }
+
+    public class ServicFilterViewModel
+    {
+        public long ProfessionalId { get; set; }
+        public long? FieldId { get; set; }
+        public long? SubCategoryId { get; set; }
+        public string Tag { get; set; }
+    }
+
+
+
 }

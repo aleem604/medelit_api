@@ -10,8 +10,12 @@ namespace Medelit.Application
         dynamic FindProfessionals(SearchViewModel model);
         dynamic GetProfessionals();
         dynamic GetProfessionalById(long professionalId);
-        void SaveProvessional(ProfessionalRequestViewModel model);
-        void UpdateStatus(IEnumerable<ProfessionalRequestViewModel> pros, eRecordStatus status);
+        void SaveProvessional(ProfessionalViewModel model);
+        void UpdateStatus(IEnumerable<ProfessionalViewModel> pros, eRecordStatus status);
         void DeleteFees(IEnumerable<long> feeIds);
+        dynamic GetConnectedCustomers(long proId);
+        dynamic GetConnectedBookings(long proId);
+        dynamic GetConnectedInvoices(long proId);
+        dynamic GetConnectedLeads(long proId);
     }
 }

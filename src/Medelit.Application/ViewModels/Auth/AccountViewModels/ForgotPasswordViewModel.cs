@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Medelit.Infra.CrossCutting.Identity.Models.AccountViewModels
+namespace Medelit.Application
 {
     public class ForgotPasswordViewModel
     {

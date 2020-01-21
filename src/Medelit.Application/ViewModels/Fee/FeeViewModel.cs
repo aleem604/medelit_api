@@ -10,8 +10,7 @@ namespace Medelit.Application
         public string FeeName { get; set; }
         public string FeeCode { get; set; }
         public eFeeType FeeTypeId { get; set; }
-        public string Taxes { get; set; }
-        public string ConnectedServices { get; set; }
+        public string FeeType { get; set; }
         public string Tags { get; set; }
         public decimal? A1 { get; set; }
         public decimal? A2 { get; set; }

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Medelit.Api.Controllers
 {
-    [Authorize]
+
     public class RolesController : ApiController
     {
         private readonly RoleManager<IdentityRole> roleManager;
@@ -33,26 +33,51 @@ namespace Medelit.Api.Controllers
         [HttpGet("roles")]
         [Authorize(Policy = "readonlypolicy")]
         public IActionResult Index()
-        {
-            
-            var roles = roleManager.Roles.ToList();
-            if(roles.FirstOrDefault(x=>x.Name.Equals("Admin",StringComparison.InvariantCultureIgnoreCase)) is null)
-            roleManager.CreateAsync(new IdentityRole {Name ="Admin" }).Wait();
-
-            if(roles.FirstOrDefault(x=>x.Name.Equals("Manager",StringComparison.InvariantCultureIgnoreCase)) is null)
-            roleManager.CreateAsync(new IdentityRole {Name ="Manager" }).Wait();
-
-            if(roles.FirstOrDefault(x=>x.Name.Equals("DataOperator", StringComparison.InvariantCultureIgnoreCase)) is null)
-            roleManager.CreateAsync(new IdentityRole {Name = "DataOperator" }).Wait();
-
-            var clerk = roles.FirstOrDefault(x => x.Name.Equals("Clerk"));
-            if(clerk != null)
-            roleManager.DeleteAsync(clerk).Wait();
-
-            roles = roleManager.Roles.ToList();
-            return Response(roles);
+        { 
+            return Response(roleManager.Roles.ToList());
         }
-       
+
+        [HttpPost("roles/find")]
+        public IActionResult FindRoles([FromBody] SearchViewModel viewModel)
+        {
+            var query = roleManager.Roles;
+
+            if (!string.IsNullOrEmpty(viewModel.Filter.Search))
+            {
+                viewModel.Filter.Search = viewModel.Filter.Search.Trim();
+                query = query.Where(x =>
+
+                    (!string.IsNullOrEmpty(x.Id) && x.Id.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
+                );
+            }
+
+            switch (viewModel.SortField)
+            {
+                case "name":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.Name);
+                    else
+                        query = query.OrderByDescending(x => x.Name);
+                    break;
+              
+                default:
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.Id);
+                    else
+                        query = query.OrderByDescending(x => x.Id);
+                    break;
+            }
+
+            var totalCount = query.LongCount();
+
+            return Response(new
+            {
+                items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
+                totalCount
+            });
+        }
+
         [HttpPost("roles")]
         public async Task<IActionResult> Create(IdentityRole role)
         {

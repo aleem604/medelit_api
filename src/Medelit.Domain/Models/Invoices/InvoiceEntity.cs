@@ -74,8 +74,8 @@ namespace Medelit.Domain.Models
         public string PersonOfReferencePhone { get; set; }
         [Column("black_list_id")]
         public short? BlackListId{ get; set; }
-        [Column("assigned_to_id")]
-        public long? AssignedToId { get; set; }
+        [Column("contracted_id")]
+        public short? ContractedId { get; set; }
 
         /// connected customers
         /// connected services

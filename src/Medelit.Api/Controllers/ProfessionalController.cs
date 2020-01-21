@@ -30,13 +30,12 @@ namespace Medelit.Api.Controllers
         [HttpPost("professionals/find")]
         public IActionResult FindProfessionals([FromBody] SearchViewModel model)
         {
-
             return Response(_professionalService.FindProfessionals(model));
         }
 
         [HttpPost("professionals")]
         [HttpPut("professionals")]
-        public IActionResult SaveProvessional([FromBody] ProfessionalRequestViewModel model)
+        public IActionResult SaveProvessional([FromBody] ProfessionalViewModel model)
         {
             _professionalService.SaveProvessional(model);
             return Response();
@@ -49,7 +48,7 @@ namespace Medelit.Api.Controllers
         }
 
         [HttpPut("professionals/update-status/{status}")]
-        public IActionResult UpdateStatus([FromBody] IList<ProfessionalRequestViewModel> fees, eRecordStatus status)
+        public IActionResult UpdateStatus([FromBody] IList<ProfessionalViewModel> fees, eRecordStatus status)
         {
             _professionalService.UpdateStatus(fees, status);
             return Response();
@@ -60,6 +59,30 @@ namespace Medelit.Api.Controllers
         {
             _professionalService.DeleteFees(feeIds);
             return Response();
+        }
+
+        [HttpGet("professionals/connected-customers/{proId}")]
+        public IActionResult GetConnectedCustomers(long proId)
+        {
+            return Response(_professionalService.GetConnectedCustomers(proId));
+        }
+
+        [HttpGet("professionals/connected-bookings/{proId}")]
+        public IActionResult GetConnectedBookings(long proId)
+        {
+            return Response(_professionalService.GetConnectedBookings(proId));
+        }
+
+        [HttpGet("professionals/connected-invoices/{proId}")]
+        public IActionResult GetConnectedInvoices(long proId)
+        {
+            return Response(_professionalService.GetConnectedInvoices(proId));
+        }
+
+        [HttpGet("professionals/connected-leads/{proId}")]
+        public IActionResult GetConnectedLeads(long proId)
+        {
+            return Response(_professionalService.GetConnectedLeads(proId));
         }
 
     }

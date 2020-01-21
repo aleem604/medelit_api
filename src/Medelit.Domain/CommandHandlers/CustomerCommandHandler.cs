@@ -59,6 +59,8 @@ namespace Medelit.Domain.CommandHandlers
                     customerModel.TitleId = request.Customer.TitleId;
                     customerModel.SurName = request.Customer.SurName;
                     customerModel.Name = request.Customer.Name;
+
+                   
                     customerModel.LanguageId = request.Customer.LanguageId;
                     customerModel.MainPhone = request.Customer.MainPhone;
                     customerModel.MainPhoneOwner = request.Customer.MainPhoneOwner;
@@ -79,6 +81,7 @@ namespace Medelit.Domain.CommandHandlers
 
                     customerModel.PaymentMethodId = request.Customer.PaymentMethodId;
                     customerModel.ListedDiscountNetworkId = request.Customer.ListedDiscountNetworkId;
+                    customerModel.HaveDifferentIEId = request.Customer.HaveDifferentIEId;                    
                     customerModel.InvoiceEntityId = request.Customer.InvoiceEntityId;
                     customerModel.InvoicingNotes = request.Customer.Name;
 
@@ -104,6 +107,7 @@ namespace Medelit.Domain.CommandHandlers
 
 
                     customerModel.UpdateDate = DateTime.UtcNow;
+                    customerModel.UpdatedById = CurrentUser.Id;
                     _customerRepository.Update(customerModel);
                     commmitResult = Commit();
                     request.Customer = customerModel;
@@ -111,6 +115,7 @@ namespace Medelit.Domain.CommandHandlers
                 else
                 {
                     var feeModel = request.Customer;
+                    feeModel.CreatedById = CurrentUser.Id;
                     _customerRepository.Add(feeModel);
                     commmitResult = Commit();
                     request.Customer = feeModel;
@@ -141,6 +146,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _customerRepository.GetById(fee.Id);
                     feeModel.Status = request.Status;
                     feeModel.UpdateDate = DateTime.UtcNow;
+                    feeModel.UpdatedById = CurrentUser.Id;
                     _customerRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -168,7 +174,7 @@ namespace Medelit.Domain.CommandHandlers
                     var feeModel = _customerRepository.GetById(feeId);
                     feeModel.Status = eRecordStatus.Deleted;
                     feeModel.DeletedAt = DateTime.UtcNow;
-                    //feeModel.DeletedById = 0;
+                    feeModel.DeletedById = CurrentUser.Id;
                     _customerRepository.Update(feeModel);
                 }
                 if (Commit())
@@ -232,6 +238,7 @@ namespace Medelit.Domain.CommandHandlers
                     
 
                     booking.Id = 0;
+                    booking.CreatedById = CurrentUser.Id;
                     _bookingRepository.Add(booking);
                     Commit();
                 }
@@ -246,11 +253,6 @@ namespace Medelit.Domain.CommandHandlers
             }
         }
 
-        private Task<bool> HandleException(string messageType, Exception ex)
-        {
-            _bus.RaiseEvent(new DomainNotification(messageType, ex.Message));
-            return Task.FromResult(false);
-        }
         public void Dispose()
         {
 

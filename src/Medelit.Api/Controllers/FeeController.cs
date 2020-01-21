@@ -46,6 +46,13 @@ namespace Medelit.Api.Controllers
             return Response(_feeService.FindFees(model));
         }
 
+        //api/v1/
+        [HttpGet("fees/{feeId}")]
+        public IActionResult GetFeeById(long feeId)
+        {
+            return Response(_feeService.GetFeeById(feeId));
+        }
+
 
         //api/v1/
         [HttpDelete("fees/{feeId}")]
@@ -66,6 +73,35 @@ namespace Medelit.Api.Controllers
         public IActionResult DeleteAttractions([FromBody] IList<long> feeIds)
         {
             _feeService.DeleteFees(feeIds);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpGet("fees/connected-services/{feeId}")]
+        public IActionResult GetConnectedServices(long feeId)
+        {
+            return Response(_feeService.GetConnectedServices(feeId));
+        }
+
+        //api/v1/
+        [HttpGet("fees/connected-professionals-customers/{feeId}")]
+        public IActionResult GetConnectedProfessionalCustomers(long feeId)
+        {
+            return Response(_feeService.GetConnectedProfessionalsCustomers(feeId));
+        }
+
+        //api/v1/
+        [HttpGet("fees/services-to-connect-with-fee/{feeId}")]
+        public IActionResult GetServicesToConnectWithFee(long feeId)
+        {
+            return Response(_feeService.GetServicesToConnectWithFee(feeId));
+        }
+
+        //api/v1/
+        [HttpPost("fees/services-to-connect-with-fee/{feeId}")]
+        public IActionResult SaveServicesToConnectWithFee([FromBody] IEnumerable<long> serviceIds, long feeId)
+        {
+            _feeService.SaveServicesToConnectWithFee(serviceIds, feeId);
             return Response();
         }
 

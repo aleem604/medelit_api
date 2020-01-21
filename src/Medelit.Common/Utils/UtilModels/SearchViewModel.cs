@@ -15,6 +15,12 @@ namespace Medelit.Common
 
     public class SearchFilterViewModel
     {
+        public eLeadsFilter Filter { get; set; }
+        public eIEFilter IEFilter { get; set; }
+        public eBookingFilter BookingFilter { get; set; }
+        public eInvoiceFilter InvoiceFilter { get; set; }
+        public eProfessionalFilter ProfessionalFilter { get; set; }
+
         public eRecordStatus Status { get; set; } = eRecordStatus.All;
         public eFeeType FeeType { get; set; } = eFeeType.All;
         public long RegionId { get; set; }
