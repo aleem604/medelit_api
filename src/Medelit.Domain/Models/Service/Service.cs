@@ -41,15 +41,7 @@ namespace Medelit.Domain.Models
         [Column("informed_consent_id")]
         public short? InformedConsentId { get; set; }
         public string Tags { get; set; }
-        [Column("pt_fee_id")]
-        public long? PTFeeId { get; set; }
-        [ForeignKey("PTFeeId")]
-        public Fee PtFee { get; set; }
-
-        [Column("pro_fee_id")]
-        public long? PROFeeId { get; set; }
-        [ForeignKey("PROFeeId")]
-        public Fee ProFee { get; set; }
+        
 
         //public IEnumerable<ServiceFeeRelation> ServiceFeeRelation { get; set; }
         public IEnumerable<ServiceProfessionalRelation> ServiceProfessionals { get; set; }
@@ -71,8 +63,6 @@ namespace Medelit.Domain.Models
                 DurationId = this.DurationId,
                 VatId = this.VatId,
                 Covermap = this.Covermap,
-                PTFeeId = this.PTFeeId,
-                PROFeeId = this.PROFeeId,
                 InvoicingNotes = this.InvoicingNotes,
                 Description = this.Description
             };

@@ -19,7 +19,7 @@ namespace Medelit.Infra.Data.Repository
 
         public IQueryable<FilterModel> GetCustomersForImportFilter()
         {
-            return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.SurName} - {x.DateOfBirth.Value.ToString("yyyy-MM-dd")}" });
+            return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.SurName} - {x.DateOfBirth.CustomDateString("dd/MM/yyyy")}" });
         }
 
         public IQueryable<FilterModel> GetInvoicesForFilter()
@@ -37,18 +37,18 @@ namespace Medelit.Infra.Data.Repository
             var vats = Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = $"{s.Vats} {s.VatUnit}", DecValue = s.Vats }).Where(x => x.Value != null);
 
             return (from s in Db.Service
-                    join
-                        ptFees in Db.Fee on s.PTFeeId equals ptFees.Id
-                    join
-                        proFees in Db.Fee on s.PROFeeId equals proFees.Id
+                    //join
+                    //    ptFees in Db.Fee on s.PTFeeId equals ptFees.Id
+                    //join
+                    //    proFees in Db.Fee on s.PROFeeId equals proFees.Id
                     select new { Id = s.Id,
                         Value = s.Name,
-                        ptFeeId = ptFees.Id,
-                        ptFeeA1 = ptFees.A1.HasValue ? ptFees.A1 : 0,
-                        ptFeeA2 = ptFees.A2.HasValue ? ptFees.A2 : 0,
-                        proFeeId = proFees.Id,
-                        proFeeA1 = proFees.A1.HasValue ? proFees.A1 : 0,
-                        proFeeA2 = proFees.A2.HasValue ? proFees.A2 : 0,
+                        //ptFeeId = ptFees.Id,
+                        //ptFeeA1 = ptFees.A1.HasValue ? ptFees.A1 : 0,
+                        //ptFeeA2 = ptFees.A2.HasValue ? ptFees.A2 : 0,
+                        //proFeeId = proFees.Id,
+                        //proFeeA1 = proFees.A1.HasValue ? proFees.A1 : 0,
+                        //proFeeA2 = proFees.A2.HasValue ? proFees.A2 : 0,
                         timeService = s.TimedServiceId,
                         vat = s.VatId.HasValue ? vats.FirstOrDefault(x => x.Id == s.VatId.Value).DecValue : null
                     }).ToList();

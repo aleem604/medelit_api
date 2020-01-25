@@ -61,6 +61,8 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
+        
+
         [HttpGet("professionals/connected-customers/{proId}")]
         public IActionResult GetConnectedCustomers(long proId)
         {
@@ -83,6 +85,19 @@ namespace Medelit.Api.Controllers
         public IActionResult GetConnectedLeads(long proId)
         {
             return Response(_professionalService.GetConnectedLeads(proId));
+        }
+
+
+        [HttpGet("professionals/professional-connected-services/{proId}")]
+        public IActionResult GetProfessionalConnectedServices(long proId)
+        {
+            return Response(_professionalService.GetProfessionalConnectedServices(proId));
+        }
+
+        [HttpPost("professionals/detach-professional-connected-service/{proId}")]
+        public IActionResult DetachProfessionalConnectedService([FromBody]IEnumerable<long> serviceIds, long proId)
+        {
+            return Response(_professionalService.DetachProfessionalConnectedService(serviceIds, proId));
         }
 
     }

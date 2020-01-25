@@ -17,5 +17,7 @@ namespace Medelit.Application
         dynamic GetConnectedBookings(long proId);
         dynamic GetConnectedInvoices(long proId);
         dynamic GetConnectedLeads(long proId);
+        dynamic GetProfessionalConnectedServices(long proId);
+        dynamic DetachProfessionalConnectedService(IEnumerable<long> servieIds, long proId);
     }
 }

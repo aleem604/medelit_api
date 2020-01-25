@@ -6,7 +6,7 @@ namespace Medelit.Domain.Models
 {
    public class StaticBaseEntity
     {
-        public int Id { get; set; }
+        public short Id { get; set; }
         public string Value { get; set; }
     }
 }

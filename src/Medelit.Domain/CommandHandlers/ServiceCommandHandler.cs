@@ -68,8 +68,8 @@ namespace Medelit.Domain.CommandHandlers
                     serviceModel.DurationId = vm.DurationId;
                     serviceModel.VatId = vm.VatId;
                     serviceModel.Covermap = vm.Covermap;
-                    serviceModel.PTFeeId = vm.PTFeeId;
-                    serviceModel.PROFeeId = vm.PROFeeId;
+                    //serviceModel.PTFeeId = vm.PTFeeId;
+                    //serviceModel.PROFeeId = vm.PROFeeId;
                     serviceModel.Tags = vm.Tags;
                     serviceModel.InvoicingNotes = vm.InvoicingNotes;
                     serviceModel.RefundNotes = vm.RefundNotes;

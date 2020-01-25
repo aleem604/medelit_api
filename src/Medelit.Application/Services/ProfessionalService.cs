@@ -72,8 +72,8 @@ namespace Medelit.Application
                 s.Telephone,
                 s.Email,
                 s.CoverMap,
-                Field =  s.Field.Field,
-                SubCategory = s.SubCategory.SubCategory,            
+                Field = s.Field.Field,
+                SubCategory = s.SubCategory.SubCategory,
                 Services = GetServices(s.Id, services, serviceProfessionals),
                 City = s.CityId > 0 ? cities.FirstOrDefault(c => c.Id == s.CityId).Value : "",
                 s.ContractDate,
@@ -97,7 +97,7 @@ namespace Medelit.Application
             // 4- Doctors
             else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Doctors)
             {
-                query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("MEDICAL",StringComparison.CurrentCultureIgnoreCase));
+                query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("MEDICAL", StringComparison.CurrentCultureIgnoreCase));
             }
 
             // 5- PHYSIOTHERAPISTS 
@@ -266,7 +266,7 @@ namespace Medelit.Application
             viewModel.Languages = professional.ProfessionalLangs.Select((s) => new FilterModel { Id = s.LanguageId }).ToList();
             viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
             viewModel.ProfessionalServices = _mapper.Map<IEnumerable<ServiceProfessionalRelationVeiwModel>>(professionalServices);
-           
+
             return viewModel;
 
         }
@@ -274,12 +274,12 @@ namespace Medelit.Application
         public void SaveProvessional(ProfessionalViewModel model)
         {
             var professionalModel = _mapper.Map<Professional>(model);
-            var proLangModel = new List<ProfessionalLanguageRelation>();
+            var proLangModel = new List<ProfessionalLanguages>();
             foreach (var lang in model.Languages)
             {
-                proLangModel.Add(new ProfessionalLanguageRelation
+                proLangModel.Add(new ProfessionalLanguages
                 {
-                    LanguageId = lang.Id
+                    LanguageId = (int)lang.Id
                 });
             }
 
@@ -311,9 +311,19 @@ namespace Medelit.Application
         {
             return _professionalRepository.GetConnectedInvoices(proId);
         }
-         public dynamic GetConnectedLeads(long proId)
+        public dynamic GetConnectedLeads(long proId)
         {
             return _professionalRepository.GetConnectedLeads(proId);
+        }
+
+        public dynamic GetProfessionalConnectedServices(long proId)
+        {
+            return _professionalRepository.GetProfessionalConnectedServices(proId);
+        }
+
+        public dynamic DetachProfessionalConnectedService(IEnumerable<long> serviceIds, long proId)
+        {
+            return _professionalRepository.DetachProfessionalConnectedService(serviceIds, proId);
         }
 
         public void Dispose()

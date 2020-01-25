@@ -198,7 +198,7 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                var customer = _customerRepository.GetByIdWithInclude(request.CustomerId);
+                var customer = _customerRepository.GetById(request.CustomerId);
                 var services = customer.Services;
                 foreach (var service in services)
                 {
@@ -216,7 +216,7 @@ namespace Medelit.Domain.CommandHandlers
 
                     booking.DateOfBirth = customer.DateOfBirth;
                     booking.PhoneNumber = customer.MainPhone;
-                    booking.PaymentMethodId = (short)customer.PaymentMethodId;
+                    booking.PaymentMethodId = customer.PaymentMethodId;
                     booking.Email2 = customer.Email2;
                     booking.HomeStreetName = customer.HomeStreetName;
                     booking.VisitLanguageId = customer.LanguageId;
@@ -234,6 +234,7 @@ namespace Medelit.Domain.CommandHandlers
                     booking.PtCalledForAppointmentId = 0;
                     booking.ProAvailabilityAskedId = 0;
 
+                    if(customer.DateOfBirth.HasValue)
                     booking.PatientAge = (short?)((DateTime.Now - customer.DateOfBirth).Value.Days / 365.25);
                     
 

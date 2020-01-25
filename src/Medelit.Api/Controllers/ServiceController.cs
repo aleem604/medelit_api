@@ -84,7 +84,7 @@ namespace Medelit.Api.Controllers
 
 
 
-        [HttpPost("services/professionals-services")]
+        [HttpPost("services/services-data-for-attach")]
         public IActionResult GetProfessionalServices([FromBody]ServicFilterViewModel viewModel)
         {
             return Response(_serviceService.GetProfessionalServices(viewModel));

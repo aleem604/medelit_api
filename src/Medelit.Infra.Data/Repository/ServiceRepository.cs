@@ -44,8 +44,8 @@ namespace Medelit.Infra.Data.Repository
                     {
                         if (!(service is null))
                         {
-                            service.PTFeeId = model.PtFeeId;
-                            service.PROFeeId = model.ProFeeId;
+                            //service.PTFeeId = model.PtFeeId;
+                            //service.PROFeeId = model.ProFeeId;
                             Db.Service.Update(service);
                             Db.SaveChanges();
                             _bus.RaiseEvent(new DomainNotification(GetType().Name, null, "service updated successfully"));
@@ -81,8 +81,8 @@ namespace Medelit.Infra.Data.Repository
                         Db.SaveChanges();
                         if(ptFeeModel.Id > 0 && proFeeModel.Id >0)
                         {
-                            service.PTFeeId = ptFeeModel.Id;
-                            service.PROFeeId = proFeeModel.Id;
+                            //service.PTFeeId = ptFeeModel.Id;
+                            //service.PROFeeId = proFeeModel.Id;
 
                             ptFeeModel.FeeCode = ptFeeModel.FeeTypeId == eFeeType.PTFee ? $"FP{ptFeeModel.Id.ToString().PadLeft(6, '0')}" : $"FS{ptFeeModel.Id.ToString().PadLeft(6, '0')}";
                             proFeeModel.FeeCode = proFeeModel.FeeTypeId == eFeeType.PTFee ? $"FP{proFeeModel.Id.ToString().PadLeft(6, '0')}" : $"FS{proFeeModel.Id.ToString().PadLeft(6, '0')}";
@@ -133,24 +133,17 @@ namespace Medelit.Infra.Data.Repository
             var proServices = Db.ServiceProfessionalRelation.Where(x => x.ProfessionalId == proId).Select(x => x.Id).ToList();
             var existingServiceIds = Db.ServiceProfessionalRelation.Where(x => x.ProfessionalId == proId).Select(x => x.ServiceId).ToList();
 
-            var query = Db.Service.Include(x => x.Field).Include(c => c.SubCategory).Include(x => x.PtFee).Include(x => x.ProFee)
+            var query = Db.Service
                 .Where(x => !existingServiceIds.Contains(x.Id))
                 .Select((s) => new
                 {
                     s.Id,
                     s.Name,
-                    s.PTFeeId,
-                    ptFeeName = s.PtFee.FeeName,
-                    ptFeeA1 = s.PtFee.A1,
-                    ptFeeA2 = s.PtFee.A2,
-                    s.PROFeeId,
-                    proFeeName = s.ProFee.FeeName,
-                    proFeeA1 = s.ProFee.A1,
-                    proFeeA2 = s.ProFee.A2,
+                   
                     s.FieldId,
-                    s.Field,
+                    s.Field.Field,
                     s.SubcategoryId,
-                    s.SubCategory,
+                    s.SubCategory.SubCategory,
                     s.Tags
                 });
             if (fieldId.HasValue)
@@ -185,8 +178,8 @@ namespace Medelit.Infra.Data.Repository
         public dynamic GetProfessionalServicesWithInclude(long professionalId)
         {
             return Db.ServiceProfessionalRelation.Where(x => x.ProfessionalId == professionalId)
-                .Include(x => x.Service).ThenInclude(x => x.PtFee)
-                .Include(x => x.Service).ThenInclude(x => x.ProFee)
+                //.Include(x => x.Service).ThenInclude(x => x.PtFee)
+                //.Include(x => x.Service).ThenInclude(x => x.ProFee)
                 .Include(x => x.Service).ThenInclude(x => x.Field)
                 .Include(x => x.Service).ThenInclude(x => x.SubCategory)
                 .ToList();
@@ -200,15 +193,15 @@ namespace Medelit.Infra.Data.Repository
                 x.Service.Name,
                 proId = x.Professional.Id,
                 proName = x.Professional.Name,
-                ptFeeId = x.Service.PtFee.Id,
-                ptFeeName = x.Service.PtFee.FeeName,
-                ptFeeA1 = x.Service.PtFee.A1,
-                ptFeeA2 = x.Service.PtFee.A2,
+                //ptFeeId = x.Service.PtFee.Id,
+                //ptFeeName = x.Service.PtFee.FeeName,
+                //ptFeeA1 = x.Service.PtFee.A1,
+                //ptFeeA2 = x.Service.PtFee.A2,
 
-                proFeeId = x.Service.ProFee.Id,
-                proFeeName = x.Service.ProFee.FeeName,
-                proFeeA1 = x.Service.ProFee.A1,
-                proFeeA2 = x.Service.ProFee.A2,
+                //proFeeId = x.Service.ProFee.Id,
+                //proFeeName = x.Service.ProFee.FeeName,
+                //proFeeA1 = x.Service.ProFee.A1,
+                //proFeeA2 = x.Service.ProFee.A2,
 
             }).ToList();
         }
@@ -253,13 +246,13 @@ namespace Medelit.Infra.Data.Repository
                     {
                         bookingName = b.Name,
                         ServiceName = ps.Service.Name,
-                        PtFee = ps.Service.PtFee.FeeName,
-                        PtFeeA1 = ps.Service.PtFee.A1,
-                        ptFeeA2 = ps.Service.PtFee.A2,
+                        //PtFee = ps.Service.PtFee.FeeName,
+                        //PtFeeA1 = ps.Service.PtFee.A1,
+                        //ptFeeA2 = ps.Service.PtFee.A2,
 
-                        ProFeeName = ps.Service.ProFee.FeeName,
-                        ProFeeA1 = ps.Service.ProFee.A1,
-                        proFeeA2 = ps.Service.ProFee.A2,
+                        //ProFeeName = ps.Service.ProFee.FeeName,
+                        //ProFeeA1 = ps.Service.ProFee.A1,
+                        //proFeeA2 = ps.Service.ProFee.A2,
 
                         CustomerName = b.Customer.Name,
                         InvoiceEntity = b.InvoiceEntityId.HasValue ? b.InvoiceEntity.Name : string.Empty,

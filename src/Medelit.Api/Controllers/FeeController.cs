@@ -36,7 +36,7 @@ namespace Medelit.Api.Controllers
 
         [HttpGet("fees")]
         public IActionResult GetFees()
-        {         
+        {
             return Response(_feeService.GetFees());
         }
 
@@ -77,10 +77,17 @@ namespace Medelit.Api.Controllers
         }
 
         //api/v1/
-        [HttpGet("fees/connected-services/{feeId}")]
+        [HttpGet("fees/fee-connected-services/{feeId}")]
         public IActionResult GetConnectedServices(long feeId)
         {
             return Response(_feeService.GetConnectedServices(feeId));
+        }
+
+        //api/v1/
+        [HttpGet("fees/fee-connected-professionals/{feeId}")]
+        public IActionResult GetConnectedProfessionals(long feeId)
+        {
+            return Response(_feeService.GetConnectedProfessionals(feeId));
         }
 
         //api/v1/
@@ -88,6 +95,14 @@ namespace Medelit.Api.Controllers
         public IActionResult GetConnectedProfessionalCustomers(long feeId)
         {
             return Response(_feeService.GetConnectedProfessionalsCustomers(feeId));
+        }
+
+        //api/v1/
+        [HttpPost("fees/delete-connected-professionals/{feeId}")]
+        public IActionResult DeleteConnectedProfessionals([FromBody]IEnumerable<long> prosIds, long feeId)
+        {
+            _feeService.DeleteConnectedProfessionals(prosIds, feeId);
+            return Response();
         }
 
         //api/v1/
@@ -104,6 +119,25 @@ namespace Medelit.Api.Controllers
             _feeService.SaveServicesToConnectWithFee(serviceIds, feeId);
             return Response();
         }
+
+        //api/v1/
+        [HttpGet("fees/professional-to-connect-with-fee/{feeId}")]
+        public IActionResult GetProfessionalToConnectWithFee(long feeId)
+        {
+            _feeService.GetProfessionalToConnectWithFee(feeId);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpPost("fees/professional-to-connect-with-fee/{feeId}")]
+        public IActionResult SaveProfessionalToConnectWithFee([FromBody] IEnumerable<long> serviceIds, long feeId)
+        {
+            _feeService.SaveProfessionlToConnectWithFee(serviceIds, feeId);
+            return Response();
+        }
+
+
+
 
     }
 }

@@ -184,9 +184,20 @@ namespace Medelit.Application
             return _feeRepository.GetConnectedServices(feeId);
         }
 
+        public dynamic GetConnectedProfessionals(long feeId)
+        {
+            return _feeRepository.GetConnectedProfessionals(feeId);
+        }
+
+
         public dynamic GetConnectedProfessionalsCustomers(long feeId)
         {
             return _feeRepository.GetConnectedProfessionalsCustomers(feeId);
+        }
+
+        public void DeleteConnectedProfessionals(IEnumerable<long> prosIds, long feeId)
+        {
+            _feeRepository.DeleteConnectedProfessionals(prosIds, feeId);
         }
 
         public dynamic GetServicesToConnectWithFee(long feeId)
@@ -197,6 +208,15 @@ namespace Medelit.Application
         public void SaveServicesToConnectWithFee(IEnumerable<long> serviceIds, long feeId)
         {
             _feeRepository.SaveServicesToConnectWithFee(serviceIds, feeId);
+        }
+
+        public void GetProfessionalToConnectWithFee(long feeId)
+        {
+            _feeRepository.GetProfessionalToConnectWithFee(feeId);
+        }
+        public void SaveProfessionlToConnectWithFee(IEnumerable<long> proIds, long feeId)
+        {
+            _feeRepository.SaveProfessionlToConnectWithFee(proIds, feeId);
         }
 
         public void Dispose()

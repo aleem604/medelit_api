@@ -52,15 +52,15 @@ namespace Medelit.Domain.Models
         [Column("home_city_id")]
         public short? HomeCityId { get; set; }
         [Column("visit_city_id")]
-        public short VisitCityId { get; set; }
+        public short? VisitCityId { get; set; }
         [Column("home_post_code")]
         public string HomePostCode { get; set; }
         [Column("visit_post_code")]
         public string VisitPostCode { get; set; }
         [Column("home_country_id")]
-        public short HomeCountryId { get; set; }
+        public short? HomeCountryId { get; set; }
         [Column("visit_country_id")]
-        public short VisitCountryId { get; set; }
+        public short? VisitCountryId { get; set; }
         [Column("visit_venue_detail")]
         public string VisitVenueDetail { get; set; }
         [Column("bank_name")]

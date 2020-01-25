@@ -23,7 +23,8 @@ namespace Medelit.Infra.Data.Context
         public DbSet<Service> Service { get; set; }
         public DbSet<ServiceProfessionalRelation> ServiceProfessionalRelation { get; set; }
         public DbSet<Professional> Professional { get; set; }
-        public DbSet<ProfessionalLanguageRelation> ProfessionalLanguageRelation { get; set; }
+        public DbSet<ProfessionalFees> ProfessionalFees { get; set; }
+        public DbSet<ProfessionalLanguages> ProfessionalLanguages { get; set; }
         public DbSet<Fee> Fee { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
         public DbSet<InvoiceBookings> InvoiceBookings { get; set; }
@@ -40,7 +41,7 @@ namespace Medelit.Infra.Data.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfiguration(new CustomerMap());
+            //modelBuilder.ApplyConfiguration(new CustomerMap());
                         
             base.OnModelCreating(modelBuilder);
         }

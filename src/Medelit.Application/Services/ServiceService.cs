@@ -73,8 +73,8 @@ namespace Medelit.Application
                 .Select((s) => new {
                     s.Id,
                     s.Name,
-                    PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A2),
-                    ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A2),
+                    //PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A2),
+                    //ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A2),
                     Professionals = PopulateProfessionals(s.ServiceProfessionals, professionals),
                     s.Covermap,
                     s.Status,
@@ -92,7 +92,6 @@ namespace Medelit.Application
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
-
             }
 
             if (viewModel.Filter.Status != eRecordStatus.All)

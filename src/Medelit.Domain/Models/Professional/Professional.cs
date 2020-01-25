@@ -39,10 +39,14 @@ namespace Medelit.Domain.Models
         public string StreetName { get; set; }
         [Column("city_id")]
         public short CityId { get; set; }
+        [ForeignKey("CityId")]
+        public City City { get; set; }
         [Column("post_code")]
         public string PostCode { get; set; }
         [Column("country_id")]
         public short CountryId { get; set; }
+        [ForeignKey("CountryId")]
+        public Country Country { get; set; }
         public string Description { get; set; }
         [Column("clinic_street_name")]
         public string ClinicStreetName { get; set; }
@@ -102,7 +106,8 @@ namespace Medelit.Domain.Models
         [Column("pro_tax_code")]
         public string ProtaxCode { get; set; }
 
-        public ICollection<ProfessionalLanguageRelation> ProfessionalLangs { get; set; }
+        public ICollection<ProfessionalLanguages> ProfessionalLangs { get; set; }
         public ICollection<ServiceProfessionalRelation> ProfessionalServices { get; set; }
+        public ICollection<ProfessionalFees> ProfessionalFees { get; set; }
     }
 }

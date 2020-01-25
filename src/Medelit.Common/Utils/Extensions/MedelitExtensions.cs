@@ -12,6 +12,14 @@ namespace Medelit.Common
 {
     public static class MedelitExtensions
     {
+        public static string CustomDateString(this DateTime? date, string format = "dd/MM/yyyy")
+        {
+            if (date.HasValue)
+                return date.Value.ToString(format);
+            else
+                return string.Empty;
+        }
+
         public static string Serialize(this string str)
         {
             if (!string.IsNullOrEmpty(str))

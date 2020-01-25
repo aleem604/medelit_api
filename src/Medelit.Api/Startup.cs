@@ -120,7 +120,7 @@ namespace Medelit.Api
                 s.SwaggerEndpoint("/swagger/v1/swagger.json", "Medelit API v1.1");
             });
 
-            app.UseAuthentication();
+            app.UseAuthentication(); // this one first
             app.UseMiddleware<TokenMiddleware>();
             app.UseMvc(routes =>
             {

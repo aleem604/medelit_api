@@ -55,16 +55,24 @@ namespace Medelit.Common
 
         public static (string, string) GetAge(DateTime? dateOfBirth)
         {
-            DateTime date = DateTime.Now;
-            System.DateTime BirthDate = dateOfBirth.Value;
-            System.TimeSpan diffResult = date.Subtract(BirthDate);
-            string TotalDays = diffResult.Days.ToString();
-            string Months = ((diffResult.Days) % 365).ToString();
-            string RemainingMonths = (Convert.ToInt32(Months) / 31).ToString();
-            string RemainginYears = ((diffResult.Days) / 365).ToString();
-            string RemainingDays = (Convert.ToInt32(Months) % 31).ToString();
+            if (dateOfBirth.HasValue)
+            {
+                DateTime date = DateTime.Now;
+                System.DateTime BirthDate = dateOfBirth.Value;
+                System.TimeSpan diffResult = date.Subtract(BirthDate);
+                string TotalDays = diffResult.Days.ToString();
+                string Months = ((diffResult.Days) % 365).ToString();
+                string RemainingMonths = (Convert.ToInt32(Months) / 31).ToString();
+                string RemainginYears = ((diffResult.Days) / 365).ToString();
+                string RemainingDays = (Convert.ToInt32(Months) % 31).ToString();
 
-            return (RemainginYears, RemainingMonths);
+                return (RemainginYears, RemainingMonths);
+            }
+            else
+            {
+                return (string.Empty, string.Empty);
+            }
+            
         }
     }
 }

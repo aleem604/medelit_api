@@ -40,7 +40,7 @@ namespace Medelit.Application.AutoMapper
             CreateMap<Customer, Booking>();
 
             CreateMap<Professional, ProfessionalViewModel>();
-            CreateMap<ProfessionalLanguageRelation, FilterModel>()
+            CreateMap<ProfessionalLanguages, FilterModel>()
                 .ForMember(dest => dest.Id,
                     opts => opts.MapFrom(
                         src => src.LanguageId

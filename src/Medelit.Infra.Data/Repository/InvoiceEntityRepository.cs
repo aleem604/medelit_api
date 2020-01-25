@@ -21,13 +21,13 @@ namespace Medelit.Infra.Data.Repository
                     select new
                     {
                         serviceName = b.Service.Name,
-                        PtFeeName = b.Service.PtFee.FeeName,
+                        //PtFeeName = b.Service.PtFee.FeeName,
                         b.PtFee,
-                        ProFeeName = b.Service.ProFee.FeeName,
+                        //ProFeeName = b.Service.ProFee.FeeName,
                         b.ProFee,
                         Professional = b.Professional.Name,
-                        Service = $@"<span class='font-500'>Service:</span> {b.Service.Name} <br/> <span class='font-500'>Pt Fee Name:</span> {b.Service.PtFee.FeeName} <br/> <span class='font-500'>Pt. Fee:</span> {(b.PtFee.HasValue ? b.PtFee.Value.ToString("G29") : string.Empty)} <br/> 
-                                    <span class='font-500'>Pro. Fee Name :</span> {b.Service.ProFee.FeeName} <br/> <span class='font-500'>Pro. Fee:</span> {(b.ProFee.HasValue ? b.ProFee.Value.ToString("G29") : string.Empty)}"
+                        //Service = $@"<span class='font-500'>Service:</span> {b.Service.Name} <br/> <span class='font-500'>Pt Fee Name:</span> {b.Service.PtFee.FeeName} <br/> <span class='font-500'>Pt. Fee:</span> {(b.PtFee.HasValue ? b.PtFee.Value.ToString("G29") : string.Empty)} <br/> 
+                        //            <span class='font-500'>Pro. Fee Name :</span> {b.Service.ProFee.FeeName} <br/> <span class='font-500'>Pro. Fee:</span> {(b.ProFee.HasValue ? b.ProFee.Value.ToString("G29") : string.Empty)}"
                     }).ToList();
         }
         public dynamic InvoiceEntityConnectedCustomers(long invoiceEntityId)
@@ -70,8 +70,8 @@ namespace Medelit.Infra.Data.Repository
                     select new
                     {
                         bookingName = b.Name,
-                        Service = $@"<span class='font-500'>Service:</span> {b.Service.Name} <br/> <span class='font-500'>Pt Fee Name:</span> {b.Service.PtFee.FeeName} <br/> <span class='font-500'>Pt. Fee:</span> {(b.PtFee.HasValue ? b.PtFee.Value.ToString("G29") : string.Empty)} <br/> 
-                                    <span class='font-500'>Pro. Fee Name :</span> {b.Service.ProFee.FeeName} <br/> <span class='font-500'>Pro. Fee:</span> {(b.ProFee.HasValue ? b.ProFee.Value.ToString("G29") : string.Empty)}",
+                        //Service = $@"<span class='font-500'>Service:</span> {b.Service.Name} <br/> <span class='font-500'>Pt Fee Name:</span> {b.Service.PtFee.FeeName} <br/> <span class='font-500'>Pt. Fee:</span> {(b.PtFee.HasValue ? b.PtFee.Value.ToString("G29") : string.Empty)} <br/> 
+                        //            <span class='font-500'>Pro. Fee Name :</span> {b.Service.ProFee.FeeName} <br/> <span class='font-500'>Pro. Fee:</span> {(b.ProFee.HasValue ? b.ProFee.Value.ToString("G29") : string.Empty)}",
                         professional = b.Professional.Name,
                         visitDate = b.VisitStartDate,
 
