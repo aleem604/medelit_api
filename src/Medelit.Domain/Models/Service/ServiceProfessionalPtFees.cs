@@ -5,15 +5,24 @@ using System.Text;
 
 namespace Medelit.Domain.Models
 {
-    [Table("service_professional_relation")]
-  public  class ServiceProfessionalRelation
-    {    
+    [Table("service_professional_ptfees")]
+    public class ServiceProfessionalPtFees
+    {
         public long Id { get; set; }
+
         [Column("service_id")]
         public long ServiceId { get; set; }
+        [ForeignKey("ServiceId")]
+        public virtual Service Service { get; set; }
+
         [Column("professional_id")]
         public long ProfessionalId { get; set; }
-        public virtual Service Service { get; set; }
+        [ForeignKey("ProfessionalId")]
         public virtual Professional Professional { get; set; }
+
+        [Column("pt_fee_id")]
+        public long PtFeeId { get; set; }
+        [ForeignKey("PtFeeId")]
+        public virtual PtFee PtFee { get; set; }
     }
 }

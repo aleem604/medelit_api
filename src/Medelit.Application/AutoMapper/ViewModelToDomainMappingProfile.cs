@@ -17,7 +17,8 @@ namespace Medelit.Application.AutoMapper
             //    .ForMember(d => d.Value, o => o.MapFrom(s => s.Id))
             //    .ForAllOtherMembers(opts => opts.Ignore());
 
-            CreateMap<FeeViewModel, Fee>((MemberList.Source));
+            CreateMap<FeeViewModel, PtFee>((MemberList.Source));
+            CreateMap<FeeViewModel, VFees>((MemberList.Source));
             CreateMap<ProfessionalViewModel, Professional>((MemberList.Destination));
             CreateMap<FilterModel, ProfessionalLanguages>()
                .ForMember(dest => dest.LanguageId,

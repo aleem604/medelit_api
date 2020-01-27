@@ -61,7 +61,28 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
-        
+        [HttpGet("professionals/services-data-for-attach/{proId}")]
+        public IActionResult GetServicesToAttachWithProfessional(long proId)
+        {
+            _professionalService.GetServicesToAttachWithProfessional(proId);
+            return Response();
+        }
+
+        [HttpGet("professionals/services-for-connect-filter/{proId}")]
+        public IActionResult GetServicesForConnectFilter(long proId)
+        {
+            _professionalService.GetServicesForConnectFilter(proId);
+            return Response();
+        }
+
+        [HttpPost("professionals/attach-services-to-professional/{proId}")]
+        public IActionResult AttachServicesToProfessional([FromBody]IEnumerable<long> serviceIds, long proId)
+        {
+            _professionalService.AttachServicesToProfessional(serviceIds, proId);
+            return Response();
+        }
+
+
 
         [HttpGet("professionals/connected-customers/{proId}")]
         public IActionResult GetConnectedCustomers(long proId)
@@ -87,7 +108,6 @@ namespace Medelit.Api.Controllers
             return Response(_professionalService.GetConnectedLeads(proId));
         }
 
-
         [HttpGet("professionals/professional-connected-services/{proId}")]
         public IActionResult GetProfessionalConnectedServices(long proId)
         {
@@ -97,8 +117,33 @@ namespace Medelit.Api.Controllers
         [HttpPost("professionals/detach-professional-connected-service/{proId}")]
         public IActionResult DetachProfessionalConnectedService([FromBody]IEnumerable<long> serviceIds, long proId)
         {
-            return Response(_professionalService.DetachProfessionalConnectedService(serviceIds, proId));
+            _professionalService.DetachProfessionalConnectedService(serviceIds, proId);
+            return Response();
         }
+
+
+        // add fee to professional service
+        [HttpGet("professionals/professional-service-detail/{serviceId}/{proId}")]
+        public IActionResult GetProfessionalServiceDetail(long serviceId, long proId)
+        {
+            return Response(_professionalService.GetProfessionalServiceDetail(serviceId, proId));
+        }
+
+        [HttpPost("professionals/professional-service-detail/{serviceId}/{proId}")]
+        public IActionResult SaveProfessionalServiceDetail([FromBody] FullFeeViewModel model)
+        {
+            _professionalService.SaveProfessionalServiceDetail(model);
+            return Response();
+        }
+
+        // add fee to professional service
+        [HttpGet("professionals/fees-for-filter-to-attach-with-service-professional/{ptRelationRowId}/{proRelationRowId}")]
+        public IActionResult GetFeesForFilterToConnectWithServiceProfessional(long ptRelationRowId, long proRelationRowId)
+        {
+            _professionalService.GetFeesForFilterToConnectWithServiceProfessional(ptRelationRowId, proRelationRowId);
+            return Response();
+        }
+
 
     }
 }

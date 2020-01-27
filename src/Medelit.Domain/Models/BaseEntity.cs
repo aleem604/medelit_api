@@ -24,5 +24,8 @@ namespace Medelit.Domain.Models
         [Column("assigned_to_id")]
         public string AssignedToId { get; set; }
 
+        [NotMapped]
+        public string AssignedTo { get; set; }
+
     }
 }

@@ -19,5 +19,13 @@ namespace Medelit.Common
         public string ImageUrl { get; set; }
         public string VerificationToken { get; set; }
         public DateTime UpdatedAt { get; set; }
+
+        public string FullName
+        {
+            get
+            {
+                return $"{FirstName} {LastName}";
+            }
+        }
     }
 }

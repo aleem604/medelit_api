@@ -9,6 +9,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Medelit.Application;
 using Medelit.Common;
+using Medelit.Infra.CrossCutting.Identity.Data;
+using Medelit.Infra.CrossCutting.Identity.Models;
 
 namespace Medelit.Api.Configurations
 {
@@ -23,12 +25,12 @@ namespace Medelit.Api.Configurations
         }
 
         // IMyScopedService is injected into Invoke
-        public async Task Invoke(HttpContext httpContext)
+        public async Task Invoke(HttpContext httpContext, ApplicationDbContext context)
         {
-            httpContext.Items.TryAdd(eTinUser.TinUser, ProcessToken(httpContext));
+            httpContext.Items.TryAdd(eTinUser.TinUser, ProcessToken(httpContext, context));
             await _next(httpContext);
         }
-        private AuthClaims ProcessToken(HttpContext _httpContext)
+        private AuthClaims ProcessToken(HttpContext _httpContext, ApplicationDbContext context)
         {
             try
             {
@@ -39,11 +41,9 @@ namespace Medelit.Api.Configurations
                 var id = claims.Where(x => x.Type.StartsWith("id", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
                 var email = claims.Where(x => x.Type.EndsWith("nameidentifier", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
 
-                return new AuthClaims { Id = id, Email = email };
+                var currentuser = context.Users.Find(id);
 
-                //AuthClaims jwtPayload = JsonConvert.DeserializeObject<AuthClaims>(nameIdentifier);
-
-                //return jwtPayload;
+                return new AuthClaims { Id = currentuser.Id, FirstName = currentuser.FirstName, LastName = currentuser.LastName };
             }
             catch
             {

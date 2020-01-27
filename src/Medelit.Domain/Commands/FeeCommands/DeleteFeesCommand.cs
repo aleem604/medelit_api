@@ -8,7 +8,7 @@ namespace Medelit.Domain.Commands
 {
     public class DeleteFeesCommand : Command
     {
-        public IEnumerable<long> FeeIds { get; set; }
+        public IEnumerable<VFees> VFees { get; set; }
         public override bool IsValid()
         {
             return true;

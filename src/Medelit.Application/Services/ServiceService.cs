@@ -58,7 +58,7 @@ namespace Medelit.Application
 
             var service = _serviceRepository.GetByIdWithIncludes(serviceId);
             var viewModel = _mapper.Map<ServiceViewModel>(service);
-            viewModel.Professionals = service.ServiceProfessionals.Select((s) => new FilterModel { Id = s.ProfessionalId, Value = s.Professional?.Name }).ToList();
+            //viewModel.Professionals = service.ServiceProfessionals.Select((s) => new FilterModel { Id = s.ProfessionalId, Value = s.Professional?.Name }).ToList();
             return viewModel;
 
         }
@@ -75,7 +75,7 @@ namespace Medelit.Application
                     s.Name,
                     //PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A2),
                     //ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A2),
-                    Professionals = PopulateProfessionals(s.ServiceProfessionals, professionals),
+                    //Professionals = PopulateProfessionals(s.ServiceProfessionals, professionals),
                     s.Covermap,
                     s.Status,
                     s.CreateDate,
@@ -166,7 +166,7 @@ namespace Medelit.Application
             return sb.ToString();
         }
 
-        private string PopulateProfessionals(IEnumerable<ServiceProfessionalRelation> services, List<FilterModel> professionals)
+        private string PopulateProfessionals(IEnumerable<ServiceProfessionalPtFees> services, List<FilterModel> professionals)
         {
             var query = from s in services
                         join
@@ -180,7 +180,7 @@ namespace Medelit.Application
         public void SaveService(ServiceViewModel viewModel)
         {
             var serviceModel = _mapper.Map<Service>(viewModel);
-            serviceModel.ServiceProfessionals = viewModel.Professionals.Select((s) => new ServiceProfessionalRelation { ProfessionalId = s.Id }).ToList();
+            //serviceModel.ServiceProfessionals = viewModel.Professionals.Select((s) => new ServiceProfessionalRelation { ProfessionalId = s.Id }).ToList();
             _bus.SendCommand(new SaveServiceCommand { Service = serviceModel });
         }
 

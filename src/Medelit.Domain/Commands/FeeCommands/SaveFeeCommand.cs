@@ -7,7 +7,7 @@ namespace Medelit.Domain.Commands
 {
     public class SaveFeeCommand : Command
     {
-        public Fee Fee { get; set; }
+        public PtFee Fee { get; set; }
 
         public override bool IsValid()
         {

@@ -71,7 +71,7 @@ namespace Medelit.Common
         TasteOfDishes = 105
     }
 
-    public enum eFeeType : short
+    public enum eFeeType : int
     {
         All = -1,
         [Description("PT Fee")]

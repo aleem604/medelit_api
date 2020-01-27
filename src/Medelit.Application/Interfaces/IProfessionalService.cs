@@ -18,6 +18,12 @@ namespace Medelit.Application
         dynamic GetConnectedInvoices(long proId);
         dynamic GetConnectedLeads(long proId);
         dynamic GetProfessionalConnectedServices(long proId);
-        dynamic DetachProfessionalConnectedService(IEnumerable<long> servieIds, long proId);
+        void DetachProfessionalConnectedService(IEnumerable<long> servieIds, long proId);
+        dynamic GetProfessionalServiceDetail(long serviceId, long proId);
+        void SaveProfessionalServiceDetail(FullFeeViewModel model);
+        void GetServicesToAttachWithProfessional(long proId);
+        void GetServicesForConnectFilter(long proId);
+        void AttachServicesToProfessional(IEnumerable<long> serviceIds, long proId);
+        void GetFeesForFilterToConnectWithServiceProfessional(long ptRelationRowId, long proRelationRowId);
     }
 }

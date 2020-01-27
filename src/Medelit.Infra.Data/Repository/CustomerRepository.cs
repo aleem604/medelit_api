@@ -135,7 +135,7 @@ namespace Medelit.Infra.Data.Repository
                        LeadName =  $"{ls.Lead.SurName} {ls.Lead.Name}",
                        ls.Lead.CreateDate,
                        ls.Lead.UpdateDate,
-                       Professional = string.Join(" <br/>", ls.Service.ServiceProfessionals.Select(x=>x.Professional.Name).ToArray()),
+                       Professional = string.Join(" <br/>", ls.Service.ServiceProfessionalPtFees.Select(x=>x.Professional.Name).ToArray()),
                        ls.Lead.LeadStatusId
                     }).ToList();
         }

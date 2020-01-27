@@ -44,7 +44,8 @@ namespace Medelit.Domain.Models
         
 
         //public IEnumerable<ServiceFeeRelation> ServiceFeeRelation { get; set; }
-        public IEnumerable<ServiceProfessionalRelation> ServiceProfessionals { get; set; }
+        public IEnumerable<ServiceProfessionalPtFees> ServiceProfessionalPtFees { get; set; }
+        public IEnumerable<ServiceProfessionalProFees> ServiceProfessionalProFees { get; set; }
 
         public Service Clone()
         {

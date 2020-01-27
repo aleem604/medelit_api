@@ -47,62 +47,90 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                bool commmitResult;
                 if (request.Fee.Id > 0)
                 {
-                    var feeModel = _feeRepository.GetById(request.Fee.Id);
-                    feeModel.FeeName = request.Fee.FeeName;
-                    //feeModel.FeeTypeId = request.Fee.FeeTypeId;
-                    feeModel.A1 = request.Fee.A1;
-                    feeModel.A2 = request.Fee.A2;
-                    feeModel.Tags = request.Fee.Tags;
-                    feeModel.UpdateDate = DateTime.UtcNow;
-                    feeModel.UpdatedById = CurrentUser.Id;
-                    if (string.IsNullOrEmpty(feeModel.AssignedToId))
-                        feeModel.AssignedToId = CurrentUser.Id;
-                    _feeRepository.Update(feeModel);
-                    commmitResult = Commit();
-                    request.Fee = feeModel;
-
-                    //var allFees = _feeRepository.GetAll();
-                    //foreach (var fee in allFees)
-                    //{
-
-                    //        fee.FeeCode = fee.FeeTypeId == eFeeType.PTFee ? $"FP{fee.Id.ToString().PadLeft(6, '0')}" : $"FS{fee.Id.ToString().PadLeft(6, '0')}";
-                    //        fee.UpdateDate = DateTime.UtcNow;
-                    //        _feeRepository.Update(fee);
-
-                    //}
-                    //Commit();
-                }
-                else
-                {
-                    var feeModel = request.Fee;
-                    feeModel.CreateDate = DateTime.UtcNow;
-                    feeModel.CreatedById = CurrentUser.Id;
-                    feeModel.AssignedToId = CurrentUser.Id;
-                    _feeRepository.Add(feeModel);
-                    commmitResult = Commit();
-                    if (commmitResult && feeModel.Id > 0)
+                    if (request.Fee.FeeTypeId == eFeeType.PTFee)
                     {
-                        var id = feeModel.Id;
-                        feeModel.FeeCode = feeModel.FeeTypeId == eFeeType.PTFee ? $"FP{id.ToString().PadLeft(6, '0')}" : $"FS{id.ToString().PadLeft(6, '0')}";
-                        _feeRepository.Update(feeModel);
-                        commmitResult = Commit();
+                        var ptFeeModel = _feeRepository.GetPtFee(request.Fee.Id);
+                        ptFeeModel.FeeName = request.Fee.FeeName;
+                        ptFeeModel.A1 = request.Fee.A1;
+                        ptFeeModel.A2 = request.Fee.A2;
+                        ptFeeModel.Tags = request.Fee.Tags;
+                        ptFeeModel.UpdateDate = DateTime.UtcNow;
+                        ptFeeModel.UpdatedById = CurrentUser.Id;
+                        if (string.IsNullOrEmpty(ptFeeModel.AssignedToId))
+                            ptFeeModel.AssignedToId = CurrentUser.Id;
+
+                        _feeRepository.UpdatePtFee(ptFeeModel);
+                        _bus.RaiseEvent(new DomainNotification(GetType().Name, null, ptFeeModel));
+                        return Task.FromResult(true);
                     }
-                    request.Fee = feeModel;
-                }
-                if (commmitResult)
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Fee));
-                    return Task.FromResult(true);
+                    else
+                    {
+                        var proFeeModel = _feeRepository.GetProFee(request.Fee.Id);
+                        proFeeModel.FeeName = request.Fee.FeeName;
+                        proFeeModel.A1 = request.Fee.A1;
+                        proFeeModel.A2 = request.Fee.A2;
+                        proFeeModel.Tags = request.Fee.Tags;
+                        proFeeModel.UpdateDate = DateTime.UtcNow;
+                        proFeeModel.UpdatedById = CurrentUser.Id;
+                        if (string.IsNullOrEmpty(proFeeModel.AssignedToId))
+                            proFeeModel.AssignedToId = CurrentUser.Id;
+
+                        _feeRepository.UpdateProFee(proFeeModel);
+                        _bus.RaiseEvent(new DomainNotification(GetType().Name, null, proFeeModel));
+                        return Task.FromResult(true);
+                    }
                 }
                 else
                 {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
+                    if (request.Fee.FeeTypeId == eFeeType.PTFee)
+                    {
+                        var ptFee = new PtFee
+                        {
+                            FeeName = request.Fee.FeeName,
+                            A1 = request.Fee.A1,
+                            A2 = request.Fee.A2,
+                            Tags = request.Fee.Tags,
+                            CreateDate = DateTime.UtcNow,
+                            CreatedById = CurrentUser.Id,
+                            AssignedToId = CurrentUser.Id
+                        };
+                        _feeRepository.AddPtFee(ptFee);
+                        if (ptFee.Id > 0)
+                        {
+                            var updatedFee = _feeRepository.GetPtFee(ptFee.Id);
+                            updatedFee.FeeCode = $"FP{ptFee.Id.ToString().PadLeft(6, '0')}";
+                            _feeRepository.UpdatePtFee(updatedFee);
+                            _bus.RaiseEvent(new DomainNotification(GetType().Name, null, updatedFee));
+                            return Task.FromResult(true);
+                        }
+                    }
+                    else
+                    {
+                        var proFee = new ProFee
+                        {
+                            FeeName = request.Fee.FeeName,
+                            A1 = request.Fee.A1,
+                            A2 = request.Fee.A2,
+                            Tags = request.Fee.Tags,
+                            CreateDate = DateTime.UtcNow,
+                            CreatedById = CurrentUser.Id,
+                            AssignedToId = CurrentUser.Id
+                        };
+                        _feeRepository.AddProFee(proFee);
+                        if (proFee.Id > 0)
+                        {
+                            var updatedFee = _feeRepository.GetProFee(proFee.Id);
+                            updatedFee.FeeCode = $"FS{proFee.Id.ToString().PadLeft(6, '0')}";
+                            _feeRepository.UpdateProFee(updatedFee);
+                            _bus.RaiseEvent(new DomainNotification(GetType().Name, null, updatedFee));
+                            return Task.FromResult(true);
+                        }
+                    }
                 }
-
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
+                return Task.FromResult(false);
             }
             catch (Exception ex)
             {
@@ -115,22 +143,25 @@ namespace Medelit.Domain.CommandHandlers
             {
                 foreach (var fee in request.Fees)
                 {
-                    var feeModel = _feeRepository.GetById(fee.Id);
-                    feeModel.Status = request.Status;
-                    feeModel.UpdateDate = DateTime.UtcNow;
-                    feeModel.UpdatedById = CurrentUser.Id;
-                    _feeRepository.Update(feeModel);
+                    if (fee.FeeTypeId == eFeeType.PTFee)
+                    {
+                        var feeModel = _feeRepository.GetPtFee(fee.Id);
+                        feeModel.Status = request.Status;
+                        feeModel.UpdateDate = DateTime.UtcNow;
+                        feeModel.UpdatedById = CurrentUser.Id;
+                        _feeRepository.UpdatePtFee(feeModel);
+                    }
+                    else
+                    {
+                        var feeModel = _feeRepository.GetProFee(fee.Id);
+                        feeModel.Status = request.Status;
+                        feeModel.UpdateDate = DateTime.UtcNow;
+                        feeModel.UpdatedById = CurrentUser.Id;
+                        _feeRepository.UpdateProFee(feeModel);
+                    }
                 }
-                if (Commit())
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Fees));
-                    return Task.FromResult(true);
-                }
-                else
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
-                }
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Fees));
+                return Task.FromResult(true);
             }
             catch (Exception ex)
             {
@@ -142,24 +173,22 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                foreach (var feeId in request.FeeIds)
+                foreach (var fee in request.VFees)
                 {
-                    var feeModel = _feeRepository.GetById(feeId);
-                    feeModel.Status = eRecordStatus.Deleted;
-                    feeModel.DeletedAt = DateTime.UtcNow;
-                    feeModel.DeletedById = CurrentUser.Id;
-                    _feeRepository.Update(feeModel);
+                    if (fee.FeeTypeId == eFeeType.PTFee)
+                    {
+                        var feeModel = _feeRepository.GetPtFee(fee.Id);
+                        _feeRepository.RemovePtFee(feeModel);
+                    }
+                    else
+                    {
+                        var feeModel = _feeRepository.GetProFee(fee.Id);
+                        _feeRepository.RemoveProFee(feeModel);
+                    }
                 }
-                if (Commit())
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.FeeIds));
-                    return Task.FromResult(true);
-                }
-                else
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
-                }
+
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.VFees));
+                return Task.FromResult(true);
             }
             catch (Exception ex)
             {

@@ -23,14 +23,14 @@ namespace Medelit.Infra.Data.Repository
             _bus = bus;
         }
 
-        public IQueryable<ServiceProfessionalRelation> GetServiceProfessionals()
+        public IQueryable<ServiceProfessionalPtFees> GetServiceProfessionals()
         {
-            return Db.ServiceProfessionalRelation;
+            return Db.ServiceProfessionalPtFees;
         }
 
         public IEnumerable<Service> GetAllWithProfessionals()
         {
-            return Db.Service.Include(x => x.ServiceProfessionals);
+            return Db.Service.Include(x => x.ServiceProfessionalPtFees);
         }
 
         public void AddUpdateFeeForService(AddUpdateFeeToService model)
@@ -54,7 +54,7 @@ namespace Medelit.Infra.Data.Repository
                     }
                     else
                     {
-                        var ptFeeModel = new Fee
+                        var ptFeeModel = new PtFee
                         {
                             FeeName = model.PtFeeName,
                             A1 = model.PtFeeA1,
@@ -65,7 +65,7 @@ namespace Medelit.Infra.Data.Repository
                             CreatedById = CurrentUser.Id
                         };
 
-                        var proFeeModel = new Fee
+                        var proFeeModel = new PtFee
                         {
                             FeeName = model.ProFeeName,
                             A1 = model.ProFeeA1,
@@ -76,8 +76,8 @@ namespace Medelit.Infra.Data.Repository
                             CreatedById = CurrentUser.Id
                         };
 
-                        Db.Fee.Add(ptFeeModel);
-                        Db.Fee.Add(proFeeModel);
+                        Db.PtFee.Add(ptFeeModel);
+                        Db.PtFee.Add(proFeeModel);
                         Db.SaveChanges();
                         if(ptFeeModel.Id > 0 && proFeeModel.Id >0)
                         {
@@ -93,8 +93,8 @@ namespace Medelit.Infra.Data.Repository
                             proFeeModel.UpdateDate = DateTime.UtcNow;
                             proFeeModel.UpdatedById = CurrentUser.Id;
 
-                            Db.Fee.Update(ptFeeModel);
-                            Db.Fee.Update(proFeeModel);
+                            Db.PtFee.Update(ptFeeModel);
+                            Db.PtFee.Update(proFeeModel);
                         }
                         service.UpdateDate = DateTime.UtcNow;
                         service.UpdatedById = CurrentUser.Id;
@@ -117,12 +117,12 @@ namespace Medelit.Infra.Data.Repository
 
         public Service GetByIdWithIncludes(long serviceId)
         {
-            return Db.Service.Where(x => x.Id == serviceId).Include(x => x.ServiceProfessionals).FirstOrDefault();
+            return Db.Service.Where(x => x.Id == serviceId).Include(x => x.ServiceProfessionalPtFees).FirstOrDefault();
         }
 
         public void RemoveProfessionals(long serviceId)
         {
-            var professionals = Db.ServiceProfessionalRelation.Where(x => x.ServiceId == serviceId).ToList();
+            var professionals = Db.ServiceProfessionalPtFees.Where(x => x.ServiceId == serviceId).ToList();
             Db.RemoveRange(professionals);
             Db.SaveChanges();
 
@@ -130,8 +130,8 @@ namespace Medelit.Infra.Data.Repository
 
         public dynamic GetProfessionalServices(long proId, long? fieldId, long? categoryId, string tag)
         {
-            var proServices = Db.ServiceProfessionalRelation.Where(x => x.ProfessionalId == proId).Select(x => x.Id).ToList();
-            var existingServiceIds = Db.ServiceProfessionalRelation.Where(x => x.ProfessionalId == proId).Select(x => x.ServiceId).ToList();
+            var proServices = Db.ServiceProfessionalPtFees.Where(x => x.ProfessionalId == proId).Select(x => x.Id).ToList();
+            var existingServiceIds = Db.ServiceProfessionalPtFees.Where(x => x.ProfessionalId == proId).Select(x => x.ServiceId).ToList();
 
             var query = Db.Service
                 .Where(x => !existingServiceIds.Contains(x.Id))
@@ -166,18 +166,18 @@ namespace Medelit.Infra.Data.Repository
 
         public void AddProfessionalToService(long serviceId, long professionalId)
         {
-            Db.ServiceProfessionalRelation.Add(new ServiceProfessionalRelation { ServiceId = serviceId, ProfessionalId = professionalId });
+            Db.ServiceProfessionalPtFees.Add(new ServiceProfessionalPtFees { ServiceId = serviceId, ProfessionalId = professionalId });
         }
 
         public void DetachProfessional(long serviceId, long professionalId)
         {
-            var relation = Db.ServiceProfessionalRelation.FirstOrDefault(x => x.ServiceId == serviceId && x.ProfessionalId == professionalId);
-            Db.ServiceProfessionalRelation.Remove(relation);
+            var relation = Db.ServiceProfessionalPtFees.FirstOrDefault(x => x.ServiceId == serviceId && x.ProfessionalId == professionalId);
+            Db.ServiceProfessionalPtFees.Remove(relation);
         }
 
         public dynamic GetProfessionalServicesWithInclude(long professionalId)
         {
-            return Db.ServiceProfessionalRelation.Where(x => x.ProfessionalId == professionalId)
+            return Db.ServiceProfessionalPtFees.Where(x => x.ProfessionalId == professionalId)
                 //.Include(x => x.Service).ThenInclude(x => x.PtFee)
                 //.Include(x => x.Service).ThenInclude(x => x.ProFee)
                 .Include(x => x.Service).ThenInclude(x => x.Field)
@@ -187,7 +187,7 @@ namespace Medelit.Infra.Data.Repository
 
         public dynamic GetProfessionalFeesDetail(long serviceId)
         {
-            return Db.ServiceProfessionalRelation.Where(x => x.ServiceId == serviceId).Select((x) => new
+            return Db.ServiceProfessionalPtFees.Where(x => x.ServiceId == serviceId).Select((x) => new
             {
                 x.Service.Id,
                 x.Service.Name,
@@ -210,7 +210,7 @@ namespace Medelit.Infra.Data.Repository
         {
             var constractStatus = Db.StaticData.Select((s) => new { Id = s.Id, Value = s.ContractStatus }).Where(x => x.Value != null).ToList();
 
-            return Db.ServiceProfessionalRelation.Where(x => x.ServiceId == serviceId).Select((s) => new
+            return Db.ServiceProfessionalPtFees.Where(x => x.ServiceId == serviceId).Select((s) => new
             {
                 s.Service.Id,
                 name = s.Professional.Name,
@@ -238,7 +238,7 @@ namespace Medelit.Infra.Data.Repository
 
         public dynamic GetConnectedBookings(long serviceId)
         {
-            return (from ps in Db.ServiceProfessionalRelation
+            return (from ps in Db.ServiceProfessionalPtFees
                     join
                     b in Db.Booking on ps.ServiceId equals b.ServiceId
                     where ps.ServiceId == serviceId
@@ -293,7 +293,7 @@ namespace Medelit.Infra.Data.Repository
                         l.UpdateDate,
                         l.LeadStatusId,
                         Status = l.LeadStatusId.HasValue ? leadStatus.FirstOrDefault(x => x.Id == l.LeadStatusId).Value : string.Empty,
-                        Professional = string.Join(", ", ls.Service.ServiceProfessionals.Select(x => x.Professional.Name).ToArray())
+                        Professional = string.Join(", ", ls.Service.ServiceProfessionalPtFees.Select(x => x.Professional.Name).ToArray())
                     }
                 ).ToList();
         }

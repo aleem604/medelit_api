@@ -21,11 +21,13 @@ namespace Medelit.Infra.Data.Context
         public DbSet<Booking> Booking { get; set; }
         public DbSet<FieldSubCategory> FieldSubCategory { get; set; }
         public DbSet<Service> Service { get; set; }
-        public DbSet<ServiceProfessionalRelation> ServiceProfessionalRelation { get; set; }
+        public DbSet<ServiceProfessionalPtFees> ServiceProfessionalPtFees { get; set; }
+        public DbSet<ServiceProfessionalProFees> ServiceProfessionalProFees { get; set; }
         public DbSet<Professional> Professional { get; set; }
-        public DbSet<ProfessionalFees> ProfessionalFees { get; set; }
         public DbSet<ProfessionalLanguages> ProfessionalLanguages { get; set; }
-        public DbSet<Fee> Fee { get; set; }
+        public DbSet<PtFee> PtFee { get; set; }
+        public DbSet<ProFee> ProFee { get; set; }
+        public DbSet<VFees> VFees { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
         public DbSet<InvoiceBookings> InvoiceBookings { get; set; }
         public DbSet<InvoiceEntity> InvoiceEntity { get; set; }

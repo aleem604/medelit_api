@@ -59,7 +59,7 @@ namespace Medelit.Infra.Data.Repository
             if (serviceId.HasValue)
             {
                 return (from p in Db.Professional
-                        join sp in Db.ServiceProfessionalRelation on p.Id equals sp.ProfessionalId
+                        join sp in Db.ServiceProfessionalPtFees on p.Id equals sp.ProfessionalId
                         select new { id = p.Id, Value = p.Name, sid = sp.ServiceId }).ToList();
             }
             else
@@ -70,11 +70,11 @@ namespace Medelit.Infra.Data.Repository
 
         public dynamic GetPTFeesForFilter()
         {
-            return Db.Fee.Where(x => x.FeeTypeId == eFeeType.PTFee).Select(x => new { Id = x.Id, Value = $"{x.FeeCode}-{x.FeeName}", x.A1, x.A2 }).ToList();
+            return Db.PtFee.Where(x => x.FeeTypeId == eFeeType.PTFee).Select(x => new { Id = x.Id, Value = $"{x.FeeCode}-{x.FeeName}", x.A1, x.A2 }).ToList();
         }
         public dynamic GePROFeesForFilter()
         {
-            return Db.Fee.Where(x => x.FeeTypeId == eFeeType.PROFee).Select(x => new { Id = x.Id, Value = $"{x.FeeCode}-{x.FeeName}", x.A1, x.A2 }).ToList();
+            return Db.PtFee.Where(x => x.FeeTypeId == eFeeType.PROFee).Select(x => new { Id = x.Id, Value = $"{x.FeeCode}-{x.FeeName}", x.A1, x.A2 }).ToList();
         }
 
         public IQueryable<FilterModel> GetFieldsForFilter()

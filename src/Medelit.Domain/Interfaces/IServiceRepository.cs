@@ -6,7 +6,7 @@ namespace Medelit.Domain.Interfaces
 {
     public interface IServiceRepository : IRepository<Service>
     {
-        IQueryable<ServiceProfessionalRelation> GetServiceProfessionals();
+        IQueryable<ServiceProfessionalPtFees> GetServiceProfessionals();
         void RemoveProfessionals(long serviceId);
         Service GetByIdWithIncludes(long serviceId);
         IEnumerable<Service> GetAllWithProfessionals();
