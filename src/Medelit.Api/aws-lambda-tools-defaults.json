@@ -6,13 +6,13 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "aleem",
+    "profile"     : "MWM",
     "region"      : "us-east-1",
     "configuration" : "Release",
     "framework"     : "netcoreapp2.1",
     "s3-prefix"     : "MedelitCRM/",
     "template"      : "serverless.template",
     "template-parameters" : "\"ShouldCreateBucket\"=\"false\";\"BucketName\"=\"medelit\"",
-    "s3-bucket"           : "actworld",
+    "s3-bucket"           : "mwmbucket",
     "stack-name"          : "mwm"
 }

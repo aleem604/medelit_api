@@ -184,10 +184,21 @@ namespace Medelit.Domain.Models
         [ForeignKey("ProfessionalId")]
         public Professional Professional { get; set; }
 
+        [Column("pt_fee_id")]
+        public long PtFeeId { get; set; }
+        public PtFee PtFees { get; set; }
+
+
         [Column("pt_fee")]
-        public decimal? PtFee { get; set; }      
+        public decimal? PtFee { get; set; }
+        
+
+        [Column("pro_fee_id")]
+        public long ProFeeId { get; set; }
+
         [Column("pro_fee")]
         public decimal? ProFee { get; set; }
+        public ProFee ProFees { get; set; }
 
         [Column("quantity_hours")]
         public short? QuantityHours { get; set; }

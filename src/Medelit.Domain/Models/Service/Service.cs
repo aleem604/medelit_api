@@ -41,11 +41,11 @@ namespace Medelit.Domain.Models
         [Column("informed_consent_id")]
         public short? InformedConsentId { get; set; }
         public string Tags { get; set; }
-        
 
-        //public IEnumerable<ServiceFeeRelation> ServiceFeeRelation { get; set; }
-        public IEnumerable<ServiceProfessionalPtFees> ServiceProfessionalPtFees { get; set; }
-        public IEnumerable<ServiceProfessionalProFees> ServiceProfessionalProFees { get; set; }
+        public IEnumerable<ServiceProfessionals> ServiceProfessionals { get; set; }
+        public IEnumerable<VServiceProfessionalFees> VServiceProfessionalFees { get; set; }
+        public IEnumerable<VServiceProfessionalPtFees> VServiceProfessionalPtFees { get; set; }
+        public IEnumerable<VServiceProfessionalProFees> VServiceProfessionalProFees { get; set; }
 
         public Service Clone()
         {

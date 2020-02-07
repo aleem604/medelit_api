@@ -7,6 +7,7 @@ using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
 using System.Collections.Generic;
+using Medelit.Common.Models;
 
 namespace Medelit.Api.Controllers
 {
@@ -44,7 +45,8 @@ namespace Medelit.Api.Controllers
         [HttpGet("professionals/{professionalId}")]
         public IActionResult GetProfessionalById(long professionalId)
         {
-            return Response(_professionalService.GetProfessionalById(professionalId));
+            _professionalService.GetProfessionalById(professionalId);
+            return Response();
         }
 
         [HttpPut("professionals/update-status/{status}")]
@@ -111,11 +113,12 @@ namespace Medelit.Api.Controllers
         [HttpGet("professionals/professional-connected-services/{proId}")]
         public IActionResult GetProfessionalConnectedServices(long proId)
         {
-            return Response(_professionalService.GetProfessionalConnectedServices(proId));
+            _professionalService.GetProfessionalConnectedServices(proId);
+            return Response();
         }
 
         [HttpPost("professionals/detach-professional-connected-service/{proId}")]
-        public IActionResult DetachProfessionalConnectedService([FromBody]IEnumerable<long> serviceIds, long proId)
+        public IActionResult DetachProfessionalConnectedService([FromBody]IEnumerable<EditProfessionalServiceFeesModel> serviceIds, long proId)
         {
             _professionalService.DetachProfessionalConnectedService(serviceIds, proId);
             return Response();
@@ -123,10 +126,10 @@ namespace Medelit.Api.Controllers
 
 
         // add fee to professional service
-        [HttpGet("professionals/professional-service-detail/{serviceId}/{proId}")]
-        public IActionResult GetProfessionalServiceDetail(long serviceId, long proId)
+        [HttpGet("professionals/professional-service-detail/{professionalPtFeeRowId}/{professionalProFeeRowId}")]
+        public IActionResult GetProfessionalServiceDetail(long professionalPtFeeRowId, long professionalProFeeRowId)
         {
-            return Response(_professionalService.GetProfessionalServiceDetail(serviceId, proId));
+            return Response(_professionalService.GetProfessionalServiceDetail(professionalPtFeeRowId, professionalProFeeRowId));
         }
 
         [HttpPost("professionals/professional-service-detail/{serviceId}/{proId}")]

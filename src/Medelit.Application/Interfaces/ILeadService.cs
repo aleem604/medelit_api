@@ -14,5 +14,6 @@ namespace Medelit.Application
         void UpdateStatus(IEnumerable<LeadViewModel> leads, eRecordStatus status);
         void DeleteLeads(IEnumerable<long> leadIds);
         void ConvertToBooking(long leadId);
+        void LeadsBulkUpload(IEnumerable<LeadCSVViewModel> leads);
     }
 }

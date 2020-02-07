@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Medelit.Common;
+using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
@@ -13,8 +14,8 @@ namespace Medelit.Infra.Data.Repository
 
     public class StaticDataRepository : Repository<StaticData>, IStaticDataRepository
     {
-        public StaticDataRepository(MedelitContext context, IHttpContextAccessor contextAccessor)
-            : base(context, contextAccessor)
+        public StaticDataRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus)
+            : base(context, contextAccessor, bus)
         { }
 
         public IQueryable<FilterModel> GetCustomersForImportFilter()
@@ -36,36 +37,69 @@ namespace Medelit.Infra.Data.Repository
         {
             var vats = Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = $"{s.Vats} {s.VatUnit}", DecValue = s.Vats }).Where(x => x.Value != null);
 
-            return (from s in Db.Service
-                    //join
-                    //    ptFees in Db.Fee on s.PTFeeId equals ptFees.Id
-                    //join
-                    //    proFees in Db.Fee on s.PROFeeId equals proFees.Id
-                    select new { Id = s.Id,
-                        Value = s.Name,
-                        //ptFeeId = ptFees.Id,
-                        //ptFeeA1 = ptFees.A1.HasValue ? ptFees.A1 : 0,
-                        //ptFeeA2 = ptFees.A2.HasValue ? ptFees.A2 : 0,
-                        //proFeeId = proFees.Id,
-                        //proFeeA1 = proFees.A1.HasValue ? proFees.A1 : 0,
-                        //proFeeA2 = proFees.A2.HasValue ? proFees.A2 : 0,
-                        timeService = s.TimedServiceId,
-                        vat = s.VatId.HasValue ? vats.FirstOrDefault(x => x.Id == s.VatId.Value).DecValue : null
-                    }).ToList();
+            return (from v in Db.ServiceProfessionals
+                    select new
+                    {
+                        Id = v.ServiceId,
+                        Value = v.Service.Name,
+                        timeService = v.Service.TimedServiceId,
+                        vat = v.Service.VatId.HasValue ? vats.FirstOrDefault(x => x.Id == v.Service.VatId.Value).DecValue : null
+                    }).DistinctBy(x=>x.Id).ToList();
+        }
+
+        public dynamic GetProfessionalsWithFeesForFitler(long? serviceId)
+        {
+            var ptFees = Db.VServiceProfessionalPtFees.Include(x => x.PtFee).ToList();
+            var proFees = Db.VServiceProfessionalProFees.Include(x => x.ProFee).ToList();
+
+                var result = (from v in Db.VServiceProfessionalFees
+                              //where v.ServiceId == serviceId
+                              select new { 
+                                  id = v.ProfessionalId, 
+                                  Value = v.ServiceProfessionals.Professional.Name, 
+                                  sid = v.ServiceId,
+                                  ptFees = GetPtFeeList(ptFees, v.ServiceId, v.ProfessionalId),
+                                  proFees = GetProFeeList(proFees, v.ServiceId, v.ProfessionalId),                              
+                              }).DistinctBy(x=>x.id).ToList();         
+                    return result;  
+        }
+
+        private IEnumerable<object> GetPtFeeList(IEnumerable<VServiceProfessionalPtFees> ptFees, long? serviceId, long? professionalId)
+        {
+            return ptFees.Where(x => x.ProfessionalId == professionalId && x.ServiceId == serviceId && x.PtFeeId.HasValue)
+                .Select(x => new { 
+                    Id = x.PtFeeId, 
+                    value = x.PtFee.FeeName,
+                    A1 = x.PtFee.A1,
+                    A2 = x.PtFee.A2
+                }).DistinctBy(x=>x.Id).ToList();
+        }
+
+        private IEnumerable<object> GetProFeeList(IEnumerable<VServiceProfessionalProFees> proFees, long? serviceId, long? professionalId)
+        {
+            return proFees.Where(x => x.ProfessionalId == professionalId && x.ServiceId == serviceId && x.ProFeeId.HasValue)
+                .Select(x => new {
+                    Id = x.ProFeeId,
+                    Value = x.ProFee.FeeName,
+                    A1 = x.ProFee.A1,
+                    A2 = x.ProFee.A2
+                }).DistinctBy(x => x.Id).ToList();
         }
 
         public dynamic GetProfessionalsForFitler(long? serviceId)
         {
             if (serviceId.HasValue)
             {
-                return (from p in Db.Professional
-                        join sp in Db.ServiceProfessionalPtFees on p.Id equals sp.ProfessionalId
-                        select new { id = p.Id, Value = p.Name, sid = sp.ServiceId }).ToList();
+                var result = (from p in Db.Professional
+                              join sp in Db.ServiceProfessionals on p.Id equals sp.ProfessionalId
+                              select new { id = p.Id, Value = p.Name, sid = sp.ServiceId }).ToList();
+                if (result is null)
+                    return Db.Professional.Select(x => new { x.Id, Value = x.Name }).ToList();
+                else
+                    return result;
             }
-            else
-            {
-                return Db.Professional.Select(x => new { x.Id, Value = x.Name }).ToList();
-            }
+
+            return Db.Professional.Select(x => new { x.Id, Value = x.Name }).ToList();
         }
 
         public dynamic GetPTFeesForFilter()

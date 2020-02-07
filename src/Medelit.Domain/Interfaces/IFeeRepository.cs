@@ -16,8 +16,8 @@ namespace Medelit.Domain.Interfaces
         void RemoveProFee(ProFee feeModel);
 
         void GetFeeByIdAndType(long feeId, eFeeType feeType);
-        dynamic GetConnectedProfessionalsCustomers(long feeId);
-        void DeleteConnectedProfessionals(IEnumerable<long> prosIds, long feeId, eFeeType feeType);
+        void ConnectFeesToServiceProfessional(IEnumerable<PtFee> ptFees, IEnumerable<ProFee> proFees, long serviceId, long professionalId);
+        void DeleteConnectedProfessionals(IEnumerable<FeeConnectedProfessionalsViewModel> prosIds, long feeId, eFeeType feeType);
         void GetConnectedServices(long feeId, eFeeType feeType= eFeeType.PTFee);
         void GetConnectedProfessionals(long feeId, eFeeType feeType);
         dynamic GetServicesToConnectWithFee(long feeId);
@@ -26,7 +26,8 @@ namespace Medelit.Domain.Interfaces
         
         void SaveProfessionlToConnectWithFee(IEnumerable<long> proIds, long feeId, eFeeType feeType);
         void GetServicesToConnect(long feeId, eFeeType feeType);
-        void GetProfessionalToConnect(long serviceId, long feeId, eFeeType feeType);
+        void GetServiceProfessionalsForFilter(long serviceId, long feeId, eFeeType feeType);
         void AttachNewServiceProfessionalToFee(long serviceId, long professionalId, long feeId, eFeeType feeType);
+       
     }
 }

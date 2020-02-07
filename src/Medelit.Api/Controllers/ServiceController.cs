@@ -7,6 +7,7 @@ using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Common;
 using System.Collections.Generic;
+using Medelit.Common.Models;
 
 namespace Medelit.Api.Controllers
 {
@@ -29,14 +30,15 @@ namespace Medelit.Api.Controllers
 
         [HttpGet("services")]
         public IActionResult GetServices()
-        {  
+        {
             return Response(_serviceService.GetServices());
         }
 
         [HttpPost("services/find")]
         public IActionResult FindLeads([FromBody] SearchViewModel model)
         {
-            return Response(_serviceService.FindServices(model));
+            _serviceService.FindServices(model);
+            return Response();
         }
 
         [HttpGet("services/{serviceId}")]
@@ -74,15 +76,102 @@ namespace Medelit.Api.Controllers
             _serviceService.DeleteServices(serviceIds);
             return Response();
         }
-        
+
+        #region service connect professionals
+
+        [HttpGet("services/service-connected-professionals/{serviceid}")]
+        public IActionResult GetServiceConnectedProfessionals(long serviceId)
+        {
+            _serviceService.GetServiceConnectedProfessionals(serviceId);
+            return Response();
+        }
+
+        [HttpGet("services/professionals-with-fees-to-connect-with-service/{serviceid}")]
+        public IActionResult GetProfessionalsWithFeesToConnectWithService(long serviceId)
+        {
+            _serviceService.GetProfessionalsWithFeesToConnectWithService(serviceId);
+            return Response();
+        }
+        [HttpPost("services/professionals-to-connect-with-service/{serviceid}")]
+        public IActionResult SaveProfessionalsWithFeesToConnectWithService([FromBody]IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId)
+        {
+            _serviceService.SaveProfessionalsWithFeesToConnectWithService(model, serviceId);
+            return Response();
+        }
+
+        [HttpPost("services/detach-professionals-from-service/{serviceId}")]
+        public IActionResult RemoveProfessionalsFromService([FromBody]IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId)
+        {
+            _serviceService.RemoveProfessionalsFromService(model, serviceId);
+            return Response();
+        }
+
+        #endregion service connect professionals
+
+        #region service connect pt fees
+        [HttpGet("services/service-connected-pt-fees/{serviceid}")]
+        public IActionResult GetServiceConnectedPtFees(long serviceId)
+        {
+            _serviceService.GetServiceConnectedPtFees(serviceId);
+            return Response();
+        }
+
+        [HttpGet("services/service-connected-pt-fees-to-attach/{serviceid}")]
+        public IActionResult GetServiceConnectedPtFeesToConnect(long serviceId)
+        {
+            _serviceService.GetServiceConnectedPtFeesToConnect(serviceId);
+            return Response();
+        }
+        [HttpPost("services/service-connected-pt-fees-attach/{serviceid}")]
+        public IActionResult SavePtFeesForService([FromBody]IEnumerable<ServiceConnectedPtFeesModel> model, long serviceId)
+        {
+            _serviceService.SavePtFeesForService(model, serviceId);
+            return Response();
+        }
+
+        [HttpPost("services/service-connected-pt-fees-detach/{serviceId}")]
+        public IActionResult DetachPtFeeFromService([FromBody]IEnumerable<ServiceConnectedPtFeesModel> model, long serviceId)
+        {
+            _serviceService.DetachPtFeeFromService(model, serviceId);
+            return Response();
+        }
+        #endregion service connect pt fees
+
+        #region service connect pro fees
+        [HttpGet("services/service-connected-pro-fees/{serviceid}")]
+        public IActionResult GetServiceConnectedProFees(long serviceId)
+        {
+            _serviceService.GetServiceConnectedProFees(serviceId);
+            return Response();
+        }
+
+        [HttpGet("services/service-connected-pro-fees-to-attach/{serviceid}")]
+        public IActionResult GetServiceConnectedProFeesToConnect(long serviceId)
+        {
+            _serviceService.GetServiceConnectedProFeesToConnect(serviceId);
+            return Response();
+        }
+        [HttpPost("services/service-connected-pro-fees-attach/{serviceid}")]
+        public IActionResult SaveProFeesForService([FromBody]IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
+        {
+            _serviceService.SaveProFeesForService(model, serviceId);
+            return Response();
+        }
+
+        [HttpPost("services/service-connected-pro-fees-detach/{serviceId}")]
+        public IActionResult DetachProFeeFromService([FromBody]IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
+        {
+            _serviceService.DetachProFeeFromService(model, serviceId);
+            return Response();
+        }
+        #endregion service connect pro fees
+
         [HttpPost("services/services-add-update-fees")]
         public IActionResult AddUpdateFeeForService([FromBody] AddUpdateFeeToServiceViewModel viewModel)
         {
             _serviceService.AddUpdateFeeForService(viewModel);
             return Response();
         }
-
-
 
         [HttpPost("services/services-data-for-attach")]
         public IActionResult GetProfessionalServices([FromBody]ServicFilterViewModel viewModel)
@@ -110,18 +199,6 @@ namespace Medelit.Api.Controllers
             return Response(_serviceService.GetProfessionalRelations(proId));
         }
 
-        [HttpGet("services/professionals-fees-detail/{serviceId}")]
-        public IActionResult GetProfessionalFeesDetail(long serviceId)
-        {
-            return Response(_serviceService.GetProfessionalFeesDetail(serviceId));
-        }
-
-        [HttpGet("services/service-connected-professionals/{serviceId}")]
-        public IActionResult GetServiceConnectedProfessionals(long serviceId)
-        {
-            return Response(_serviceService.GetServiceConnectedProfessionals(serviceId));
-        }
-        
         [HttpGet("services/connected-customers-invoicing-entities/{serviceId}")]
         public IActionResult GetConnectedCustomersInvoicingEntities(long serviceId)
         {

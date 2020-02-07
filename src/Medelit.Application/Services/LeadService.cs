@@ -9,8 +9,6 @@ using Medelit.Domain.Interfaces;
 using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
-using Microsoft.AspNet.Identity;
-using Medelit.Infra.CrossCutting.Identity.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
 
 namespace Medelit.Application
@@ -61,21 +59,15 @@ namespace Medelit.Application
             viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
             var langs = _langRepository.GetAll().ToList();
             var statics = _staticRepository.GetAll().ToList();
-            //var services = _serviceRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
-            //var professionals = _professoinalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
-
 
             var query = (from lead in _leadRepository.GetAllWithService()
-                         where lead.ConvertDate == null && lead.Status != eRecordStatus.Deleted
+                         //where lead.ConvertDate == null 
+                         //&& lead.Status != eRecordStatus.Deleted
                          select lead)
                         .Select((x) => new
                         {
                             x.Id,
                             Language = langs.FirstOrDefault(s => s.Id == x.LanguageId).Name,
-                            //Services = PopulateServices(x.Services, services),
-                            //Professionals = PopulateProfessionals(x.Services, professionals),
-                            //PtFees = PopulatePtFees(x.Services, services),
-                            //ProFees = PopulateProFees(x.Services, services),
                             x.LeadStatusId,
                             x.SurName,
                             x.Name,
@@ -93,8 +85,6 @@ namespace Medelit.Application
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.SurName) && x.SurName.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.MainPhone) && x.MainPhone.CLower().Contains(viewModel.Filter.Search.CLower()))
-                //|| (!string.IsNullOrEmpty(x.Services) && x.Services.CLower().Contains(viewModel.Filter.Search.CLower()))
-                //|| (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.CreateDate.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
@@ -135,18 +125,12 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.Language);
                     break;
 
-                case "createDate":
+                case "createdate":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.CreateDate);
                     else
                         query = query.OrderByDescending(x => x.CreateDate);
                     break;
-                //case "createdBy":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.CreatedBy);
-                //    else
-                //        query = query.OrderByDescending(x => x.CreatedBy);
-                //    break;
 
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
@@ -220,6 +204,7 @@ namespace Medelit.Application
                 var model = _mapper.Map<LeadViewModel>(customerObj);
                 model.CustomerId = customerObj.Id;
                 model.Customer = customerObj.Name;
+                model.FromCustomerId = fromCustomerId;
                 model.Id = leadId;
                 model.AssignedTo = GetAssignedUser(model.AssignedToId);
                 return model;
@@ -239,7 +224,7 @@ namespace Medelit.Application
             var leadModel = _mapper.Map<Lead>(viewModel);
 
             leadModel.Services = _mapper.Map<ICollection<LeadServiceRelation>>(viewModel.Services);
-            _bus.SendCommand(new SaveLeadCommand { Lead = leadModel, FromCustomerId = viewModel.CustomerId });
+            _bus.SendCommand(new SaveLeadCommand { Lead = leadModel, FromCustomerId = viewModel.FromCustomerId });
         }
 
         public void UpdateStatus(IEnumerable<LeadViewModel> leads, eRecordStatus status)
@@ -256,6 +241,12 @@ namespace Medelit.Application
         {
             _bus.SendCommand(new ConvertLeadToBookingCommand { LeadId = leadId });
         }
+
+        public void LeadsBulkUpload(IEnumerable<LeadCSVViewModel> leads)
+        {
+            _bus.SendCommand(new LeadsBulkUploadCommand { LeadCSVData = leads });
+        }
+
 
         public void Dispose()
         {

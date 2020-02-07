@@ -8,7 +8,7 @@ namespace Medelit.Domain.Models
     [Table("static_data")]
   public  class StaticData
     {
-        public int Id { get; set; }
+        public short Id { get; set; }
         [Column("accounting_codes")]
         public string AccountingCodes  { get; set; }
         [Column("application_means")]

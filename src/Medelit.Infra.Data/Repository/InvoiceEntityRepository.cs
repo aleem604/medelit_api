@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
@@ -10,8 +11,8 @@ namespace Medelit.Infra.Data.Repository
 {
     public class InvoiceEntityRepository : Repository<InvoiceEntity>, IInvoiceEntityRepository
     {
-        public InvoiceEntityRepository(MedelitContext context, IHttpContextAccessor contextAccessor)
-            : base(context, contextAccessor)
+        public InvoiceEntityRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus)
+            : base(context, contextAccessor, bus)
         { }
 
         public dynamic InvoiceEntityConnectedServices(long invoiceEntityId)

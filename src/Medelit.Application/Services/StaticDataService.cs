@@ -34,6 +34,12 @@ namespace Medelit.Application
         {
             return _acodeRepository.GetServicesForFitler();
         }
+
+        public dynamic GetProfessionalsWithFeesForFitler(long? serviceId)
+        {
+            return _acodeRepository.GetProfessionalsWithFeesForFitler(serviceId);
+        }
+
         public dynamic GetProfessionalsForFitler(long? serviceId)
         {
             return _acodeRepository.GetProfessionalsForFitler(serviceId);

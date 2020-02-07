@@ -107,7 +107,8 @@ namespace Medelit.Domain.Models
         public string ProtaxCode { get; set; }
 
         public ICollection<ProfessionalLanguages> ProfessionalLangs { get; set; }
-        public ICollection<ServiceProfessionalPtFees> ServiceProfessionalPtFees { get; set; }
-        public ICollection<ServiceProfessionalProFees> ServiceProfessionalProFees { get; set; }
+        public ICollection<ProfessionalPtFees> ProfessionalPtFees { get; set; }
+        public ICollection<ProfessionalProFees> ProfessionalProFees { get; set; }
+
     }
 }

@@ -21,18 +21,19 @@ namespace Medelit.Domain.CommandHandlers
         IRequestHandler<SaveLeadCommand, bool>,
         IRequestHandler<UpdateLeadsStatusCommand, bool>,
         IRequestHandler<DeleteLeadsCommand, bool>,
-        IRequestHandler<ConvertLeadToBookingCommand, bool>
+        IRequestHandler<ConvertLeadToBookingCommand, bool>,
+        IRequestHandler<LeadsBulkUploadCommand, bool>
     {
         private readonly IMapper _mapper;
         private readonly IMediatorHandler _bus;
         private readonly ILeadRepository _leadRepository;
         private readonly ICustomerRepository _customerRepository;
-        private readonly IConfiguration _config;
+        private readonly IStaticDataRepository _staticRepository;
 
 
         public LeadCommandHandler(IMapper mapper,
             IUnitOfWork unitOfWork,
-            IConfiguration config,
+            IStaticDataRepository staticRepository,
             IMediatorHandler bus,
             IHttpContextAccessor httpContext,
             ILeadRepository leadRepository,
@@ -42,7 +43,7 @@ namespace Medelit.Domain.CommandHandlers
             : base(bus, notifications, httpContext, unitOfWork)
         {
             _mapper = mapper;
-            _config = config;
+            _staticRepository = staticRepository;
             _bus = bus;
             _leadRepository = leadRepository;
             _customerRepository = customerRepository;
@@ -77,7 +78,7 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.VisitRequestingPerson = request.Lead.VisitRequestingPerson;
                     leadModel.VisitRequestingPersonRelationId = request.Lead.VisitRequestingPersonRelationId;
                     leadModel.GPCode = request.Lead.GPCode;
-                   
+
 
                     leadModel.PreferredPaymentMethodId = request.Lead.PreferredPaymentMethodId;
                     leadModel.InsuranceCoverId = request.Lead.InsuranceCoverId;
@@ -278,7 +279,280 @@ namespace Medelit.Domain.CommandHandlers
             }
         }
 
-        
+        public Task<bool> Handle(LeadsBulkUploadCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (request.LeadCSVData.Count() > 0)
+                {
+
+                    foreach (var obj in request.LeadCSVData)
+                    {
+                        var lead = new Lead();
+                        lead.SurName = obj.SurName;
+                        lead.TitleId = GetTitleId(obj.Title);
+                        lead.Name = obj.Name;
+                        lead.MainPhone = obj.MainPhone;
+                        lead.MainPhoneOwner = obj.MainPhoneOwner;
+                        lead.HaveDifferentIEId = 0;
+                        lead.Phone2 = obj.Phone2;
+                        lead.Phone3 = obj.Phone3;
+                        lead.Phone2Owner = obj.Phone2Owner;
+                        lead.Phone3Owner = obj.Phone3Owner;
+                        lead.ContactPhone = obj.ContactPhone;
+                        lead.VisitRequestingPerson = obj.VisitRequestingPerson;
+                        lead.VisitRequestingPersonRelationId = GetRelationId(obj.VisitRequestingPersonRelation);
+                        lead.Fax = obj.Fax;
+                        lead.Email = obj.Email;
+                        lead.LeadSourceId = GetLeadSourceId(obj.LeadSource);
+                        lead.LeadStatusId = GetLeadStatusId(obj.LeadStatus);
+                        lead.LanguageId = GetLanguageId(obj.Language);
+                        lead.LeadCategoryId = GetLeadCategoryId(obj.LeadCategory);
+                        lead.ContactMethodId = GetContactMethodId(obj.ContactMethod);
+                        lead.DateOfBirth = GetDate(obj.DateOfBirth);
+                        lead.CountryOfBirthId = GetCountryId(obj.CountryOfBirth);
+                        lead.PreferredPaymentMethodId = GetPaymentmethodId(obj.PreferredPaymentMethod);
+                        lead.InvoicingNotes = obj.InvoicingNotes;
+                        lead.InsuranceCoverId = GetInsuranceCoverId(obj.InsuranceCover);
+                        lead.ListedDiscountNetworkId = GetDiscountNetworkId(obj.ListedDiscountNetwork);
+                        lead.Discount = obj.Discount;
+                        lead.GPCode = obj.GPCode;
+                        lead.AddressStreetName = obj.AddressStreetName;
+                        lead.PostalCode = obj.PostalCode;
+                        lead.CityId = GetCityId(obj.City);
+                        lead.CountryId = GetCountryId(obj.Country);
+                        lead.BuildingTypeId = GetBuildingTypeId(obj.Country);
+                        lead.FlatNumber = obj.FlatNumber;
+                        lead.Buzzer = obj.Buzzer;
+                        lead.Floor = obj.Floor;
+                        lead.VisitVenueId = GetVisitVenueId(obj.VisitVenue);
+                        lead.AddressNotes = obj.AddressNotes;
+                        lead.VisitVenueDetail = obj.VisitVenueDetail;
+                        lead.LeadDescription = obj.LeadDescription;
+                        lead.BankName = obj.BankName;
+                        lead.AccountNumber = obj.AccountNumber;
+                        lead.SortCode = obj.SortCode;
+                        lead.IBAN = obj.IBAN;
+                        lead.Email2 = obj.Email2;
+                        lead.BlacklistId = GetBlackListId(obj.Blacklist);
+
+                        lead.CreateDate = DateTime.Now;
+                        lead.CreatedById = CurrentUser.Id;
+                        lead.AssignedToId = CurrentUser.Id;
+
+                        _leadRepository.Add(lead);
+                    }
+                    if (Commit())
+                    {
+                        _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.LeadCSVData.Count()));
+                        return Task.FromResult(false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return HandleException(request.MessageType, ex);
+            }
+            _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
+            return Task.FromResult(false);
+
+        }
+
+        #region methods
+
+        private short GetTitleId(string title)
+        {
+            if (string.IsNullOrEmpty(title))
+                return default;
+
+            var obj = _staticRepository.GetTitles().FirstOrDefault(x => x.Value.Equals(title.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return default;
+            else
+                return (short)obj.Id;
+        }
+
+        private short? GetRelationId(string relation)
+        {
+            if (string.IsNullOrEmpty(relation))
+                return null;
+
+            var obj = _staticRepository.GetRelationships().FirstOrDefault(x => x.Value.Equals(relation.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetLeadSourceId(string leadSource)
+        {
+            if (string.IsNullOrEmpty(leadSource))
+                return null;
+
+            var obj = _staticRepository.GetLeadSources().FirstOrDefault(x => x.Value.Equals(leadSource.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetLeadStatusId(string leadStatus)
+        {
+            if (string.IsNullOrEmpty(leadStatus))
+                return null;
+
+            var obj = _staticRepository.GetLeadStatuses().FirstOrDefault(x => x.Value.Equals(leadStatus.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetLanguageId(string lang)
+        {
+            if (string.IsNullOrEmpty(lang))
+                return null;
+
+            var obj = _staticRepository.GetLanguages().FirstOrDefault(x => x.Value.Equals(lang.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetLeadCategoryId(string leadCat)
+        {
+            if (string.IsNullOrEmpty(leadCat))
+                return null;
+
+            var obj = _staticRepository.GetLeadCategories().FirstOrDefault(x => x.Value.Equals(leadCat.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetContactMethodId(string contactMethod)
+        {
+            if (string.IsNullOrEmpty(contactMethod))
+                return null;
+
+            var obj = _staticRepository.GetContactMethods().FirstOrDefault(x => x.Value.Equals(contactMethod.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private DateTime? GetDate(string date)
+        {
+            if (string.IsNullOrEmpty(date))
+                return null;
+            if (DateTime.TryParseExact(date, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsetDate))
+            {
+                return parsetDate;
+            }
+            return null;
+        }
+
+        private short GetCountryId(string country)
+        {
+            if (string.IsNullOrEmpty(country))
+                return default;
+
+            var obj = _staticRepository.GetCountries().FirstOrDefault(x => x.Value.Equals(country.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return default;
+            else
+                return obj.Id;
+        }
+
+        private short GetCityId(string city)
+        {
+            if (string.IsNullOrEmpty(city))
+                return default;
+
+            var obj = _staticRepository.GetCities().FirstOrDefault(x => x.Value.Equals(city.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return default;
+            else
+                return obj.Id;
+        }
+
+        private short? GetPaymentmethodId(string paymentMethod)
+        {
+            if (string.IsNullOrEmpty(paymentMethod))
+                return null;
+
+            var obj = _staticRepository.GetPaymentMethods().FirstOrDefault(x => x.Value.Equals(paymentMethod.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetInsuranceCoverId(string insuranceCover)
+        {
+            if (string.IsNullOrEmpty(insuranceCover))
+                return null;
+
+
+            if (insuranceCover.Equals("yes", StringComparison.InvariantCultureIgnoreCase))
+                return 1;
+            else
+                return 0;
+        }
+
+        private short? GetDiscountNetworkId(string discountNetwork)
+        {
+            if (string.IsNullOrEmpty(discountNetwork))
+                return null;
+
+            var obj = _staticRepository.GetDiscountNewtorks().FirstOrDefault(x => x.Value.Equals(discountNetwork.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+
+        private short? GetBuildingTypeId(string buildingType)
+        {
+            if (string.IsNullOrEmpty(buildingType))
+                return null;
+
+            var obj = _staticRepository.GetBuildingTypes().FirstOrDefault(x => x.Value.Equals(buildingType.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetVisitVenueId(string visitVenue)
+        {
+            if (string.IsNullOrEmpty(visitVenue))
+                return null;
+
+            var obj = _staticRepository.GetVisitVenues().FirstOrDefault(x => x.Value.Equals(visitVenue.CLower(), StringComparison.InvariantCultureIgnoreCase));
+            if (obj is null)
+                return null;
+            else
+                return (short?)obj.Id;
+        }
+
+        private short? GetBlackListId(string blackList)
+        {
+            if (string.IsNullOrEmpty(blackList))
+                return null;
+
+            if (blackList.Equals("y", StringComparison.InvariantCultureIgnoreCase))
+                return 1;
+            else
+                return 0;
+        }
+
+        #endregion methods
+
         public void Dispose()
         {
 

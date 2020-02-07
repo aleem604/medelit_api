@@ -55,6 +55,17 @@ namespace Medelit.Api.Controllers
             return Response(_dataService.GetServicesForFitler());
         }
 
+        [HttpGet("static/professionas-with-fees/{serviceId}")]
+        [HttpGet("static/professionas-with-fees")]
+        public IActionResult GetProfessionalsWithFilterForFitler(long? serviceId)
+        {
+            return Response(_dataService.GetProfessionalsWithFeesForFitler(serviceId));
+        }
+
+
+
+
+
         [HttpGet("static/professionals/{serviceId}")]
         [HttpGet("static/professionals")]
         public IActionResult GetProfessionalsForFitler(long? serviceId)

@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Repository\FeeRepository.cs~RF4676c337.TMP" />
     <None Remove="Repository\InvoiceRepository.cs~RF1233db66.TMP" />
   </ItemGroup>
 

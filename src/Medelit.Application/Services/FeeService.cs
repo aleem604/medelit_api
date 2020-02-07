@@ -162,6 +162,15 @@ namespace Medelit.Application
             _bus.SendCommand(new DeleteFeesCommand { VFees = _mapper.Map<IEnumerable<FeeViewModel>, IEnumerable<VFees>>(fees) });
         }
 
+        public void ConnectFeesToServiceProfessional(IEnumerable<FeeViewModel> fees, long serviceId, long professionalId)
+        {
+            var ptFees = _mapper.Map<IEnumerable<PtFee>>(fees.Where(x=>x.FeeTypeId == eFeeType.PTFee));
+            var proFees = _mapper.Map<IEnumerable<ProFee>>(fees.Where(x=>x.FeeTypeId == eFeeType.PROFee));
+
+            _feeRepository.ConnectFeesToServiceProfessional(ptFees, proFees, serviceId, professionalId);
+        }
+
+
         public void GetConnectedServices(long feeId, eFeeType feeType)
         {
             _feeRepository.GetConnectedServices(feeId, feeType);
@@ -173,12 +182,7 @@ namespace Medelit.Application
         }
 
 
-        public dynamic GetConnectedProfessionalsCustomers(long feeId)
-        {
-            return _feeRepository.GetConnectedProfessionalsCustomers(feeId);
-        }
-
-        public void DeleteConnectedProfessionals(IEnumerable<long> prosIds, long feeId, eFeeType feeType)
+        public void DeleteConnectedProfessionals(IEnumerable<FeeConnectedProfessionalsViewModel> prosIds, long feeId, eFeeType feeType)
         {
             _feeRepository.DeleteConnectedProfessionals(prosIds, feeId, feeType);
         }
@@ -207,9 +211,9 @@ namespace Medelit.Application
             _feeRepository.GetServicesToConnect(feeId, feeType);
         }
 
-        public void GetProfessionalToConnect(long serviceId, long feeId, eFeeType feeType)
+        public void GetServiceProfessionalsForFilter(long serviceId, long feeId, eFeeType feeType)
         {
-            _feeRepository.GetProfessionalToConnect(serviceId, feeId, feeType);
+            _feeRepository.GetServiceProfessionalsForFilter(serviceId, feeId, feeType);
         }
 
         public void AttachNewServiceProfessionalToFee(long serviceId, long professionalId, long feeId, eFeeType feeType)

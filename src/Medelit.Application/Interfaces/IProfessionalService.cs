@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Medelit.Common;
+using Medelit.Common.Models;
 
 namespace Medelit.Application
 {
@@ -9,7 +10,7 @@ namespace Medelit.Application
     {
         dynamic FindProfessionals(SearchViewModel model);
         dynamic GetProfessionals();
-        dynamic GetProfessionalById(long professionalId);
+        void GetProfessionalById(long professionalId);
         void SaveProvessional(ProfessionalViewModel model);
         void UpdateStatus(IEnumerable<ProfessionalViewModel> pros, eRecordStatus status);
         void DeleteFees(IEnumerable<long> feeIds);
@@ -17,9 +18,9 @@ namespace Medelit.Application
         dynamic GetConnectedBookings(long proId);
         dynamic GetConnectedInvoices(long proId);
         dynamic GetConnectedLeads(long proId);
-        dynamic GetProfessionalConnectedServices(long proId);
-        void DetachProfessionalConnectedService(IEnumerable<long> servieIds, long proId);
-        dynamic GetProfessionalServiceDetail(long serviceId, long proId);
+        void GetProfessionalConnectedServices(long proId);
+        void DetachProfessionalConnectedService(IEnumerable<EditProfessionalServiceFeesModel> servieIds, long proId);
+        dynamic GetProfessionalServiceDetail(long professionalPtFeeRowId, long professionalProFeeRowId);
         void SaveProfessionalServiceDetail(FullFeeViewModel model);
         void GetServicesToAttachWithProfessional(long proId);
         void GetServicesForConnectFilter(long proId);

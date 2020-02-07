@@ -12,6 +12,8 @@ using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
 using System.Text;
+using Medelit.Common.Models;
+using Medelit.Domain.Core.Notifications;
 
 namespace Medelit.Application
 {
@@ -46,7 +48,7 @@ namespace Medelit.Application
             _feeRepository = feeRepository;
             _langRepository = langRepository;
         }
-       
+
         public dynamic GetServices()
         {
             return _serviceRepository.GetAll().ToList();
@@ -63,93 +65,9 @@ namespace Medelit.Application
 
         }
 
-        public dynamic FindServices(SearchViewModel viewModel)
+        public void FindServices(SearchViewModel viewModel)
         {
-            viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-            var fees = _feeRepository.GetAll().ToList();
-            var professionals = _professionalRepository.GetAll().Select(x => new FilterModel { Id = x.Id, Value = x.Name }).ToList();
-
-            var query = _serviceRepository.GetAllWithProfessionals().Where(x => x.Status != eRecordStatus.Deleted)
-                .Select((s) => new {
-                    s.Id,
-                    s.Name,
-                    //PTFee = GetString(fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A1, fees.FirstOrDefault(x=>x.Id == s.PTFeeId)?.A2),
-                    //ProFee = GetString(fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A1, fees.FirstOrDefault(x => x.Id == s.PROFeeId)?.A2),
-                    //Professionals = PopulateProfessionals(s.ServiceProfessionals, professionals),
-                    s.Covermap,
-                    s.Status,
-                    s.CreateDate,
-                    s.CreatedById,
-                });
-
-            if (!string.IsNullOrEmpty(viewModel.Filter.Search))
-            {
-                viewModel.Filter.Search = viewModel.Filter.Search.Trim();
-                query = query.Where(x =>
-                (
-                    (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.Name.Equals(viewModel.Filter.Search))
-                || (x.Id.ToString().Contains(viewModel.Filter.Search))
-
-                ));
-            }
-
-            if (viewModel.Filter.Status != eRecordStatus.All)
-            {
-                query = query.Where(x => x.Status == viewModel.Filter.Status);
-            }
-
-            switch (viewModel.SortField)
-            {
-                case "name":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Name);
-                    else
-                        query = query.OrderByDescending(x => x.Name);
-                    break;
-
-                case "professional":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Name);
-                    else
-                        query = query.OrderByDescending(x => x.Name);
-                    break;
-
-                case "status":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Status);
-                    else
-                        query = query.OrderByDescending(x => x.Status);
-                    break;
-                case "createDate":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CreateDate);
-                    else
-                        query = query.OrderByDescending(x => x.CreateDate);
-                    break;
-                case "createdBy":
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.CreatedById);
-                    else
-                        query = query.OrderByDescending(x => x.CreatedById);
-                    break;
-
-                default:
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Id);
-                    else
-                        query = query.OrderByDescending(x => x.Id);
-
-                    break;
-            }
-
-            var totalCount = query.LongCount();
-
-            return new
-            {
-                items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
-                totalCount
-            };
+            _serviceRepository.FindServices(viewModel);
         }
 
         private string GetString(decimal? a1, decimal? a2)
@@ -157,7 +75,7 @@ namespace Medelit.Application
             var sb = new StringBuilder();
             if (a1.HasValue)
                 sb.Append(a1.Value.ToString("G29"));
-            if(a2.HasValue)
+            if (a2.HasValue)
             {
                 if (a1.HasValue)
                     sb.Append(", ");
@@ -166,7 +84,7 @@ namespace Medelit.Application
             return sb.ToString();
         }
 
-        private string PopulateProfessionals(IEnumerable<ServiceProfessionalPtFees> services, List<FilterModel> professionals)
+        private string PopulateProfessionals(IEnumerable<ServiceProfessionals> services, List<FilterModel> professionals)
         {
             var query = from s in services
                         join
@@ -194,6 +112,68 @@ namespace Medelit.Application
             _bus.SendCommand(new DeleteServicesCommand { ServiceIds = serviceIds });
         }
 
+        public void GetServiceConnectedProfessionals(long serviceId)
+        {
+            _serviceRepository.GetServiceConnectedProfessionals(serviceId);
+        }
+
+        public void GetProfessionalsWithFeesToConnectWithService(long serviceId)
+        {
+            _serviceRepository.GetProfessionalsWithFeesToConnectWithService(serviceId);
+        }
+
+        public void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId)
+        {
+            _serviceRepository.SaveProfessionalsWithFeesToConnectWithService(model, serviceId);
+        }
+        public void RemoveProfessionalsFromService(IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId)
+        {
+            _serviceRepository.RemoveProfessionalsFromService(model, serviceId);
+        }
+
+        #region service connect pt fees
+        public void GetServiceConnectedPtFees(long serviceId)
+        {
+            _serviceRepository.GetServiceConnectedPtFees(serviceId);
+        }
+        public void GetServiceConnectedPtFeesToConnect(long serviceId)
+        {
+            _serviceRepository.GetServiceConnectedPtFeesToConnect(serviceId);
+        }
+        public void SavePtFeesForService(IEnumerable<ServiceConnectedPtFeesModel> model, long serviceId)
+        {
+            _serviceRepository.SavePtFeesForService(model, serviceId);
+        }
+        public void DetachPtFeeFromService(IEnumerable<ServiceConnectedPtFeesModel> model, long serviceId)
+        {
+            _serviceRepository.DetachPtFeeFromService(model, serviceId);
+        }
+        #endregion service connect pt fees
+
+        #region service connect pro fees
+        public void GetServiceConnectedProFees(long serviceId)
+        {
+            _serviceRepository.GetServiceConnectedProFees(serviceId);
+        }
+        public void GetServiceConnectedProFeesToConnect(long serviceId)
+        {
+            _serviceRepository.GetServiceConnectedProFeesToConnect(serviceId);
+        }
+        public void SaveProFeesForService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
+        {
+            _serviceRepository.SaveProFeesForService(model, serviceId);
+        }
+        public void DetachProFeeFromService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
+        {
+            _serviceRepository.SaveProFeesForService(model, serviceId);
+        }
+        #endregion service connect pt fees
+
+
+
+
+
+
         public dynamic GetProfessionalServices(ServicFilterViewModel viewModel)
         {
             return _serviceRepository.GetProfessionalServices(viewModel.ProfessionalId, viewModel.FieldId, viewModel.SubCategoryId, viewModel.Tag);
@@ -209,7 +189,8 @@ namespace Medelit.Application
             _bus.SendCommand(new DetachProfessionalCommand { ServiceId = serviceId, ProfessionalId = proId });
         }
 
-        public void AddUpdateFeeForService(AddUpdateFeeToServiceViewModel viewModel) {
+        public void AddUpdateFeeForService(AddUpdateFeeToServiceViewModel viewModel)
+        {
             var model = _mapper.Map<AddUpdateFeeToService>(viewModel);
 
             _serviceRepository.AddUpdateFeeForService(model);
@@ -221,27 +202,22 @@ namespace Medelit.Application
         {
             return _serviceRepository.GetProfessionalServicesWithInclude(proId);
         }
-        public dynamic GetProfessionalFeesDetail(long serviceId)
-        {
-            return _serviceRepository.GetProfessionalFeesDetail(serviceId);
-        }
 
-        public dynamic GetServiceConnectedProfessionals(long serviceId)
-        {
-            return _serviceRepository.GetServiceConnectedProfessionals(serviceId);
-        }
-         public dynamic GetConnectedCustomersInvoicingEntities(long serviceId)
+        public dynamic GetConnectedCustomersInvoicingEntities(long serviceId)
         {
             return _serviceRepository.GetConnectedCustomersInvoicingEntities(serviceId);
         }
 
-        public dynamic GetConnectedBookings(long serviceId) {
+        public dynamic GetConnectedBookings(long serviceId)
+        {
             return _serviceRepository.GetConnectedBookings(serviceId);
         }
-        public dynamic GetConnectedCustomerInvoices(long serviceId) {
+        public dynamic GetConnectedCustomerInvoices(long serviceId)
+        {
             return _serviceRepository.GetConnectedCustomerInvoices(serviceId);
         }
-        public dynamic GetConnectedLeads(long serviceId) {
+        public dynamic GetConnectedLeads(long serviceId)
+        {
             return _serviceRepository.GetConnectedLeads(serviceId);
         }
 

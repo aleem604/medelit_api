@@ -1,4 +1,6 @@
-﻿using Medelit.Domain.Models;
+﻿using Medelit.Common;
+using Medelit.Domain.Models;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Medelit.Domain.Interfaces

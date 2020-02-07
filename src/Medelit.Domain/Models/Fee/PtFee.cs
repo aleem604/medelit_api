@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Medelit.Common;
 using Medelit.Domain.Core.Models;
@@ -20,5 +21,6 @@ namespace Medelit.Domain.Models
         public decimal? A1 { get; set; }
         public decimal? A2 { get; set; }
 
+        public IEnumerable<VServiceProfessionalPtFees> VServiceProfessionalPtFees { get; set; }
     }
 }

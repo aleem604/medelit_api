@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Common.Models;
+using Medelit.Domain.Core.Notifications;
 
 namespace Medelit.Application
 {
@@ -220,7 +221,7 @@ namespace Medelit.Application
             };
         }
 
-        private string GetProfessionalFields(long professionalId, List<FieldSubCategory> fields, List<Service> services, List<ServiceProfessionalPtFees> serviceProfessionalRelations)
+        private string GetProfessionalFields(long professionalId, List<FieldSubCategory> fields, List<Service> services, List<ServiceProfessionals> serviceProfessionalRelations)
         {
 
             var proFields = (from f in fields
@@ -234,7 +235,7 @@ namespace Medelit.Application
             return string.Join(", ", proFields);
         }
 
-        private string GetProfessionalCats(long professionalId, List<FieldSubCategory> fields, List<Service> services, List<ServiceProfessionalPtFees> serviceProfessionalRelations)
+        private string GetProfessionalCats(long professionalId, List<FieldSubCategory> fields, List<Service> services, List<ServiceProfessionals> serviceProfessionalRelations)
         {
             var proCats = (from f in fields
                            join
@@ -247,7 +248,7 @@ namespace Medelit.Application
             return string.Join(", ", proCats);
         }
 
-        private string GetServices(long professionalId, List<Service> services, List<ServiceProfessionalPtFees> serviceProfessionals)
+        private string GetServices(long professionalId, List<Service> services, List<ServiceProfessionals> serviceProfessionals)
         {
             var proServices = (from s in services
                                join
@@ -258,18 +259,25 @@ namespace Medelit.Application
             return string.Join(", ", proServices);
         }
 
-        public dynamic GetProfessionalById(long professionalId)
+        public void GetProfessionalById(long professionalId)
         {
-            var professional = _professionalRepository.GetByIdWithIncludes(professionalId).FirstOrDefault();
-            var professionalServices = _professionalRepository.GetServiceProfessionalPtFees(professional.Id);
+            try
+            {
+                var professional = _professionalRepository.GetByIdWithIncludes(professionalId).FirstOrDefault();
+                var professionalServices = _professionalRepository.GetProfessionalServices(professional.Id);
 
-            var viewModel = _mapper.Map<ProfessionalViewModel>(professional);
-            viewModel.Languages = professional.ProfessionalLangs.Select((s) => new FilterModel { Id = s.LanguageId }).ToList();
-            viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
-            viewModel.ProfessionalServices = _mapper.Map<IEnumerable<ServiceProfessionalRelationVeiwModel>>(professionalServices);
+                var viewModel = _mapper.Map<ProfessionalViewModel>(professional);
+                viewModel.Languages = professional.ProfessionalLangs.Select((s) => new FilterModel { Id = s.LanguageId }).ToList();
+                viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
+                viewModel.ProfessionalServices = _mapper.Map<IEnumerable<ServiceProfessionalRelationVeiwModel>>(professionalServices);
 
-            return viewModel;
-
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, viewModel));
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+         
         }
 
         public void SaveProvessional(ProfessionalViewModel model)
@@ -317,19 +325,19 @@ namespace Medelit.Application
             return _professionalRepository.GetConnectedLeads(proId);
         }
 
-        public dynamic GetProfessionalConnectedServices(long proId)
+        public void GetProfessionalConnectedServices(long proId)
         {
-            return _professionalRepository.GetProfessionalConnectedServices(proId);
+            _professionalRepository.GetProfessionalConnectedServices(proId);
         }
 
-        public void DetachProfessionalConnectedService(IEnumerable<long> serviceIds, long proId)
+        public void DetachProfessionalConnectedService(IEnumerable<EditProfessionalServiceFeesModel> serviceIds, long proId)
         {
             _professionalRepository.DetachProfessionalConnectedService(serviceIds, proId);
         }
 
-        public dynamic GetProfessionalServiceDetail(long serviceId, long proId)
+        public dynamic GetProfessionalServiceDetail(long professionalPtFeeRowId, long professionalProFeeRowId)
         {
-            return _professionalRepository.GetProfessionalServiceDetail(serviceId, proId);
+            return _professionalRepository.GetProfessionalServiceDetail(professionalPtFeeRowId, professionalProFeeRowId);
         }
 
         public void SaveProfessionalServiceDetail(FullFeeViewModel model)

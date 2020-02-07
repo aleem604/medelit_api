@@ -90,6 +90,7 @@ namespace Medelit.Infra.CrossCutting.IoC
             services.AddScoped<IRequestHandler<UpdateLeadsStatusCommand, bool>, LeadCommandHandler>();
             services.AddScoped<IRequestHandler<DeleteLeadsCommand, bool>, LeadCommandHandler>();
             services.AddScoped<IRequestHandler<ConvertLeadToBookingCommand, bool>, LeadCommandHandler>();
+            services.AddScoped<IRequestHandler<LeadsBulkUploadCommand, bool>, LeadCommandHandler>();
 
             //customer commmands
             services.AddScoped<IRequestHandler<SaveCustomerCommand, bool>, CustomerCommandHandler>();

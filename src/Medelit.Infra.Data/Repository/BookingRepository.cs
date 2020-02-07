@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
@@ -12,8 +13,8 @@ namespace Medelit.Infra.Data.Repository
     public class BookingRepository : Repository<Booking>, IBookingRepository
     {
 
-        public BookingRepository(MedelitContext context, IHttpContextAccessor contextAccessor)
-            : base(context, contextAccessor)
+        public BookingRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus)
+            : base(context, contextAccessor, bus)
         { }
 
 

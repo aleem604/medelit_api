@@ -42,6 +42,7 @@ namespace Medelit.Api.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet("account/current-user")]
         public async Task<IActionResult> GetCurrentUsers()
         {

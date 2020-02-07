@@ -60,7 +60,7 @@ namespace Medelit.Domain.CommandHandlers
                     customerModel.SurName = request.Customer.SurName;
                     customerModel.Name = request.Customer.Name;
 
-                   
+
                     customerModel.LanguageId = request.Customer.LanguageId;
                     customerModel.MainPhone = request.Customer.MainPhone;
                     customerModel.MainPhoneOwner = request.Customer.MainPhoneOwner;
@@ -81,7 +81,7 @@ namespace Medelit.Domain.CommandHandlers
 
                     customerModel.PaymentMethodId = request.Customer.PaymentMethodId;
                     customerModel.ListedDiscountNetworkId = request.Customer.ListedDiscountNetworkId;
-                    customerModel.HaveDifferentIEId = request.Customer.HaveDifferentIEId;                    
+                    customerModel.HaveDifferentIEId = request.Customer.HaveDifferentIEId;
                     customerModel.InvoiceEntityId = request.Customer.InvoiceEntityId;
                     customerModel.InvoicingNotes = request.Customer.Name;
 
@@ -137,6 +137,7 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
+
         public Task<bool> Handle(UpdateCustomersStatusCommand request, CancellationToken cancellationToken)
         {
             try
@@ -165,6 +166,7 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
+
         public Task<bool> Handle(DeleteCustomersCommand request, CancellationToken cancellationToken)
         {
             try
@@ -200,6 +202,7 @@ namespace Medelit.Domain.CommandHandlers
             {
                 var customer = _customerRepository.GetById(request.CustomerId);
                 var services = customer.Services;
+                long lastBookingId = 0;
                 foreach (var service in services)
                 {
                     var booking = _mapper.Map<Booking>(customer);
@@ -209,7 +212,9 @@ namespace Medelit.Domain.CommandHandlers
 
                     booking.ServiceId = service.ServiceId;
                     booking.ProfessionalId = service.ProfessionalId;
+                    booking.PtFeeId = service.PtFeeId.Value;
                     booking.PtFee = service.IsPtFeeA1 == 1 ? service.PTFeeA1 : service.PTFeeA2;
+                    booking.ProFeeId = service.PROFeeId.Value;
                     booking.ProFee = service.IsProFeeA1 == 1 ? service.PROFeeA1 : service.PROFeeA2;
 
                     booking.Name = _bookingRepository.GetBookingName(customer.Name, customer.SurName);
@@ -234,17 +239,19 @@ namespace Medelit.Domain.CommandHandlers
                     booking.PtCalledForAppointmentId = 0;
                     booking.ProAvailabilityAskedId = 0;
 
-                    if(customer.DateOfBirth.HasValue)
-                    booking.PatientAge = (short?)((DateTime.Now - customer.DateOfBirth).Value.Days / 365.25);
-                    
+                    if (customer.DateOfBirth.HasValue)
+                        booking.PatientAge = (short?)((DateTime.Now - customer.DateOfBirth).Value.Days / 365.25);
+
 
                     booking.Id = 0;
+                    booking.BookingDate = DateTime.UtcNow;
                     booking.CreatedById = CurrentUser.Id;
                     _bookingRepository.Add(booking);
-                    Commit();
+                    if (Commit())
+                        lastBookingId = booking.Id;
                 }
 
-                _bus.RaiseEvent(new DomainNotification(request.MessageType, null));
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, null, lastBookingId));
                 return Task.FromResult(true);
 
             }

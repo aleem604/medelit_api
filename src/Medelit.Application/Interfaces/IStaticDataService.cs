@@ -12,6 +12,7 @@ namespace Medelit.Application
         IEnumerable<FilterModel> GetInvoicesForFilter();
         IEnumerable<FilterModel> GetInvoiceEntities();
         dynamic GetServicesForFitler();
+        dynamic GetProfessionalsWithFeesForFitler(long? serviceId);
         dynamic GetProfessionalsForFitler(long? serviceId);
         dynamic GePTFeesForFilter();
         dynamic GetPROFeesForFilter();

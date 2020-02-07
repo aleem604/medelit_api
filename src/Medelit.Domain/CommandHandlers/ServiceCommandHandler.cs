@@ -77,7 +77,7 @@ namespace Medelit.Domain.CommandHandlers
                     serviceModel.ServiceCode = $"{fieldCode}{vm.Id.ToString().PadLeft(6, '0')}";
                     _serviceRepository.RemoveProfessionals(request.Service.Id);
 
-                    serviceModel.ServiceProfessionalPtFees = vm.ServiceProfessionalPtFees;
+                    serviceModel.ServiceProfessionals = vm.ServiceProfessionals;
 
                     serviceModel.UpdateDate = DateTime.UtcNow;
                     serviceModel.UpdatedById = CurrentUser.Id;

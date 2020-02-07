@@ -30,8 +30,6 @@ namespace Medelit.Api.Controllers
             _logger = logger;
         }
 
-
-
         [HttpPost("leads/find")]
         public IActionResult FindLeads([FromBody] SearchViewModel model)
         {
@@ -49,7 +47,6 @@ namespace Medelit.Api.Controllers
         [HttpGet("leads/{leadId}/{fromCustomerId}")]
         public IActionResult GetLeadById(long leadId, long? fromCustomerId)
         {
-
             return Response(_leadService.GetLeadById(leadId, fromCustomerId));
         }
 
@@ -93,6 +90,19 @@ namespace Medelit.Api.Controllers
         public IActionResult ConvertToBooking(long leadId)
         {
             _leadService.ConvertToBooking(leadId);
+            return Response();
+        }
+
+        [HttpPost("leads/leads-bulk-upload")]
+        public IActionResult LeadsBulkUpload([FromBody] IEnumerable<LeadCSVViewModel> leads)
+        {
+            var errors = GetModelStateErrors();
+
+            if (string.IsNullOrEmpty(errors))
+                _leadService.LeadsBulkUpload(leads);
+            else
+                return Response(null, string.Concat("Following fields are missing from uploaded data: <br/>", errors));
+
             return Response();
         }
     }

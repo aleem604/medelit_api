@@ -128,7 +128,47 @@ namespace Medelit.Common
         {
             if (string.IsNullOrWhiteSpace(str))
                 return str;
-            return str.Trim().Replace("'", "''").Replace(",,","");
+            return str.Trim().Replace("'", "''").Replace(",,", "");
+        }
+
+
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>
+            (this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            HashSet<TKey> seenKeys = new HashSet<TKey>();
+            foreach (TSource element in source)
+            {
+                if (seenKeys.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
+            }
+        }
+
+        public static IEnumerable<TSource> DistinctBy<TSource>(this IEnumerable<TSource> source, params Func<TSource, object>[] keySelectors)
+        {
+            // initialize the table
+            var seenKeysTable = keySelectors.ToDictionary(x => x, x => new HashSet<object>());
+
+            // loop through each element in source
+            foreach (var element in source)
+            {
+                // initialize the flag to true
+                var flag = true;
+
+                // loop through each keySelector a
+                foreach (var (keySelector, hashSet) in seenKeysTable)
+                {
+                    // if all conditions are true
+                    flag = flag && hashSet.Add(keySelector(element));
+                }
+
+                // if no duplicate key was added to table, then yield the list element
+                if (flag)
+                {
+                    yield return element;
+                }
+            }
         }
 
 

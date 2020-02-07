@@ -42,6 +42,7 @@ namespace Medelit.Domain.Interfaces
         IQueryable<FilterModel> GetRelationships();
         IQueryable<FilterModel> GetReportDeliveryOptions();
         dynamic GetServicesForFitler();
+        dynamic GetProfessionalsWithFeesForFitler(long? serviceId);
         IQueryable<StaticData> GetStaticData();
         IQueryable<FilterModel> GetSubCategoriesForFilter();
         IQueryable<FilterModel> GetTitles();
