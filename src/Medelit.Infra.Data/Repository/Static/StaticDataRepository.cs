@@ -113,12 +113,12 @@ namespace Medelit.Infra.Data.Repository
 
         public IQueryable<FilterModel> GetFieldsForFilter()
         {
-            return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.Field });
+            return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.Field.Replace(" ","")});
         }
 
         public IQueryable<FilterModel> GetSubCategoriesForFilter()
         {
-            return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.SubCategory }).Where(x => x.Value != null);
+            return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.SubCategory.Replace(" ", "") }).Where(x => x.Value != null);
         }
 
         public IQueryable<FilterModel> GetContractStatus()

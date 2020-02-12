@@ -64,7 +64,7 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.LanguageId = request.Lead.LanguageId;
                     leadModel.MainPhone = request.Lead.MainPhone;
                     leadModel.MainPhoneOwner = request.Lead.MainPhoneOwner;
-                    leadModel.ContactPhone = request.Lead.ContactPhone;
+                    leadModel.ContactPhone = request.Lead.ContactPhone ?? request.Lead.MainPhone;
                     leadModel.Phone2 = request.Lead.Phone2;
                     leadModel.Phone2Owner = request.Lead.Phone2Owner;
                     leadModel.Phone3 = request.Lead.Phone3;
@@ -126,6 +126,7 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.CustomerId = request.FromCustomerId;
                     leadModel.AssignedToId = CurrentUser.Id;
                     leadModel.CreatedById = CurrentUser.Id;
+                    leadModel.ContactPhone = leadModel.ContactPhone ?? leadModel.MainPhone;
 
                     _leadRepository.Add(leadModel);
                     commmitResult = Commit();

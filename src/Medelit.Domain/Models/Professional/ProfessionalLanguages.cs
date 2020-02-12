@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Medelit.Domain.Models
 {
-    [Table("professional_language_relation")]
+    [Table("professional_languages")]
   public  class ProfessionalLanguages
     {    
         public long Id { get; set; }

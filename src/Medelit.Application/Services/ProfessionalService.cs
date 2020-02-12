@@ -74,8 +74,8 @@ namespace Medelit.Application
                 s.Telephone,
                 s.Email,
                 s.CoverMap,
-                Field = s.Field.Field,
-                SubCategory = s.SubCategory.SubCategory,
+                Field = string.Join("<br/>", s.ProfessionalFields.Select(x=>x.Field.Field).Distinct().ToList()),
+                SubCategory = string.Join("<br/>", s.ProfessionalSubCategories.Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
                 Services = GetServices(s.Id, services, serviceProfessionals),
                 City = s.CityId > 0 ? cities.FirstOrDefault(c => c.Id == s.CityId).Value : "",
                 s.ContractDate,
@@ -150,7 +150,7 @@ namespace Medelit.Application
                 );
             }
 
-            switch (viewModel.SortField)
+            switch (viewModel.SortField.ToLower())
             {
                 case "name":
                     if (viewModel.SortOrder.Equals("asc"))
@@ -166,13 +166,13 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.Email);
                     break;
 
-                case "field":
+                case "fields":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Field);
                     else
                         query = query.OrderByDescending(x => x.Field);
                     break;
-                case "subcategory":
+                case "subcategories":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.SubCategory);
                     else
@@ -221,33 +221,7 @@ namespace Medelit.Application
             };
         }
 
-        private string GetProfessionalFields(long professionalId, List<FieldSubCategory> fields, List<Service> services, List<ServiceProfessionals> serviceProfessionalRelations)
-        {
-
-            var proFields = (from f in fields
-                             join
-                             s in services on f.Id equals s.FieldId
-                             join
-                             sp in serviceProfessionalRelations on s.Id equals sp.ServiceId
-                             where sp.ProfessionalId == professionalId
-                             select f.Field).ToArray();
-
-            return string.Join(", ", proFields);
-        }
-
-        private string GetProfessionalCats(long professionalId, List<FieldSubCategory> fields, List<Service> services, List<ServiceProfessionals> serviceProfessionalRelations)
-        {
-            var proCats = (from f in fields
-                           join
-                           s in services on f.Id equals s.FieldId
-                           join
-                           sp in serviceProfessionalRelations on s.Id equals sp.ServiceId
-                           where sp.ProfessionalId == professionalId
-                           select f.SubCategory).ToArray();
-
-            return string.Join(", ", proCats);
-        }
-
+       
         private string GetServices(long professionalId, List<Service> services, List<ServiceProfessionals> serviceProfessionals)
         {
             var proServices = (from s in services
@@ -256,7 +230,7 @@ namespace Medelit.Application
                                where sp.ProfessionalId == professionalId
                                select s.Name).ToArray();
 
-            return string.Join(", ", proServices);
+            return string.Join("<br/> ", proServices);
         }
 
         public void GetProfessionalById(long professionalId)
@@ -267,7 +241,6 @@ namespace Medelit.Application
                 var professionalServices = _professionalRepository.GetProfessionalServices(professional.Id);
 
                 var viewModel = _mapper.Map<ProfessionalViewModel>(professional);
-                viewModel.Languages = professional.ProfessionalLangs.Select((s) => new FilterModel { Id = s.LanguageId }).ToList();
                 viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
                 viewModel.ProfessionalServices = _mapper.Map<IEnumerable<ServiceProfessionalRelationVeiwModel>>(professionalServices);
 
@@ -283,16 +256,6 @@ namespace Medelit.Application
         public void SaveProvessional(ProfessionalViewModel model)
         {
             var professionalModel = _mapper.Map<Professional>(model);
-            var proLangModel = new List<ProfessionalLanguages>();
-            foreach (var lang in model.Languages)
-            {
-                proLangModel.Add(new ProfessionalLanguages
-                {
-                    LanguageId = (int)lang.Id
-                });
-            }
-
-            professionalModel.ProfessionalLangs = proLangModel;
             _bus.SendCommand(new SaveProfessionalCommand { Model = professionalModel });
 
         }
@@ -365,8 +328,6 @@ namespace Medelit.Application
         {
             _professionalRepository.GetFeesForFilterToConnectWithServiceProfessional(ptRelationRowId, proRelationRowId);
         }
-
-
 
         public void Dispose()
         {

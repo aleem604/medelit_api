@@ -53,7 +53,6 @@ namespace Medelit.Domain.Models
         [Column("phone_number")]
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
-        public string Email2 { get; set; }
         public string Phone2 { get; set; }
         [Column("phone2_owner")]
         public string Phone2Owner { get; set; }
@@ -232,7 +231,6 @@ namespace Medelit.Domain.Models
                 VisitCityId = this.VisitCityId,
                 PhoneNumber = this.PhoneNumber,
                 Email = this.Email,
-                Email2 = this.Email2,
                 Phone2 = this.Phone2,
                 Phone2Owner = this.Phone2Owner,
                 DateOfBirth = this.DateOfBirth,

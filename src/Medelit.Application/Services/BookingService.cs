@@ -232,7 +232,10 @@ namespace Medelit.Application
                 viewModel.TaxType = _dataRepository.GetVats().FirstOrDefault(x => x.Id == vatId)?.DecValue;
             }
             viewModel.InvoiceEntityName = _ieRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.InvoiceEntityId)?.Name;
-            viewModel.CustomerName = _customerRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.CustomerId)?.Name;
+            var customer = _customerRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.CustomerId);
+
+            if (customer != null)
+                viewModel.CustomerName = $"{customer.SurName} {customer.Name}";
             viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
 
             return viewModel;

@@ -43,13 +43,20 @@ namespace Medelit.Infra.Data.Repository
 
         public IQueryable<Professional> GetByIdWithIncludes(long professionalId)
         {
-            return Db.Professional.Include(x => x.ProfessionalLangs).Where(x => x.Id == professionalId).AsNoTracking();
+            return Db.Professional.Include(x => x.ProfessionalLanguages)
+                .Include(x=>x.ProfessionalFields)
+                .Include(x=>x.ProfessionalSubCategories)
+                .Where(x => x.Id == professionalId).AsNoTracking();
         }
 
-        public void DeleteLangs(long id)
+        public void DeleteProfessionalRelations(long id)
         {
             var langs = Db.ProfessionalLanguages.Where(x => x.ProfessionalId == id).AsNoTracking().ToList();
+            var fields = Db.ProfessionalFields.Where(x => x.ProfessionalId == id).AsNoTracking().ToList();
+            var subCats = Db.ProfessionalSubCategories.Where(x => x.ProfessionalId == id).AsNoTracking().ToList();
             Db.ProfessionalLanguages.RemoveRange(langs);
+            Db.ProfessionalFields.RemoveRange(fields);
+            Db.ProfessionalSubCategories.RemoveRange(subCats);
             Db.SaveChanges();
         }
 

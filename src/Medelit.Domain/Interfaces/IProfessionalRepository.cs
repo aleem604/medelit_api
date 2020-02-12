@@ -9,7 +9,7 @@ namespace Medelit.Domain.Interfaces
     {
         IQueryable<ProfessionalLanguages> GetAllLangs();
         IQueryable<Professional> GetByIdWithIncludes(long professionalId);
-        void DeleteLangs(long id);
+        void DeleteProfessionalRelations(long id);
         IEnumerable<ServiceProfessionals> GetProfessionalServices(long id);
         dynamic GetConnectedCustomers(long proId);
         dynamic GetConnectedBookings(long proId);

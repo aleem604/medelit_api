@@ -46,7 +46,26 @@ namespace Medelit.Application.AutoMapper
                 .ForMember(dest => dest.Id,
                     opts => opts.MapFrom(
                         src => src.LanguageId
-                    )).ReverseMap();
+                    ))
+                .ForMember(dest => dest.Value,
+                    opts => opts.Ignore())
+                 .ForMember(dest => dest.DecValue,
+                    opts => opts.Ignore())
+                 .ForMember(dest => dest.Email,
+                    opts => opts.Ignore())
+                .ReverseMap();
+
+
+            CreateMap<ProfessionalFields, FilterModel>()
+               .ForMember(dest => dest.Id,
+                   opts => opts.MapFrom(
+                       src => src.FieldId
+                   )).ReverseMap();
+            CreateMap<ProfessionalSubCategories, FilterModel>()
+               .ForMember(dest => dest.Id,
+                   opts => opts.MapFrom(
+                       src => src.SubCategoryId
+                   )).ReverseMap();
             CreateMap<Service, ServiceViewModel>();
             //CreateMap<ServiceProfessionalRelation, ServiceProfessionalRelationVeiwModel>();
             CreateMap<FieldSubCategory, FieldSubCategoryViewModel>();

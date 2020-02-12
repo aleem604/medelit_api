@@ -11,7 +11,7 @@ namespace Medelit.Application.AutoMapper
     {
         public ViewModelToDomainMappingProfile()
         {
-            
+
             //CreateMap<Source, Destination>()
             //    .ForMember(d => d.Text, o => o.MapFrom(s => s.Name))
             //    .ForMember(d => d.Value, o => o.MapFrom(s => s.Id))
@@ -24,7 +24,26 @@ namespace Medelit.Application.AutoMapper
                .ForMember(dest => dest.LanguageId,
                    opts => opts.MapFrom(
                        src => src.Id
-                   )).ReverseMap();
+                   ))
+                .ForMember(dest => dest.Id,
+                   opts => opts.Ignore())
+                .ReverseMap();
+            CreateMap<FilterModel, ProfessionalFields>()
+               .ForMember(dest => dest.FieldId,
+                   opts => opts.MapFrom(
+                       src => src.Id
+                   ))
+               .ForMember(dest => dest.Id,
+                   opts => opts.Ignore())
+               .ReverseMap();
+            CreateMap<FilterModel, ProfessionalSubCategories>()
+              .ForMember(dest => dest.SubCategoryId,
+                  opts => opts.MapFrom(
+                      src => src.Id
+                  ))
+               .ForMember(dest => dest.Id,
+                   opts => opts.Ignore())
+              .ReverseMap();
             // Services
             CreateMap<ServiceViewModel, Service>((MemberList.Source));
             CreateMap<AddUpdateFeeToServiceViewModel, AddUpdateFeeToService>((MemberList.Source));
@@ -45,7 +64,7 @@ namespace Medelit.Application.AutoMapper
                    opts => opts.MapFrom(
                        src => src.IsAllDayVisit.HasValue && src.IsAllDayVisit.Value == true ? 1 : 0
                    )).ReverseMap();
-           
+
 
         }
     }

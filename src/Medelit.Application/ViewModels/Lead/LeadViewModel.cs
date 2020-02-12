@@ -11,7 +11,6 @@ namespace Medelit.Application
         public string SurName { get; set; }
         [Required]
         public short TitleId { get; set; }
-        [Required]
         public string Name { get; set; }
         public string MainPhone { get; set; }
         public string MainPhoneOwner { get; set; }

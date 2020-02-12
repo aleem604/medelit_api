@@ -127,11 +127,12 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.Phone2Owner = request.Booking.Phone2Owner;
 
                     bookingModel.Email = request.Booking.Email;
-                    bookingModel.Email2 = request.Booking.Email2;
-                    bookingModel.DateOfBirth = request.Booking.DateOfBirth;
-                    bookingModel.CountryOfBirthId = request.Booking.CountryOfBirthId;
+                    //bookingModel.DateOfBirth = request.Booking.DateOfBirth;
+                    //bookingModel.CountryOfBirthId = request.Booking.CountryOfBirthId;
                     bookingModel.VisitRequestingPerson = request.Booking.VisitRequestingPerson;
                     bookingModel.VisitRequestingPersonRelationId = request.Booking.VisitRequestingPersonRelationId;
+                    if (bookingModel.BookingDate.HasValue)
+                        bookingModel.PatientAge = (short?)((bookingModel.BookingDate - bookingModel.DateOfBirth).Value.Days / 365.25);
 
                     bookingModel.InsuranceCoverId = request.Booking.InsuranceCoverId;
 

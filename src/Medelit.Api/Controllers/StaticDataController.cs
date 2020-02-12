@@ -100,13 +100,13 @@ namespace Medelit.Api.Controllers
         [HttpGet("static/fields")]
         public IActionResult GetFieldsForFilter()
         {
-            return Response(_dataService.GetFieldsForFilter());
+            return Response(_dataService.GetFieldsForFilter().DistinctBy(x=>x.Value));
         }
 
         [HttpGet("static/categories")]
         public IActionResult GetSubCategoriesForFilter()
         {
-            return Response(_dataService.GetSubCategoriesForFilter());
+            return Response(_dataService.GetSubCategoriesForFilter().DistinctBy(x => x.Value));
         }
 
         [HttpGet("static/application-methods")]
@@ -286,6 +286,7 @@ namespace Medelit.Api.Controllers
         {
             return Response(_dataService.GetLabsForFilter());
         }
+
 
     }
 }

@@ -68,6 +68,9 @@ namespace Medelit.Domain.Models
         [Column("added_to_account_options")]
         public string AddToAccountOptions { get; set; }
 
+        [Column("pro_tax_codes")]
+        public string ProTaxCodes { get; set; }
+
 
     }
 }

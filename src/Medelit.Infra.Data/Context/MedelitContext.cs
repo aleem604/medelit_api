@@ -28,6 +28,8 @@ namespace Medelit.Infra.Data.Context
 
 
         public DbSet<ProfessionalLanguages> ProfessionalLanguages { get; set; }
+        public DbSet<ProfessionalFields> ProfessionalFields { get; set; }
+        public DbSet<ProfessionalSubCategories> ProfessionalSubCategories { get; set; }
         public DbSet<PtFee> PtFee { get; set; }
         public DbSet<ProFee> ProFee { get; set; }
         

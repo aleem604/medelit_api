@@ -57,8 +57,8 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.Name = req.Name;
                     proModel.Email = req.Email;
                     proModel.Email2 = req.Email2;
-                    proModel.FieldId = req.FieldId;
-                    proModel.SubCategoryId = req.SubCategoryId;
+                    //proModel.FieldId = req.FieldId;
+                    //proModel.SubCategoryId = req.SubCategoryId;
                     proModel.Telephone = req.Telephone;
                     proModel.AccountingCodeId = req.AccountingCodeId;
                     proModel.Website = req.Website;
@@ -97,26 +97,18 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.DocumentListSentId = req.DocumentListSentId;
                     proModel.CalendarActivation = req.CalendarActivation;
                     proModel.ProOnlineCV = req.ProOnlineCV;
-                    proModel.ProtaxCode = req.ProtaxCode;
-                    proModel.ProfessionalLangs = req.ProfessionalLangs;
+                    proModel.ProtaxCodeId = req.ProtaxCodeId;
+                    proModel.ProfessionalLanguages = req.ProfessionalLanguages;
+                    proModel.ProfessionalFields = req.ProfessionalFields;
+                    proModel.ProfessionalSubCategories = req.ProfessionalSubCategories;
                     proModel.UpdateDate = DateTime.UtcNow;
                     proModel.UpdatedById = CurrentUser.Id;
                     if (string.IsNullOrEmpty(proModel.AssignedToId))
                         proModel.AssignedToId = CurrentUser.Id;
 
-                    _professionalRepository.DeleteLangs(req.Id);
+                    _professionalRepository.DeleteProfessionalRelations(req.Id);
                     _professionalRepository.Update(proModel);
 
-                    //var allFees = _professionalRepository.GetAll();
-                    //foreach (var fee in allFees)
-                    //{
-                    //    if (string.IsNullOrEmpty(fee.FeeCode))
-                    //    {
-                    //        fee.FeeCode = $"FP{fee.Id.ToString().PadLeft(6, '0')}";
-                    //        fee.UpdateDate = DateTime.UtcNow;
-                    //        _feeRepository.Update(fee);
-                    //    }
-                    //}
                     commitResult = Commit();
                 }
                 else

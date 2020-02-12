@@ -222,7 +222,6 @@ namespace Medelit.Domain.CommandHandlers
                     booking.DateOfBirth = customer.DateOfBirth;
                     booking.PhoneNumber = customer.MainPhone;
                     booking.PaymentMethodId = customer.PaymentMethodId;
-                    booking.Email2 = customer.Email2;
                     booking.HomeStreetName = customer.HomeStreetName;
                     booking.VisitLanguageId = customer.LanguageId;
                     booking.BuildingTypeId = customer.BuildingTypeId;

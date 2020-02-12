@@ -22,15 +22,6 @@ namespace Medelit.Domain.Models
         [Column("home_phone")]
         public string HomePhone { get; set; }
         public string Email2 { get; set; }
-        [Column("field_id")]
-        public long FieldId { get; set; }
-        [ForeignKey("FieldId")]
-        public FieldSubCategory Field { get; set; }
-
-        [Column("subcategory_id")]
-        public long SubCategoryId { get; set; }
-        [ForeignKey("SubCategoryId")]
-        public FieldSubCategory SubCategory { get; set; }
 
         public string Fax { get; set; }
         [Column("cover_map")]
@@ -103,10 +94,12 @@ namespace Medelit.Domain.Models
         public short CalendarActivation { get; set; }
         [Column("pro_online_cv")]
         public string ProOnlineCV { get; set; }
-        [Column("pro_tax_code")]
-        public string ProtaxCode { get; set; }
+        [Column("pro_tax_code_id")]
+        public short? ProtaxCodeId { get; set; }
 
-        public ICollection<ProfessionalLanguages> ProfessionalLangs { get; set; }
+        public ICollection<ProfessionalLanguages> ProfessionalLanguages { get; set; }
+        public ICollection<ProfessionalFields> ProfessionalFields { get; set; }
+        public ICollection<ProfessionalSubCategories> ProfessionalSubCategories { get; set; }
         public ICollection<ProfessionalPtFees> ProfessionalPtFees { get; set; }
         public ICollection<ProfessionalProFees> ProfessionalProFees { get; set; }
 

@@ -17,8 +17,6 @@ namespace Medelit.Application
         public string MobilePhone { get; set; }
         public string HomePhone { get; set; }
         public string Email2 { get; set; }
-        public long FieldId { get; set; }
-        public long SubCategoryId { get; set; }
         public string Fax { get; set; }
         public string CoverMap { get; set; }
         public string StreetName { get; set; }
@@ -54,8 +52,10 @@ namespace Medelit.Application
         public short DocumentListSentId { get; set; }
         public short CalendarActivation { get; set; }
         public string ProOnlineCV { get; set; }
-        public string ProtaxCode { get; set; }
-        public IEnumerable<FilterModel> Languages { get; set; }
+        public short? ProtaxCodeId { get; set; }
+        public IEnumerable<FilterModel> ProfessionalLanguages { get; set; }
+        public IEnumerable<FilterModel> ProfessionalFields { get; set; }
+        public IEnumerable<FilterModel> ProfessionalSubCategories { get; set; }
         public IEnumerable<ServiceProfessionalRelationVeiwModel> ProfessionalServices { get; set; }
     }
 }
