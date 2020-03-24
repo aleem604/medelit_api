@@ -6,7 +6,7 @@ namespace Medelit.Domain.Interfaces
 {
     public interface ICustomerRepository : IRepository<Customer>
     {
-        void SaveCustomerRelation(List<CustomerServiceRelation> newServices);
+        void SaveCustomerRelation(List<CustomerServices> newServices);
         Customer GetByIdWithInclude(long customerId);
         void RemoveCustomerServices(long id);
         IQueryable<Customer> GetAllWithService();

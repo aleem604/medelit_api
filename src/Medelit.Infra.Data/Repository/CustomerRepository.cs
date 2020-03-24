@@ -34,7 +34,7 @@ namespace Medelit.Infra.Data.Repository
             Db.SaveChanges();
         }
 
-        public void SaveCustomerRelation(List<CustomerServiceRelation> newServices)
+        public void SaveCustomerRelation(List<CustomerServices> newServices)
         {
             Db.CustomerServiceRelation.AddRange(newServices);
             Db.SaveChanges();
@@ -136,7 +136,7 @@ namespace Medelit.Infra.Data.Repository
                        LeadName =  $"{ls.Lead.SurName} {ls.Lead.Name}",
                        ls.Lead.CreateDate,
                        ls.Lead.UpdateDate,
-                       Professional = string.Join(" <br/>", ls.Service.ServiceProfessionals.Select(x=>x.Professional.Name).ToArray()),
+                       Professional = string.Join(" <br/>", ls.Service.ServiceProfessionalFees.Select(x=>x.Professional.Name).ToArray()),
                        ls.Lead.LeadStatusId
                     }).ToList();
         }

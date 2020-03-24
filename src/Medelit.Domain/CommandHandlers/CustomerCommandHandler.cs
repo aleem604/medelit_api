@@ -25,8 +25,10 @@ namespace Medelit.Domain.CommandHandlers
     {
         private readonly IMapper _mapper;
         private readonly IMediatorHandler _bus;
+        private readonly ILeadRepository _leadRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IBookingRepository _bookingRepository;
+        private readonly IServiceRepository _serviceRepository;
         private readonly IConfiguration _config;
 
 
@@ -35,17 +37,20 @@ namespace Medelit.Domain.CommandHandlers
             IConfiguration config,
             IMediatorHandler bus,
             IHttpContextAccessor httpContext,
+            ILeadRepository leadRepository,
             ICustomerRepository customerRepository,
             IBookingRepository bookingRepository,
-
+            IServiceRepository serviceRepository,
             INotificationHandler<DomainNotification> notifications)
             : base(bus, notifications, httpContext, unitOfWork)
         {
             _mapper = mapper;
             _config = config;
             _bus = bus;
+            _leadRepository = leadRepository;
             _customerRepository = customerRepository;
             _bookingRepository = bookingRepository;
+            _serviceRepository = serviceRepository;
         }
 
         public Task<bool> Handle(SaveCustomerCommand request, CancellationToken cancellationToken)
@@ -201,8 +206,9 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var customer = _customerRepository.GetById(request.CustomerId);
+                var lead = _leadRepository.GetById(customer.LeadId.Value);
                 var services = customer.Services;
-                long lastBookingId = 0;
+                long firstBookingId = 0;
                 foreach (var service in services)
                 {
                     var booking = _mapper.Map<Booking>(customer);
@@ -212,19 +218,35 @@ namespace Medelit.Domain.CommandHandlers
 
                     booking.ServiceId = service.ServiceId;
                     booking.ProfessionalId = service.ProfessionalId;
+
                     booking.PtFeeId = service.PtFeeId.Value;
-                    booking.PtFee = service.IsPtFeeA1 == 1 ? service.PTFeeA1 : service.PTFeeA2;
+                    booking.IsPtFeeA1 = service.IsPtFeeA1;
+                    booking.PtFeeA1 = service.PTFeeA1;
+                    booking.PtFeeA2 = service.PTFeeA2;
+
                     booking.ProFeeId = service.PROFeeId.Value;
-                    booking.ProFee = service.IsProFeeA1 == 1 ? service.PROFeeA1 : service.PROFeeA2;
+                    booking.IsProFeeA1 = service.IsProFeeA1;
+                    booking.ProFeeA1 = service.PROFeeA1;
+                    booking.ProFeeA2 = service.PROFeeA2;
 
-                    booking.Name = _bookingRepository.GetBookingName(customer.Name, customer.SurName);
+                    if (!IsTimedService(booking.ServiceId))
+                    {
+                        booking.QuantityHours = 1;
+                    }
 
+                    booking.Name = _bookingRepository.GetBookingName(customer.Id, customer.Name, customer.SurName);
+                    booking.SrNo = _bookingRepository.GetSrNo(booking.CustomerId.Value);
                     booking.DateOfBirth = customer.DateOfBirth;
                     booking.PhoneNumber = customer.MainPhone;
                     booking.PaymentMethodId = customer.PaymentMethodId;
                     booking.HomeStreetName = customer.HomeStreetName;
                     booking.VisitLanguageId = customer.LanguageId;
                     booking.BuildingTypeId = customer.BuildingTypeId;
+                    booking.Details = lead.LeadDescription;
+                    booking.ReasonForVisit = lead.LeadDescription;
+                    booking.InsuranceCoverId = lead.InsuranceCoverId;
+
+                    booking.BookingStatusId = 1;
                     booking.PaymentConcludedId = 0;
                     booking.CCAuthorizationId = 0;
                     booking.CashConfirmationMailId = 0;
@@ -241,16 +263,22 @@ namespace Medelit.Domain.CommandHandlers
                     if (customer.DateOfBirth.HasValue)
                         booking.PatientAge = (short?)((DateTime.Now - customer.DateOfBirth).Value.Days / 365.25);
 
+                    booking.SubTotal = GetSubTotal(booking.PtFee, booking.QuantityHours);
+                    booking.TaxAmount = GetCusotmerTaxAmount(booking.SubTotal, booking.TaxType);
+                    booking.GrossTotal = booking.SubTotal + booking.TaxAmount;
 
                     booking.Id = 0;
                     booking.BookingDate = DateTime.UtcNow;
                     booking.CreatedById = CurrentUser.Id;
                     _bookingRepository.Add(booking);
-                    if (Commit())
-                        lastBookingId = booking.Id;
+                    if (Commit() && firstBookingId == 0)
+                    {
+                        firstBookingId = booking.Id;
+                    }
+
                 }
 
-                _bus.RaiseEvent(new DomainNotification(request.MessageType, null, lastBookingId));
+                _bus.RaiseEvent(new DomainNotification(request.MessageType, null, firstBookingId));
                 return Task.FromResult(true);
 
             }
@@ -259,6 +287,17 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
+
+        private bool IsTimedService(long serviceId)
+        {
+            var service = _serviceRepository.GetById(serviceId);
+            if (service is null)
+            {
+                return false;
+            }
+            return service.TimedServiceId > 0;
+        }
+
 
         public void Dispose()
         {

@@ -22,6 +22,10 @@ namespace Medelit.Application
         {
             return _acodeRepository.GetCustomersForImportFilter().ToList();
         }
+        public IEnumerable<FilterModel> GetCustomersForFilter()
+        {
+            return _acodeRepository.GetCustomersForFilter().ToList();
+        }
         public IEnumerable<FilterModel> GetInvoicesForFilter()
         {
             return _acodeRepository.GetInvoicesForFilter().ToList();
@@ -57,11 +61,11 @@ namespace Medelit.Application
 
         public IEnumerable<FilterModel> GetFieldsForFilter()
         {
-            return _acodeRepository.GetFieldsForFilter().ToList();
+            return _acodeRepository.GetFieldsForFilter().DistinctBy(x => x.Value.Trim()).ToList();
         }
-        public IEnumerable<FilterModel> GetSubCategoriesForFilter()
+        public IEnumerable<FilterModel> GetSubCategoriesForFilter(IEnumerable<FilterModel> fields)
         {
-            return _acodeRepository.GetSubCategoriesForFilter().ToList();
+            return _acodeRepository.GetSubCategoriesForFilter(fields).ToList();
         }
 
         public IEnumerable<FilterModel> GetContractStatusOptions()

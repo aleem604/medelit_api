@@ -67,7 +67,7 @@ namespace Medelit.Domain.Models
         [Column("date_of_visits")]
         public DateTime? DateOfVisit { get; set; }
         [Column("terms_and_conditions")]
-        public string TermsAndConditions { get; set; }
+        public string TermsAndConditions { get; set; } = "Invoice not subject to VAT";
         [Column("invoice_description")]
         public string InvoiceDescription { get; set; }
         [Column("item_name_on_invoice")]
@@ -82,7 +82,12 @@ namespace Medelit.Domain.Models
         [ForeignKey("CustomerId")]
         public Customer Customer { get; set; }
 
+        [Column("is_proforma")]
+        public bool IsProforma { get; set; }
+
         public ICollection<InvoiceBookings> InvoiceBookings { get; set; }
+        [NotMapped]
+        public dynamic InvoiceBookingView { get; set; }
 
         /// connected customers
         /// connected services

@@ -19,6 +19,13 @@ namespace Medelit.Infra.Data.Repository
 
         }
 
+        public void RemoveAll(List<long> leadIds)
+        {
+            var leads = Db.Lead.Where(l => leadIds.Contains(l.Id)).ToList();
+            Db.RemoveRange(leads);
+            Db.SaveChanges();
+        }
+
         public IQueryable<Lead> GetAllWithService()
         {
             return Db.Lead.Include(x => x.Services);
@@ -41,7 +48,7 @@ namespace Medelit.Infra.Data.Repository
             return customer;
         }
 
-        public IQueryable<LeadServiceRelation> GetLeadServiceRelations()
+        public IQueryable<LeadServices> GetLeadServiceRelations()
         {
             return Db.LeadServiceRelation;
         }

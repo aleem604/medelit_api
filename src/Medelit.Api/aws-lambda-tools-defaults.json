@@ -13,6 +13,6 @@
     "s3-prefix"     : "MedelitCRM/",
     "template"      : "serverless.template",
     "template-parameters" : "\"ShouldCreateBucket\"=\"false\";\"BucketName\"=\"medelit\"",
-    "s3-bucket"           : "mwmbucket",
+    "s3-bucket"           : "mwm-lambda",
     "stack-name"          : "mwm"
 }

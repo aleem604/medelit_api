@@ -15,38 +15,29 @@ namespace Medelit.Infra.Data.Context
             _env = env;
         }
         public DbSet<Lead> Lead { get; set; }
-        public DbSet<LeadServiceRelation> LeadServiceRelation { get; set; }
+        public DbSet<LeadServices> LeadServiceRelation { get; set; }
         public DbSet<Customer> Customer { get; set; }
-        public DbSet<CustomerServiceRelation> CustomerServiceRelation { get; set; }
+        public DbSet<CustomerServices> CustomerServiceRelation { get; set; }
         public DbSet<Booking> Booking { get; set; }
         public DbSet<FieldSubCategory> FieldSubCategory { get; set; }
         public DbSet<Service> Service { get; set; }
-        public DbSet<ServiceProfessionals> ServiceProfessionals { get; set; }
         public DbSet<Professional> Professional { get; set; }
-        public DbSet<ProfessionalPtFees> ProfessionalPtFees { get; set; }
-        public DbSet<ProfessionalProFees> ProfessionalProFees { get; set; }
-
 
         public DbSet<ProfessionalLanguages> ProfessionalLanguages { get; set; }
         public DbSet<ProfessionalFields> ProfessionalFields { get; set; }
         public DbSet<ProfessionalSubCategories> ProfessionalSubCategories { get; set; }
         public DbSet<PtFee> PtFee { get; set; }
         public DbSet<ProFee> ProFee { get; set; }
+        public DbSet<VFees> VFees { get; set; }
         
         public DbSet<Invoice> Invoice { get; set; }
         public DbSet<InvoiceBookings> InvoiceBookings { get; set; }
         public DbSet<InvoiceEntity> InvoiceEntity { get; set; }
 
         #region views
-        public DbSet<VFees> VFees { get; set; }
-        public DbSet<VServiceProfessionalFees> VServiceProfessionalFees { get; set; }
-        public DbSet<VServiceProfessionalPtFees> VServiceProfessionalPtFees { get; set; }
-        public DbSet<VServiceProfessionalProFees> VServiceProfessionalProFees { get; set; }
-
+        public DbSet<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
 
         #endregion views
-
-
 
         #region static data models
         public DbSet<Lab> Lab { get; set; }

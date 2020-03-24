@@ -17,13 +17,26 @@ namespace Medelit.Infra.Data.Repository
             : base(context, contextAccessor, bus)
         { }
 
-
-        public string GetBookingName(string name, string surName)
+        public string GetBookingInvoiceNumber(long invoiceId)
         {
-            name = $"{name} {surName}";
-            var bookingCount = Db.Booking.Where(x => x.Name.StartsWith(name)).Count();
+            var obj = Db.Invoice.FirstOrDefault(x => x.Id == invoiceId);
+            if (obj is null)
+                return string.Empty;
+            return obj.InvoiceNumber;
+        }
 
-            return $"{name} {++bookingCount}";
+        public string GetBookingName(long customerId, string name, string surName)
+        {
+            return $"{name} {surName}";
+        }
+
+        public int GetSrNo(long customerId)
+        {
+            var obj = Db.Booking.Where(x => x.CustomerId == customerId).Select(x=> new {x.SrNo }).ToList();
+            if (obj is null || obj.Count == 0 )
+                return 1;
+            else
+                return obj.Max(x => x.SrNo).Value + 1;
         }
 
         public dynamic GetBookingCycleConnectedBookings(long bookingId)

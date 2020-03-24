@@ -42,13 +42,13 @@ namespace Medelit.Domain.Models
         [Column("mailing_post_code")]
         public string MailingPostCode { get; set; }
         [Column("billing_city_id")]
-        public short? BillingCityId { get; set; }
+        public short? BillingCityId { get; set; } = 1002;
         [Column("mailing_city_id")]
-        public short? MailingCityId { get; set; }
+        public short? MailingCityId { get; set; } = 1002;
         [Column("billing_country_id")]
-        public short? BillingCountryId { get; set; }
+        public short? BillingCountryId { get; set; } = 1003;
         [Column("mailing_country_id")]
-        public short? MailingCountryId { get; set; }
+        public short? MailingCountryId { get; set; } = 1003;
         public string Description { get; set; }
         [Column("vat_number")]
         public string VatNumber { get; set; }

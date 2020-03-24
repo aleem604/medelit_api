@@ -60,6 +60,7 @@ namespace Medelit.Infra.CrossCutting.IoC
 
         private static void RegisterApplicationServices(IServiceCollection services)
         {
+            services.AddScoped<IHangfireJobsService, HangfireJobsService>();
             services.AddScoped<IDashboardService, DashboardService>();
 
             services.AddScoped<IFeeService, FeeService>();

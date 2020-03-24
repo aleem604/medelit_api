@@ -150,7 +150,7 @@ namespace Medelit.Application
             };
         }
 
-        private string PopulateServices(ICollection<LeadServiceRelation> services, List<FilterModel> oservices)
+        private string PopulateServices(ICollection<LeadServices> services, List<FilterModel> oservices)
         {
             var query = from s in services
                         join
@@ -160,7 +160,7 @@ namespace Medelit.Application
             return string.Join(", ", query.ToArray());
         }
 
-        private string PopulatePtFees(ICollection<LeadServiceRelation> services, List<FilterModel> oservices)
+        private string PopulatePtFees(ICollection<LeadServices> services, List<FilterModel> oservices)
         {
             var query = (from s in services
                          join
@@ -173,7 +173,7 @@ namespace Medelit.Application
             return string.Join(", ", query.Select(x => x.PtFees.HasValue ? x.PtFees.Value.ToString("G29") : "").ToArray());
         }
 
-        private string PopulateProFees(ICollection<LeadServiceRelation> services, List<FilterModel> oservices)
+        private string PopulateProFees(ICollection<LeadServices> services, List<FilterModel> oservices)
         {
             var query = (from s in services
                          join
@@ -186,7 +186,7 @@ namespace Medelit.Application
             return string.Join(", ", query.Select(x => x.PtFees.HasValue ? x.PtFees.Value.ToString("G29") : "").ToArray());
         }
 
-        private string PopulateProfessionals(ICollection<LeadServiceRelation> services, List<FilterModel> professionals)
+        private string PopulateProfessionals(ICollection<LeadServices> services, List<FilterModel> professionals)
         {
             var query = from s in services
                         join
@@ -223,7 +223,7 @@ namespace Medelit.Application
         {
             var leadModel = _mapper.Map<Lead>(viewModel);
 
-            leadModel.Services = _mapper.Map<ICollection<LeadServiceRelation>>(viewModel.Services);
+            leadModel.Services = _mapper.Map<ICollection<LeadServices>>(viewModel.Services);
             _bus.SendCommand(new SaveLeadCommand { Lead = leadModel, FromCustomerId = viewModel.FromCustomerId });
         }
 

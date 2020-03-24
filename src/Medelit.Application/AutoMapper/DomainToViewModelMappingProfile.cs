@@ -36,7 +36,7 @@ namespace Medelit.Application.AutoMapper
                         src => src.HomePostCode
                     ))
                     .ReverseMap();
-            CreateMap<CustomerServiceRelation, LeadServiceRelationViewModel>();
+            CreateMap<CustomerServices, LeadServiceRelationViewModel>();
             CreateMap<Customer, Booking>();
 
             CreateMap<VFees, FeeViewModel>();
@@ -70,8 +70,8 @@ namespace Medelit.Application.AutoMapper
             //CreateMap<ServiceProfessionalRelation, ServiceProfessionalRelationVeiwModel>();
             CreateMap<FieldSubCategory, FieldSubCategoryViewModel>();
 
-            CreateMap<LeadServiceRelation, LeadServiceRelationViewModel>();
-            CreateMap<CustomerServiceRelation, CustomerServiceRelationViewModel>();
+            CreateMap<LeadServices, LeadServiceRelationViewModel>();
+            CreateMap<CustomerServices, CustomerServiceRelationViewModel>();
 
             CreateMap<InvoiceEntity, InvoiceEntityViewModel>((MemberList.Source));
             CreateMap<Invoice, InvoiceViewModel>((MemberList.Source));

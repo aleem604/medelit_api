@@ -64,7 +64,7 @@ namespace Medelit.Application
             var customers = _customerRepository.GetAll().Select((s) => new { s.Id, s.Name }).ToList();
             var invoiceStatus = _staticRepository.GetStaticData().Select(x => new FilterModel { Id = x.Id, Value = x.InvoiceStatus }).Where(x => x.Value != null).ToList();
 
-            var query = _invoiceRepository.GetAll().Select((x) => new
+            var query = _invoiceRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new
             {
                 x.Id,
                 x.InvoiceNumber,
@@ -161,43 +161,46 @@ namespace Medelit.Application
         }
 
 
-        public InvoiceViewModel GetInvoiceById(long invoiceId)
+        public void GetInvoiceById(long invoiceId)
         {
-            try
-            {
-                var invoice = _mapper.Map<InvoiceViewModel>(_invoiceRepository.GetById(invoiceId));
-                invoice.AssignedTo = GetAssignedUser(invoice.AssignedToId);
+            _invoiceRepository.GetInvoiceById(invoiceId, GetUsers());
 
-                invoice.InvoiceBookings = (from ib in _invoiceRepository.GetInvoiceBookings()
-                                           join b in _bookingRepository.GetAll() on ib.BookingId equals b.Id
 
-                                           join c in _customerRepository.GetAll() on ib.Booking.CustomerId equals c.Id
-                                           where ib.InvoiceId == invoiceId
-                                           select new
-                                           {
-                                               ib.Id,
-                                               ib.InvoiceId,
-                                               ib.BookingId,
-                                               Booking = new
-                                               {
-                                                   b.Id,
-                                                   b.Name,
-                                                   b.CustomerId,
-                                                   CustomerName = c.Name,
-                                                   b.InvoiceEntityId,
-                                                   InvoiceEntity = b.InvoiceEntityId.HasValue ? _ieRepository.GetAll().FirstOrDefault(i => i.Id == b.InvoiceEntityId).Name : string.Empty,
-                                                   b.Cycle,
-                                                   b.CycleNumber,
-                                                   subTotal = b.SubTotal,
-                                                   b.GrossTotal
-                                               }
-                                           }).ToList();
-                return invoice;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(MessageCodes.API_DATA_INVALID, ex.InnerException);
-            }
+            //try
+            //{
+            //    var invoice = _mapper.Map<InvoiceViewModel>(_invoiceRepository.GetById(invoiceId));
+            //    invoice.AssignedTo = GetAssignedUser(invoice.AssignedToId);
+
+            //    invoice.InvoiceBookings = (from ib in _invoiceRepository.GetInvoiceBookings()
+            //                               join b in _bookingRepository.GetAll() on ib.BookingId equals b.Id
+
+            //                               join c in _customerRepository.GetAll() on ib.Booking.CustomerId equals c.Id
+            //                               where ib.InvoiceId == invoiceId
+            //                               select new
+            //                               {
+            //                                   ib.Id,
+            //                                   ib.InvoiceId,
+            //                                   ib.BookingId,
+            //                                   Booking = new
+            //                                   {
+            //                                       b.Id,
+            //                                       b.Name,
+            //                                       b.CustomerId,
+            //                                       CustomerName = c.Name,
+            //                                       Service = b.Service.Name,
+            //                                       b.PtFees.FeeName,
+            //                                       b.TaxAmount,
+            //                                       b.PatientDiscount,
+            //                                       subTotal = b.SubTotal,
+            //                                       b.GrossTotal
+            //                                   }
+            //                               }).ToList();
+            //    return invoice;
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new Exception(MessageCodes.API_DATA_INVALID, ex.InnerException);
+            //}
         }
 
         public void SaveInvoice(InvoiceViewModel viewModel)
@@ -214,6 +217,21 @@ namespace Medelit.Application
         public void DeleteInvoices(IEnumerable<long> invoiceIds)
         {
             _bus.SendCommand(new DeleteInvoicesCommand { InvoiceIds = invoiceIds });
+        }
+
+        public void ProcessInvoiceEmission(long invoiceId)
+        {
+            _invoiceRepository.ProcessInvoiceEmission(invoiceId);
+        }
+
+        public void GetBookingToAddToInvoice(long invoiceId)
+        {
+            _invoiceRepository.GetBookingToAddToInvoice(invoiceId);
+        }
+
+        public void AddBookingsToInvoice(IEnumerable<long> bookingIds, long invoiceId)
+        {
+            _invoiceRepository.AddBookingsToInvoice(bookingIds, invoiceId);
         }
 
         public void AddBookingToInvoice(long bookingId, long invoiceId)

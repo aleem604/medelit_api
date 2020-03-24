@@ -174,9 +174,9 @@ namespace Medelit.Api.Controllers
         }
 
         [HttpPost("services/services-data-for-attach")]
-        public IActionResult GetProfessionalServices([FromBody]ServicFilterViewModel viewModel)
+        public IActionResult GetServiceProfessionals([FromBody]ServicFilterViewModel viewModel)
         {
-            return Response(_serviceService.GetProfessionalServices(viewModel));
+            return Response(_serviceService.GetServiceProfessionals(viewModel));
         }
 
         [HttpPost("services/save-professional-services/{proId}")]
@@ -223,8 +223,5 @@ namespace Medelit.Api.Controllers
         {
             return Response(_serviceService.GetConnectedLeads(serviceId));
         }
-
-
-
     }
 }

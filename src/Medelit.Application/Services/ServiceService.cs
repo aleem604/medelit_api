@@ -84,7 +84,7 @@ namespace Medelit.Application
             return sb.ToString();
         }
 
-        private string PopulateProfessionals(IEnumerable<ServiceProfessionals> services, List<FilterModel> professionals)
+        private string PopulateProfessionals(IEnumerable<ServiceProfessionalFees> services, List<FilterModel> professionals)
         {
             var query = from s in services
                         join
@@ -165,7 +165,7 @@ namespace Medelit.Application
         }
         public void DetachProFeeFromService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
         {
-            _serviceRepository.SaveProFeesForService(model, serviceId);
+            _serviceRepository.DetachProFeeFromService(model, serviceId);
         }
         #endregion service connect pt fees
 
@@ -174,9 +174,9 @@ namespace Medelit.Application
 
 
 
-        public dynamic GetProfessionalServices(ServicFilterViewModel viewModel)
+        public dynamic GetServiceProfessionals(ServicFilterViewModel viewModel)
         {
-            return _serviceRepository.GetProfessionalServices(viewModel.ProfessionalId, viewModel.FieldId, viewModel.SubCategoryId, viewModel.Tag);
+            return _serviceRepository.GetServiceProfessionals(viewModel.ProfessionalId, viewModel.FieldId, viewModel.SubCategoryId, viewModel.Tag);
         }
 
         public void SaveProfessionalServices(IEnumerable<long> serviceIds, long proId)
@@ -193,7 +193,7 @@ namespace Medelit.Application
         {
             var model = _mapper.Map<AddUpdateFeeToService>(viewModel);
 
-            _serviceRepository.AddUpdateFeeForService(model);
+            //_serviceRepository.AddUpdateFeeForService(model);
         }
 
 

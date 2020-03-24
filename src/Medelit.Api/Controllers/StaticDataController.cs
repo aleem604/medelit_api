@@ -36,6 +36,12 @@ namespace Medelit.Api.Controllers
             return Response(_dataService.GetCustomersForImportFilter());
         }
 
+        [HttpGet("static/customers-for-filter")]
+        public IActionResult GetCustomersForFilter()
+        {
+            return Response(_dataService.GetCustomersForFilter());
+        }
+
         [HttpGet("static/invoices")]
         public IActionResult GetInvoicesFilter()
         {
@@ -48,7 +54,7 @@ namespace Medelit.Api.Controllers
             return Response(_dataService.GetInvoiceEntities());
         }
 
-      
+
         [HttpGet("static/services")]
         public IActionResult GetServicesForFitler()
         {
@@ -61,10 +67,6 @@ namespace Medelit.Api.Controllers
         {
             return Response(_dataService.GetProfessionalsWithFeesForFitler(serviceId));
         }
-
-
-
-
 
         [HttpGet("static/professionals/{serviceId}")]
         [HttpGet("static/professionals")]
@@ -100,13 +102,13 @@ namespace Medelit.Api.Controllers
         [HttpGet("static/fields")]
         public IActionResult GetFieldsForFilter()
         {
-            return Response(_dataService.GetFieldsForFilter().DistinctBy(x=>x.Value));
+            return Response(_dataService.GetFieldsForFilter().DistinctBy(x => x.Value));
         }
 
-        [HttpGet("static/categories")]
-        public IActionResult GetSubCategoriesForFilter()
+        [HttpPost("static/categories")]
+        public IActionResult GetSubCategoriesForFilter([FromBody]IEnumerable<FilterModel> fields)
         {
-            return Response(_dataService.GetSubCategoriesForFilter().DistinctBy(x => x.Value));
+            return Response(_dataService.GetSubCategoriesForFilter(fields).DistinctBy(x => x.Value));
         }
 
         [HttpGet("static/application-methods")]
@@ -148,7 +150,8 @@ namespace Medelit.Api.Controllers
         public IActionResult GetStatuses()
         {
             return Response(Enum.GetValues(typeof(eRecordStatus)).Cast<eRecordStatus>().Select(e => new KeyValuePair<string, int>(e.ToString(), (int)e))
-                .Select((x) => new {
+                .Select((x) => new
+                {
                     id = x.Value,
                     value = x.Key,
                     name = x.Key
@@ -233,7 +236,7 @@ namespace Medelit.Api.Controllers
             return Response(_dataService.GetLeadCategories());
         }
 
-         [HttpGet("static/contact-methods")]
+        [HttpGet("static/contact-methods")]
         public IActionResult GetContactMethods()
         {
             return Response(_dataService.GetContactMethods());

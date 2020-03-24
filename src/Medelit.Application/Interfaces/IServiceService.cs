@@ -35,7 +35,7 @@ namespace Medelit.Application
 
 
 
-        dynamic GetProfessionalServices(ServicFilterViewModel viewModel);
+        dynamic GetServiceProfessionals(ServicFilterViewModel viewModel);
         void SaveProfessionalServices(IEnumerable<long> proIds, long proId);
         void DetachProfessional(long serviceId, long proId);
         dynamic GetProfessionalRelations(long proId);

@@ -8,6 +8,7 @@ namespace Medelit.Domain.Interfaces
     public interface IStaticDataRepository : IRepository<StaticData>
     {
         IQueryable<FilterModel> GetCustomersForImportFilter();
+        IQueryable<FilterModel> GetCustomersForFilter();
         IQueryable<FilterModel> GetInvoicesForFilter();
         dynamic GePROFeesForFilter();
         IQueryable<FilterModel> GetAccountingCodes();
@@ -44,7 +45,7 @@ namespace Medelit.Domain.Interfaces
         dynamic GetServicesForFitler();
         dynamic GetProfessionalsWithFeesForFitler(long? serviceId);
         IQueryable<StaticData> GetStaticData();
-        IQueryable<FilterModel> GetSubCategoriesForFilter();
+        IQueryable<FilterModel> GetSubCategoriesForFilter(IEnumerable<FilterModel> fields);
         IQueryable<FilterModel> GetTitles();
         IQueryable<FilterModel> GetVats();
         IQueryable<FilterModel> GetVisitVenues();

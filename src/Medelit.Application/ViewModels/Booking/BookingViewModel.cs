@@ -7,6 +7,7 @@ namespace Medelit.Application
     public class BookingViewModel : BaseViewModel
     {
         public string Name { get; set; }
+        public int? SrNo { get; set; }
         public long? InvoiceEntityId { get; set; }
         public short? BookingStatusId { get; set; }
         public DateTime? BookingDate { get; set; }
@@ -78,7 +79,8 @@ namespace Medelit.Application
         public decimal? TaxAmount { get; set; }
         public decimal? PatientDiscount { get; set; }
         public decimal? GrossTotal { get; set; }
-        public Boolean? IsAllDayVisit { get; set; }
+        public DateTime? VisitDate { get; set; }
+        public bool? IsAllDayVisit { get; set; }
         public DateTime? VisitStartDate { get; set; }
         public DateTime? VisitEndDate { get; set; }
 
@@ -96,11 +98,31 @@ namespace Medelit.Application
         public long ServiceId { get; set; }
         public decimal? TaxType { get; set; }
         public long ProfessionalId { get; set; }
-        public decimal? PtFee { get; set; }
-        public decimal? ProFee { get; set; }
+
+        public long PtFeeId { get; set; }
+        public short IsPtFeeA1 { get; set; }
+        public decimal? PtFeeA1 { get; set; }
+        public decimal? PtFeeA2 { get; set; }
+
+        public long ProFeeId { get; set; }
+        public short IsProFeeA1 { get; set; }
+        public decimal? ProFeeA1 { get; set; }
+        public decimal? ProFeeA2 { get; set; }
 
         public short? QuantityHours { get; set; }
         public string CustomerName { get; set; }
         public string InvoiceEntityName { get; set; }
+        public long? InvoiceId { get; set; }
+
+        public string BookingName
+        {
+            get
+            {
+                if (SrNo > 0)
+                    return $"{Name} {SrNo}";
+                else
+                    return Name;
+            }
+        }
     }
 }

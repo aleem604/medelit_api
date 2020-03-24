@@ -68,6 +68,7 @@ namespace Medelit.Domain.CommandHandlers
                     invoiceModel.UpdateDate = DateTime.UtcNow;
                     invoiceModel.Subject = request.Invoice.Subject;
                     invoiceModel.InvoiceNumber = request.Invoice.InvoiceNumber;
+                    invoiceModel.CustomerId = request.Invoice.CustomerId;
                     invoiceModel.InvoiceEntityId = request.Invoice.InvoiceEntityId;
                     invoiceModel.PatientDateOfBirth = request.Invoice.PatientDateOfBirth;
                     invoiceModel.StatusId = request.Invoice.StatusId;
@@ -91,14 +92,14 @@ namespace Medelit.Domain.CommandHandlers
                     invoiceModel.InsuranceCoverId = request.Invoice.InsuranceCoverId;
                     invoiceModel.InvoiceNotes = request.Invoice.InvoiceNotes;
                     invoiceModel.InvoiceDiagnosis = request.Invoice.InvoiceDiagnosis;
-                    invoiceModel.TotalInvoice = UpdateInvoiceTotals(request.Invoice.Id);
-
-                    invoiceModel.UpdateDate = DateTime.UtcNow;
-                    invoiceModel.UpdatedById = CurrentUser.Id;
+                    invoiceModel.InvoiceDescription = request.Invoice.InvoiceDescription;
+                    invoiceModel.TermsAndConditions = request.Invoice.TermsAndConditions;
+                    invoiceModel.ItemNameOnInvoice = request.Invoice.ItemNameOnInvoice;
 
                     _invoiceRepository.Update(invoiceModel);
-                    
+
                     commmitResult = Commit();
+                    _invoiceRepository.UpdateInvoiceTotal(invoiceModel.Id);
                     request.Invoice = invoiceModel;
 
                     //var allInvoices = _feeRepository.GetAll();
@@ -122,9 +123,11 @@ namespace Medelit.Domain.CommandHandlers
                     _invoiceRepository.Add(invoiceModel);
                     commmitResult = Commit();
                     request.Invoice = invoiceModel;
+                    
                 }
                 if (commmitResult)
                 {
+                    _invoiceRepository.UpdateInvoiceTotal(request.Invoice.Id);
                     _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Invoice));
                     return Task.FromResult(true);
                 }
@@ -140,6 +143,7 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
+
         public Task<bool> Handle(UpdateInvoicesStatusCommand request, CancellationToken cancellationToken)
         {
             try
@@ -212,7 +216,6 @@ namespace Medelit.Domain.CommandHandlers
                     return Task.FromResult(false);
                 }
 
-
                 if (booking is null || invoice is null)
                 {
                     _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.API_DATA_INVALID));
@@ -223,16 +226,13 @@ namespace Medelit.Domain.CommandHandlers
 
                 if (invoiceBookingModel.Id > 0)
                 {
-                    var updateInvoice = _invoiceRepository.GetById(request.InvoiceId);
-                    updateInvoice.TotalInvoice = UpdateInvoiceTotals(request.InvoiceId);
-                    updateInvoice.UpdatedById = CurrentUser.Id;
-                    updateInvoice.UpdateDate = DateTime.UtcNow;
-
-                    _invoiceRepository.Update(updateInvoice);
+                    booking.InvoiceId = request.InvoiceId;
+                    booking.UpdateDate = DateTime.UtcNow;
+                    booking.UpdatedById = CurrentUser.Id;
                     Commit();
+
                     _bus.RaiseEvent(new DomainNotification(request.MessageType, null, invoiceBookingModel));
                     return Task.FromResult(false);
-
                 }
                 else
                 {
@@ -250,46 +250,49 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                var booking = _bookingRepository.GetById(request.BookingId);
+                var booking = _bookingRepository.GetAll().Where(x => x.Id == request.BookingId).Include(x => x.Service).FirstOrDefault();
                 var invoiceEntity = booking.InvoiceEntityId.HasValue ? _ieRepository.GetById((long)booking.InvoiceEntityId) : new InvoiceEntity();
                 var customer = _customerRepository.GetAll().FirstOrDefault(x => x.Id == booking.CustomerId);
                 var invoice = new Invoice();
                 invoice.Subject = booking.InvoiceNumber ?? customer.Name;
                 invoice.InvoiceEntityId = booking.InvoiceEntityId;
                 invoice.CustomerId = booking.CustomerId;
-                invoice.InvoiceNumber = $"{DateTime.Now.ToString("ddMM/yyyy")} PROFORMA";
+                invoice.InvoiceNumber = $"{DateTime.Now.ToString("yyyy")} PROFORMA";
                 invoice.DueDate = booking.InvoiceDueDate ?? DateTime.Now;
                 invoice.InvoiceDate = booking.VisitStartDate;
                 //invoice.TaxCodeId = 
                 invoice.StatusId = booking.BookingStatusId;
                 invoice.PaymentDue = booking.InvoiceDueDate;
                 invoice.PaymentDue = DateTime.Now;
-                invoice.InvoiceSentByEmailId = 0;
+                invoice.InvoiceSentByEmailId = 0; 
                 invoice.InvoiceSentByMailId = 0;
                 invoice.PaymentMethodId = booking.PaymentMethodId;
                 invoice.PatientDateOfBirth = booking.DateOfBirth;
 
-                invoice.IEBillingAddress = invoice.IEBillingAddress;
-                invoice.MailingAddress = invoiceEntity.MailingAddress;
+                invoice.IEBillingAddress =  invoiceEntity.BillingAddress ?? customer.HomePostCode;
+                invoice.MailingAddress = invoiceEntity.MailingAddress ?? customer.VisitStreetName;
 
-                invoice.IEBillingPostCode = invoiceEntity.BillingPostCode;
-                invoice.MailingPostCode = invoiceEntity.MailingPostCode;
+                invoice.IEBillingPostCode = invoiceEntity.BillingPostCode ?? customer.HomePostCode;
+                invoice.MailingPostCode = invoiceEntity.MailingPostCode ?? customer.VisitStreetName;
 
-                invoice.IEBillingCityId = invoiceEntity.BillingCityId;
-                invoice.MailingCityId = invoiceEntity.MailingCityId;
+                invoice.IEBillingCityId = invoiceEntity.BillingCityId ?? customer.HomeCityId;
+                invoice.MailingCityId = invoiceEntity.MailingCityId ?? customer.VisitCityId;
 
-                invoice.IEBillingCountryId = invoiceEntity.BillingCountryId;
-                invoice.MailingCountryId = invoiceEntity.MailingCountryId;
+                invoice.IEBillingCountryId = invoiceEntity.BillingCountryId ?? customer.HomeCountryId;
+                invoice.MailingCountryId = invoiceEntity.MailingCountryId ?? customer.VisitCountryId;
 
-                invoice.InvoiceNotes = booking.InvoicingNotes;
+                invoice.InvoiceNotes = booking.NotesOnPayment;
                 invoice.InsuranceCoverId = booking.InsuranceCoverId;
                 invoice.InvoiceDiagnosis = booking.Diagnosis;
                 invoice.InvoiceDiagnosis = booking.Diagnosis;
                 invoice.DateOfVisit = booking.VisitStartDate;
+                invoice.TermsAndConditions = "Invoice not subject to VAT";
                 invoice.InvoiceDescription = customer.Name;
+                invoice.ItemNameOnInvoice = string.Concat(booking.Name, " ", booking.Service.Name);
 
                 invoice.PaymentArrivalDate = booking.PaymentArrivalDate;
                 invoice.ProInvoiceDate = booking.InvoiceDueDate;
+                invoice.InvoiceDeliveryDate = DateTime.Now;
 
                 invoice.CreateDate = DateTime.UtcNow;
                 invoice.CreatedById = CurrentUser.Id;
@@ -300,18 +303,23 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     if (invoice.Id > 0)
                     {
+                        booking.InvoiceId = invoice.Id;
+                        booking.UpdateDate = DateTime.Now;
+                        booking.UpdatedById = CurrentUser.Id;
+                        _bookingRepository.Update(booking);
+
                         var invoiceBookingModel = _invoiceRepository.AddBookingToInvoice(booking.Id, invoice.Id);
                         var newInvoice = _invoiceRepository.GetById(invoice.Id);
-                        newInvoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(5, '0')}/{DateTime.Now.ToString("ddMM/yyyy")} PROFORMA";
-                        newInvoice.TotalInvoice = UpdateInvoiceTotals(newInvoice.Id);
-                        newInvoice.UpdateDate = DateTime.UtcNow;
-                        newInvoice.UpdatedById = CurrentUser.Id;
+                        newInvoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(5, '0')}/{DateTime.Now.ToString("yyyy")} PROFORMA";
+                        invoice.Subject = $"{invoice.Id.ToString().PadLeft(5, '0')}/{DateTime.Now.ToString("yyyy")} PROFORMA";
+                        newInvoice.IsProforma = true;
 
                         _invoiceRepository.Update(newInvoice);
                         Commit();
+                        _invoiceRepository.UpdateInvoiceTotal(newInvoice.Id);
                     }
 
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, booking));
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, invoice.Id));
                     return Task.FromResult(true);
                 }
                 else
@@ -331,26 +339,15 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var ib = _invoiceRepository.GetInvoiceBookings().FirstOrDefault(x => x.Id == request.InvoiceBookingId);
-                var invoiceBookings = _invoiceRepository.GetInvoiceBookings().Where(x => x.InvoiceId == ib.InvoiceId && x.Id != request.InvoiceBookingId).ToList();
-                var invoice = _invoiceRepository.GetById(ib.InvoiceId);
-
-                decimal? totals = null;
-                foreach (var booking in invoiceBookings)
-                {
-                    var bookingObj = _bookingRepository.GetAll().Where(x => x.Id == booking.BookingId).Select((s) => new { s.Id, s.PtFee, s.QuantityHours, s.TaxAmount, s.TaxType, s.SubTotal, s.GrossTotal }).FirstOrDefault();
-                    if (bookingObj != null)
-                    {
-                        var subTotal = GetSubTotal(bookingObj.PtFee, bookingObj.QuantityHours);
-                        var taxAmount = GetCusotmerTaxAmount(subTotal, bookingObj.TaxType);
-                        totals += subTotal + taxAmount;
-                    }
-                }
-                invoice.TotalInvoice = totals;
+                
                 _invoiceRepository.DeleteInvoiceBooking(ib);
-
-                invoice.UpdateDate = DateTime.UtcNow;
-                invoice.UpdatedById = CurrentUser.Id;
-                _invoiceRepository.Update(invoice);
+                if (Commit())
+                {
+                    //var invoiceObj = _invoiceRepository.GetById(invoice.Id);
+                    //invoiceObj.TotalInvoice = UpdateInvoiceTotals(invoiceObj.Id);
+                    //_invoiceRepository.Update(invoiceObj);
+                    _invoiceRepository.UpdateInvoiceTotal(ib.InvoiceId);
+                }
 
                 _bus.RaiseEvent(new DomainNotification(request.MessageType, null, Commit()));
                 return Task.FromResult(true);
@@ -359,37 +356,6 @@ namespace Medelit.Domain.CommandHandlers
             {
                 return HandleException(request.MessageType, ex);
             }
-        }
-      
-        public decimal? UpdateInvoiceTotals(long invoiceId)
-        {
-            var invoiceBookings = _invoiceRepository.GetInvoiceBookings().Where(x => x.InvoiceId == invoiceId).ToList();
-            decimal? totals = 0;
-            foreach (var booking in invoiceBookings)
-            {
-                var bookingObj = _bookingRepository.GetAll().Where(x => x.Id == booking.BookingId).Select((s) => new { s.Id, s.PtFee, s.QuantityHours, s.TaxAmount, s.TaxType, s.SubTotal, s.GrossTotal }).FirstOrDefault();
-                if (bookingObj != null)
-                {
-                    var subTotal = GetSubTotal(bookingObj.PtFee, bookingObj.QuantityHours);
-                    var taxAmount = GetCusotmerTaxAmount(subTotal, bookingObj.TaxType);
-                    totals += subTotal + taxAmount;
-                }
-            }
-            return totals;
-        }
-
-        private decimal? GetSubTotal(decimal? ptFee, short? quantityHours)
-        {
-            if (ptFee.HasValue && quantityHours.HasValue)
-                return ptFee.Value * quantityHours.Value;
-            return null;
-        }
-
-        private decimal? GetCusotmerTaxAmount(decimal? subTotal, short? taxType)
-        {
-            if (subTotal.HasValue && taxType.HasValue)
-                return subTotal.Value * taxType.Value * (decimal)0.01;
-            return null;
         }
 
         public void Dispose()

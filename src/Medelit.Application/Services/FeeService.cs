@@ -154,7 +154,7 @@ namespace Medelit.Application
 
         public void UpdateStatus(IEnumerable<FeeViewModel> fees, eRecordStatus status)
         {
-            _bus.SendCommand(new UpdateFeesStatusCommand { Fees = _mapper.Map<IEnumerable<FeeViewModel>, IEnumerable<VFees>>(fees), Status = status });
+            //_bus.SendCommand(new UpdateFeesStatusCommand { Fees = _mapper.Map<IEnumerable<FeeViewModel>, IEnumerable<VFees>>(fees), Status = status });
         }
 
         public void DeleteFees(IList<FeeViewModel> fees)
@@ -171,9 +171,9 @@ namespace Medelit.Application
         }
 
 
-        public void GetConnectedServices(long feeId, eFeeType feeType)
+        public void GetFeeConnectedServices(long feeId, eFeeType feeType)
         {
-            _feeRepository.GetConnectedServices(feeId, feeType);
+            _feeRepository.GetFeeConnectedServices(feeId, feeType);
         }
 
         public void GetConnectedProfessionals(long feeId, eFeeType feeType)
@@ -187,23 +187,23 @@ namespace Medelit.Application
             _feeRepository.DeleteConnectedProfessionals(prosIds, feeId, feeType);
         }
 
-        public dynamic GetServicesToConnectWithFee(long feeId)
+        public dynamic GetServicesToConnectWithFee(long feeId, eFeeType feeType)
         {
-            return _feeRepository.GetServicesToConnectWithFee(feeId);
+            return _feeRepository.GetServicesToConnectWithFee(feeId, feeType);
         }
 
-        public void SaveServicesToConnectWithFee(IEnumerable<long> serviceIds, long feeId)
+        public void SaveServicesToConnectWithFee(IEnumerable<long> serviceIds, long feeId, eFeeType feeType)
         {
-            _feeRepository.SaveServicesToConnectWithFee(serviceIds, feeId);
+            _feeRepository.SaveServicesToConnectWithFee(serviceIds, feeId, feeType);
         }
 
         public void GetProfessionalToConnectWithFee(long feeId, eFeeType feeType)
         {
             _feeRepository.GetProfessionalToConnectWithFee(feeId, feeType);
         }
-        public void SaveProfessionlToConnectWithFee(IEnumerable<long> proIds, long feeId, eFeeType feeType)
+        public void SaveProfessionlToConnectWithFee(IEnumerable<long> serviceProFeeIds, long feeId, eFeeType feeType)
         {
-            _feeRepository.SaveProfessionlToConnectWithFee(proIds, feeId, feeType);
+            _feeRepository.SaveProfessionlToConnectWithFee(serviceProFeeIds, feeId, feeType);
         }
 
         public void GetServiceToConnect(long feeId, eFeeType feeType)
@@ -219,6 +219,11 @@ namespace Medelit.Application
         public void AttachNewServiceProfessionalToFee(long serviceId, long professionalId, long feeId, eFeeType feeType)
         {
             _feeRepository.AttachNewServiceProfessionalToFee(serviceId, professionalId, feeId, feeType);
+        }
+
+        public void DeleteConnectedServices(IEnumerable<long> serviceProFeeIds, long feeId, eFeeType feedType)
+        {
+            _feeRepository.DeleteConnectedServices(serviceProFeeIds, feeId, feedType);
         }
 
         public void Dispose()

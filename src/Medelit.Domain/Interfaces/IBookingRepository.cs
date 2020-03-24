@@ -6,9 +6,11 @@ namespace Medelit.Domain.Interfaces
 {
     public interface IBookingRepository : IRepository<Booking>
     {
-        string GetBookingName(string name, string surName);
+        string GetBookingName(long customerId, string name, string surName);
+        int GetSrNo(long customerId);
         dynamic GetBookingCycleConnectedBookings(long bookingId);
         dynamic BookingConnectedProfessional(long bookingId);
         dynamic BookingConnectedInvoices(long bookingId);
+        string GetBookingInvoiceNumber(long invoiceId);
     }
 }

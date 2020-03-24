@@ -5,10 +5,10 @@ using System.Text;
 
 namespace Medelit.Domain.Models
 {
-    [Table("lead_service_relation")]
-    public class LeadServiceRelation
+    [Table("customer_services")]
+    public class CustomerServices
     {
-        public long Id { get; set; }
+        public long Id { get; set; }     
 
         [Column("pt_fee_id")]
         public long? PtFeeId { get; set; }
@@ -30,15 +30,16 @@ namespace Medelit.Domain.Models
 
         [Column("service_id")]
         public long ServiceId { get; set; }
-        [Column("ServiceId")]
+        [ForeignKey("ServiceId")]
         public Service Service { get; set; }
+
+
         [Column("professional_id")]
         public long ProfessionalId { get; set; }
-        [ForeignKey("ProfessionalId")]
-        public Professional Professional { get; set; }
-        [Column("lead_id")]
-        public long LeadId { get; set; }
-        [ForeignKey("LeadId")]
-        public Lead Lead { get; set; }
+
+        [Column("customer_id")]
+        public long CustomerId { get; set; }
+        public virtual Customer Customer { get; set; }
+
     }
 }

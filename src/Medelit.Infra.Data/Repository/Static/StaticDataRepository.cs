@@ -23,6 +23,11 @@ namespace Medelit.Infra.Data.Repository
             return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.SurName} - {x.DateOfBirth.CustomDateString("dd/MM/yyyy")}" });
         }
 
+        public IQueryable<FilterModel> GetCustomersForFilter()
+        {
+            return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.SurName} {x.Name}" });
+        }
+
         public IQueryable<FilterModel> GetInvoicesForFilter()
         {
             return Db.Invoice.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = x.Subject });
@@ -37,48 +42,65 @@ namespace Medelit.Infra.Data.Repository
         {
             var vats = Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = $"{s.Vats} {s.VatUnit}", DecValue = s.Vats }).Where(x => x.Value != null);
 
-            return (from v in Db.ServiceProfessionals
+            return (from v in Db.ServiceProfessionalFees
                     select new
                     {
                         Id = v.ServiceId,
                         Value = v.Service.Name,
                         timeService = v.Service.TimedServiceId,
                         vat = v.Service.VatId.HasValue ? vats.FirstOrDefault(x => x.Id == v.Service.VatId.Value).DecValue : null
-                    }).DistinctBy(x=>x.Id).ToList();
+                    }).DistinctBy(x => x.Id).ToList();
         }
 
         public dynamic GetProfessionalsWithFeesForFitler(long? serviceId)
         {
-            var ptFees = Db.VServiceProfessionalPtFees.Include(x => x.PtFee).ToList();
-            var proFees = Db.VServiceProfessionalProFees.Include(x => x.ProFee).ToList();
+            var ptFees = Db.ServiceProfessionalFees.Include(x => x.PtFee).ToList();
+            var proFees = Db.ServiceProfessionalFees.Include(x => x.ProFee).ToList();
 
-                var result = (from v in Db.VServiceProfessionalFees
-                              //where v.ServiceId == serviceId
-                              select new { 
-                                  id = v.ProfessionalId, 
-                                  Value = v.ServiceProfessionals.Professional.Name, 
+            if (serviceId.HasValue)
+            {   
+               return (from v in Db.ServiceProfessionalFees
+                              where v.ServiceId == serviceId
+                              select new
+                              {
+                                  id = v.ProfessionalId,
+                                  Value = v.Professional.Name,
                                   sid = v.ServiceId,
-                                  ptFees = GetPtFeeList(ptFees, v.ServiceId, v.ProfessionalId),
-                                  proFees = GetProFeeList(proFees, v.ServiceId, v.ProfessionalId),                              
-                              }).DistinctBy(x=>x.id).ToList();         
-                    return result;  
+                                  ptFees = new { v.ServiceId, v.ProfessionalId, v.PtFee.FeeName, id = v.PtFeeId, v.PtFee.A1, v.PtFee.A2 },
+                                  proFees = new { v.ServiceId, v.ProfessionalId, v.ProFee.FeeName, id = v.ProFeeId, v.ProFee.A1, v.ProFee.A2 },
+                              }).DistinctBy(x => x.id).ToList();
+            }
+            else
+            {
+                return (from v in Db.ServiceProfessionalFees
+                        select new
+                        {
+                            id = v.ProfessionalId,
+                            Value = v.Professional.Name,
+                            sid = v.ServiceId,
+                            ptFees = new { v.ServiceId, v.ProfessionalId, v.PtFee.FeeName, id = v.PtFeeId, v.PtFee.A1, v.PtFee.A2 },
+                            proFees = new { v.ServiceId, v.ProfessionalId, v.ProFee.FeeName, id = v.ProFeeId, v.ProFee.A1, v.ProFee.A2 },
+                        }).DistinctBy(x => x.id).ToList();
+            }
         }
 
-        private IEnumerable<object> GetPtFeeList(IEnumerable<VServiceProfessionalPtFees> ptFees, long? serviceId, long? professionalId)
+        private IEnumerable<object> GetPtFeeList(IEnumerable<ServiceProfessionalFees> ptFees, long? serviceId, long? professionalId)
         {
             return ptFees.Where(x => x.ProfessionalId == professionalId && x.ServiceId == serviceId && x.PtFeeId.HasValue)
-                .Select(x => new { 
-                    Id = x.PtFeeId, 
+                .Select(x => new
+                {
+                    Id = x.PtFeeId,
                     value = x.PtFee.FeeName,
                     A1 = x.PtFee.A1,
                     A2 = x.PtFee.A2
-                }).DistinctBy(x=>x.Id).ToList();
+                }).DistinctBy(x => x.Id).ToList();
         }
 
-        private IEnumerable<object> GetProFeeList(IEnumerable<VServiceProfessionalProFees> proFees, long? serviceId, long? professionalId)
+        private IEnumerable<object> GetProFeeList(IEnumerable<ServiceProfessionalFees> proFees, long? serviceId, long? professionalId)
         {
             return proFees.Where(x => x.ProfessionalId == professionalId && x.ServiceId == serviceId && x.ProFeeId.HasValue)
-                .Select(x => new {
+                .Select(x => new
+                {
                     Id = x.ProFeeId,
                     Value = x.ProFee.FeeName,
                     A1 = x.ProFee.A1,
@@ -91,7 +113,7 @@ namespace Medelit.Infra.Data.Repository
             if (serviceId.HasValue)
             {
                 var result = (from p in Db.Professional
-                              join sp in Db.ServiceProfessionals on p.Id equals sp.ProfessionalId
+                              join sp in Db.ServiceProfessionalFees on p.Id equals sp.ProfessionalId
                               select new { id = p.Id, Value = p.Name, sid = sp.ServiceId }).ToList();
                 if (result is null)
                     return Db.Professional.Select(x => new { x.Id, Value = x.Name }).ToList();
@@ -113,12 +135,14 @@ namespace Medelit.Infra.Data.Repository
 
         public IQueryable<FilterModel> GetFieldsForFilter()
         {
-            return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.Field.Replace(" ","")});
+            return Db.FieldSubCategory.Where(x=>!string.IsNullOrEmpty(x.Field)).Select(x => new FilterModel { Id = x.Id, Value = x.Field });
         }
 
-        public IQueryable<FilterModel> GetSubCategoriesForFilter()
+        public IQueryable<FilterModel> GetSubCategoriesForFilter(IEnumerable<FilterModel> fields)
         {
-            return Db.FieldSubCategory.Select(x => new FilterModel { Id = x.Id, Value = x.SubCategory.Replace(" ", "") }).Where(x => x.Value != null);
+            var fieldNames = Db.FieldSubCategory.Where(x => fields.Select(s => s.Id).Contains(x.Id)).Select(x => x.Field).Distinct().ToList();
+
+            return Db.FieldSubCategory.Where(x => fieldNames.Contains(x.Field)).Select(x => new FilterModel { Id = x.Id, Value = x.SubCategory }).Where(x => x.Value != null);
         }
 
         public IQueryable<FilterModel> GetContractStatus()
@@ -300,3 +324,4 @@ namespace Medelit.Infra.Data.Repository
 
     }
 }
+

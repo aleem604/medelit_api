@@ -9,11 +9,9 @@ namespace Medelit.Domain.Interfaces
     public interface IServiceRepository : IRepository<Service>
     {
         void FindServices(SearchViewModel viewModel);
-        IQueryable<ServiceProfessionals> GetServiceProfessionals();
         void RemoveProfessionals(long serviceId);
         Service GetByIdWithIncludes(long serviceId);
-        IEnumerable<Service> GetAllWithProfessionals();
-        dynamic GetProfessionalServices(long proId, long? fieldId, long? categoryId, string tag);
+        dynamic GetServiceProfessionals(long proId, long? fieldId, long? categoryId, string tag);
         void AddProfessionalToService(long serviceId, long professionalId);
         void DetachProfessional(long serviceId, long professionalId);
         void GetServiceConnectedProfessionals(long serviceId);
@@ -35,14 +33,11 @@ namespace Medelit.Domain.Interfaces
         void DetachProFeeFromService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId);
         #endregion service connect pt fees
 
-
-
         dynamic GetProfessionalServicesWithInclude(long professionalId);
         dynamic GetConnectedCustomersInvoicingEntities(long serviceId);
         dynamic GetConnectedBookings(long serviceId);
         dynamic GetConnectedCustomerInvoices(long serviceId);
         dynamic GetConnectedLeads(long serviceId);
-        void AddUpdateFeeForService(AddUpdateFeeToService viewModel);
         
     }
 }

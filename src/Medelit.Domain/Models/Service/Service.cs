@@ -42,10 +42,7 @@ namespace Medelit.Domain.Models
         public short? InformedConsentId { get; set; }
         public string Tags { get; set; }
 
-        public IEnumerable<ServiceProfessionals> ServiceProfessionals { get; set; }
-        public IEnumerable<VServiceProfessionalFees> VServiceProfessionalFees { get; set; }
-        public IEnumerable<VServiceProfessionalPtFees> VServiceProfessionalPtFees { get; set; }
-        public IEnumerable<VServiceProfessionalProFees> VServiceProfessionalProFees { get; set; }
+        public IEnumerable<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
 
         public Service Clone()
         {

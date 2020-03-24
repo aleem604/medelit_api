@@ -55,7 +55,7 @@ namespace Medelit.Infra.Data.Repository
             return Db.SaveChanges();
         }
 
-        public AuthClaims CurrentUser
+        protected AuthClaims CurrentUser
         {
             get
             {
@@ -63,15 +63,39 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
-        public void HandleResponse(Type type, object result)
+        protected void HandleResponse(Type type, object result)
         {
             if(result is null)
             {
                 _bus.RaiseEvent(new DomainNotification(type.Name, "data can't be null."));
                 return;
             }
+            else
+            {
+                _bus.RaiseEvent(new DomainNotification(type.Name, null, result));
+                return;
+            }
         }
 
+        protected void HandleException(Type type, Exception ex)
+        {
+            _bus.RaiseEvent(new DomainNotification(type.Name, ex.Message));
+            return;
+        }
+
+        protected decimal? GetSubTotal(decimal? ptFee, short? quantityHours)
+        {
+            if (ptFee.HasValue && quantityHours.HasValue)
+                return ptFee.Value * quantityHours.Value;
+            return null;
+        }
+
+        protected decimal? GetCusotmerTaxAmount(decimal? subTotal, short? taxType)
+        {
+            if (subTotal.HasValue && taxType.HasValue)
+                return subTotal.Value * taxType.Value * (decimal)0.01;
+            return null;
+        }
 
         public void Dispose()
         {

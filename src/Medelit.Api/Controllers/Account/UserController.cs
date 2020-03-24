@@ -55,6 +55,7 @@ namespace Medelit.Api.Controllers
                     roles.Add(role.ToString());
                 }
             }
+
             return Response(new
             {
                 user.Id,
@@ -62,7 +63,7 @@ namespace Medelit.Api.Controllers
                 user.LastName,
                 user.Email,
                 user.PhoneNumber,
-                roles = roles
+                roles
             });
         }
 

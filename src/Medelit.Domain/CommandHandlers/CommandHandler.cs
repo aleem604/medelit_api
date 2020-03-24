@@ -60,5 +60,19 @@ namespace Medelit.Domain.CommandHandlers
                 return false;
             }
         }
+
+        public decimal? GetSubTotal(decimal? ptFee, short? quantityHours)
+        {
+            if (ptFee.HasValue && quantityHours.HasValue)
+                return ptFee.Value * quantityHours.Value;
+            return null;
+        }
+
+        public decimal? GetCusotmerTaxAmount(decimal? subTotal, short? taxType)
+        {
+            if (subTotal.HasValue && taxType.HasValue)
+                return subTotal.Value * taxType.Value * (decimal)0.01;
+            return null;
+        }
     }
 }

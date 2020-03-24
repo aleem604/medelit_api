@@ -71,7 +71,7 @@ namespace Medelit.Application
         [Required]
         public short VisitVenueId { get; set; }
         [Required]
-        public short ContactMethodId { get; set; }
+        public short? ContactMethodId { get; set; }
         public string AddressNotes { get; set; }
         [Required]
         public short PaymentMethodId { get; set; }

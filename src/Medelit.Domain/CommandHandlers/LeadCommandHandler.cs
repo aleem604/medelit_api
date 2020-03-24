@@ -95,11 +95,12 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.FlatNumber = request.Lead.FlatNumber;
                     leadModel.Floor = request.Lead.Floor;
                     leadModel.VisitVenueId = request.Lead.VisitVenueId;
+                    leadModel.VisitVenueDetail = request.Lead.VisitVenueDetail;
+                    leadModel.AddressNotes = request.Lead.AddressNotes;
                     leadModel.LeadStatusId = request.Lead.LeadStatusId;
                     leadModel.LeadSourceId = request.Lead.LeadSourceId;
                     leadModel.LeadCategoryId = request.Lead.LeadCategoryId;
                     leadModel.ContactMethodId = request.Lead.ContactMethodId;
-                    leadModel.AddressNotes = request.Lead.AddressNotes;
                     leadModel.LeadDescription = request.Lead.LeadDescription;
 
                     leadModel.BankName = request.Lead.BankName;
@@ -228,11 +229,10 @@ namespace Medelit.Domain.CommandHandlers
                 customer.HomePostCode = lead.PostalCode;
                 customer.VisitPostCode = lead.PostalCode;
                 customer.ContactPhone = lead.ContactPhone;
-
-
+               
                 customer.LeadId = lead.Id;
                 customer.Id = 0;
-                customer.Services = new List<CustomerServiceRelation>();
+                customer.Services = new List<CustomerServices>();
                 customer.CreatedById = CurrentUser.Id;
                 _customerRepository.Add(customer);
 
@@ -244,11 +244,11 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     if (customer.Id > 0)
                     {
-                        var services = _mapper.Map<ICollection<CustomerServiceRelation>>(lead.Services);
-                        var newServices = new List<CustomerServiceRelation>();
+                        var services = _mapper.Map<ICollection<CustomerServices>>(lead.Services);
+                        var newServices = new List<CustomerServices>();
                         foreach (var service in services)
                         {
-                            newServices.Add(new CustomerServiceRelation
+                            newServices.Add(new CustomerServices
                             {
                                 CustomerId = customer.Id,
                                 ServiceId = service.ServiceId,

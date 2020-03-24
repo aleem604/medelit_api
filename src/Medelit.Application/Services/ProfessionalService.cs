@@ -64,7 +64,7 @@ namespace Medelit.Application
             var langs = _langRepository.GetAll().ToList();
             var fields = _fieldRepository.GetAll().ToList();
             var services = _serviceRepository.GetAll().ToList();
-            var serviceProfessionals = _serviceRepository.GetServiceProfessionals().ToList();
+            //var serviceProfessionals = _serviceRepository.GetServiceProfessionals().ToList();
             var cities = _dataRepository.GetCities().ToList();
 
             var query = _professionalRepository.GetAll().Select((s) => new
@@ -76,7 +76,7 @@ namespace Medelit.Application
                 s.CoverMap,
                 Field = string.Join("<br/>", s.ProfessionalFields.Select(x=>x.Field.Field).Distinct().ToList()),
                 SubCategory = string.Join("<br/>", s.ProfessionalSubCategories.Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
-                Services = GetServices(s.Id, services, serviceProfessionals),
+                Services = string.Join("<br/>", s.ServiceProfessionalFees.Select(x => x.Service.Name).Distinct().ToList()),
                 City = s.CityId > 0 ? cities.FirstOrDefault(c => c.Id == s.CityId).Value : "",
                 s.ContractDate,
                 s.ContractEndDate,
@@ -221,28 +221,16 @@ namespace Medelit.Application
             };
         }
 
-       
-        private string GetServices(long professionalId, List<Service> services, List<ServiceProfessionals> serviceProfessionals)
-        {
-            var proServices = (from s in services
-                               join
-                               sp in serviceProfessionals on s.Id equals sp.ServiceId
-                               where sp.ProfessionalId == professionalId
-                               select s.Name).ToArray();
-
-            return string.Join("<br/> ", proServices);
-        }
-
         public void GetProfessionalById(long professionalId)
         {
             try
             {
                 var professional = _professionalRepository.GetByIdWithIncludes(professionalId).FirstOrDefault();
-                var professionalServices = _professionalRepository.GetProfessionalServices(professional.Id);
+                //var professionalServices = _professionalRepository.ServiceProfessionalFees(professional.Id);
 
                 var viewModel = _mapper.Map<ProfessionalViewModel>(professional);
                 viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
-                viewModel.ProfessionalServices = _mapper.Map<IEnumerable<ServiceProfessionalRelationVeiwModel>>(professionalServices);
+                //viewModel.ProfessionalServices = _mapper.Map<IEnumerable<ServiceProfessionalRelationVeiwModel>>(professionalServices);
 
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, null, viewModel));
             }
@@ -324,9 +312,9 @@ namespace Medelit.Application
             _professionalRepository.AttachServicesToProfessional(serviceIds, proId);
         }
 
-        public void GetFeesForFilterToConnectWithServiceProfessional(long ptRelationRowId, long proRelationRowId)
+        public void GetFeesForFilterToConnectWithServiceProfessional(long serviceId, long professionalId)
         {
-            _professionalRepository.GetFeesForFilterToConnectWithServiceProfessional(ptRelationRowId, proRelationRowId);
+            _professionalRepository.GetFeesForFilterToConnectWithServiceProfessional(serviceId, professionalId);
         }
 
         public void Dispose()

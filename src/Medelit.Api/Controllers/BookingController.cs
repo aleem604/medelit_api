@@ -44,7 +44,6 @@ namespace Medelit.Api.Controllers
         [HttpGet("bookings/{bookingId}")]
         public IActionResult GetBookingById(long bookingId)
         {
-
             return Response(_bookingService.GetBookingById(bookingId));
         }
 

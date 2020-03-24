@@ -65,7 +65,7 @@ namespace Medelit.Domain.CommandHandlers
                     var bookingModel = _bookingRepository.GetById(request.Booking.Id);
                     //bookingModel.InvoiceEntityId = request.Booking.InvoiceEntityId;
 
-                    bookingModel.Name = request.Booking.Name;
+                    //bookingModel.Name = request.Booking.Name;
                     bookingModel.BookingDate = request.Booking.BookingDate;
 
                     bookingModel.BookingTypeId = request.Booking.BookingTypeId;
@@ -115,6 +115,7 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.NHSOrPrivateId = request.Booking.NHSOrPrivateId;
                     bookingModel.PatientDiscount = request.Booking.PatientDiscount;
 
+                    bookingModel.VisitDate = request.Booking.VisitDate;
                     bookingModel.IsAllDayVisit = request.Booking.IsAllDayVisit;
                     bookingModel.VisitStartDate = request.Booking.VisitStartDate;
                     bookingModel.VisitEndDate = request.Booking.VisitEndDate;
@@ -150,47 +151,44 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.ServiceId = request.Booking.ServiceId;
                     bookingModel.ProfessionalId = request.Booking.ProfessionalId;
 
-                    bookingModel.PtFee = request.Booking.PtFee;
-                    bookingModel.ProFee = request.Booking.ProFee;
+                    bookingModel.PtFeeA1 = request.Booking.PtFeeA1;
+                    bookingModel.PtFeeA2 = request.Booking.PtFeeA2;
+                    bookingModel.IsPtFeeA1 = request.Booking.IsPtFeeA1;
+
+                    bookingModel.ProFeeA1 = request.Booking.ProFeeA1;
+                    bookingModel.ProFeeA2 = request.Booking.ProFeeA2;
+                    bookingModel.IsProFeeA1 = request.Booking.IsProFeeA1;
+
+                    //bookingModel.ProFee = request.Booking.ProFee;
 
                     bookingModel.CashReturn = request.Booking.PtFee;
                     bookingModel.QuantityHours = request.Booking.QuantityHours;
                     bookingModel.TaxType = request.Booking.TaxType;
-                    bookingModel.SubTotal = GetSubTotal(request.Booking.PtFee, request.Booking.QuantityHours);
-                    bookingModel.TaxAmount = GetCusotmerTaxAmount(bookingModel.SubTotal, bookingModel.TaxType);
-                    bookingModel.GrossTotal = bookingModel.SubTotal + bookingModel.TaxAmount;
+                    bookingModel.IsValidated = true;
 
                     bookingModel.UpdateDate = DateTime.UtcNow;
                     bookingModel.UpdatedById = CurrentUser.Id;
                     _bookingRepository.Update(bookingModel);
                     commmitResult = Commit();
-
+                    _invoiceRepository.UpdateBookingStats(new List<long> { bookingModel.Id });
                     request.Booking = bookingModel;
-                }
-                else
-                {
-                    var bookingModel = request.Booking;
-                    _bookingRepository.Add(bookingModel);
-                    commmitResult = Commit();
-                    request.Booking = bookingModel;
-                }
-                if (commmitResult)
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Booking));
-                    return Task.FromResult(true);
-                }
-                else
-                {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
-                }
 
+                    if (commmitResult)
+                    {
+                        _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.Booking));
+                        return Task.FromResult(true);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 return HandleException(request.MessageType, ex);
             }
+
+            _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.API_DATA_INVALID));
+            return Task.FromResult(false);
         }
+
         public Task<bool> Handle(UpdateBookingsStatusCommand request, CancellationToken cancellationToken)
         {
             try
@@ -271,14 +269,17 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var clones = request.NumberOfClones;
+                long lastBookingId = 0;
                 if (clones > 0)
                 {
                     while (clones > 0)
                     {
                         var newBooking = booking.Clone();
                         newBooking.Id = 0;
-                        newBooking.Name = _bookingRepository.GetBookingName(booking.Name, string.Empty);
+                        newBooking.Name = _bookingRepository.GetBookingName(booking.CustomerId.Value, booking.Name, string.Empty);
+                        newBooking.SrNo = _bookingRepository.GetSrNo(booking.CustomerId.Value);
                         newBooking.VisitStartDate = null;
+                        newBooking.VisitEndDate = null;
                         newBooking.QuantityHours = null;
                         newBooking.CreatedById = CurrentUser.Id;
                         newBooking.AssignedToId = CurrentUser.Id;
@@ -286,9 +287,11 @@ namespace Medelit.Domain.CommandHandlers
                         _bookingRepository.Add(newBooking);
                         Commit();
                         clones--;
+                        _invoiceRepository.UpdateBookingStats(new List<long> { newBooking.Id });
+                        lastBookingId = newBooking.Id;
                     }
 
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, clones));
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, lastBookingId));
                     return Task.FromResult(true);
                 }
             }
@@ -305,29 +308,34 @@ namespace Medelit.Domain.CommandHandlers
         public Task<bool> Handle(CreateCycleCommand request, CancellationToken cancellationToken)
         {
             var booking = _bookingRepository.GetById(request.BookingId);
+            long lastCycleId = 0;
             try
             {
 
                 if (request.NumberOfCycles > 0)
                 {
-                    for (short i = 0; i < request.NumberOfCycles; i++)
+                    for (short i = 1; i < request.NumberOfCycles; i++)
                     {
                         var newBooking = booking.Clone();
                         newBooking.Cycle = request.NumberOfCycles;
                         newBooking.CycleNumber = Convert.ToInt16(i + 1);
                         newBooking.Id = 0;
-                        newBooking.Name = _bookingRepository.GetBookingName(booking.Name, string.Empty);
+                        newBooking.Name = _bookingRepository.GetBookingName(booking.CustomerId.Value, booking.Name, string.Empty);
+                        newBooking.SrNo = _bookingRepository.GetSrNo(booking.CustomerId.Value);
                         newBooking.VisitStartDate = null;
+                        newBooking.VisitEndDate = null;
                         newBooking.QuantityHours = null;
                         newBooking.CycleBookingId = booking.Id;
                         newBooking.CreatedById = CurrentUser.Id;
                         newBooking.AssignedToId = CurrentUser.Id;
                         _bookingRepository.Add(newBooking);
                         Commit();
-
+                        if (lastCycleId == 0)
+                            lastCycleId = newBooking.Id;
+                        _invoiceRepository.UpdateBookingStats(new List<long> { newBooking.Id });
                     }
 
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.NumberOfCycles));
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, lastCycleId));
                     return Task.FromResult(true);
                 }
             }
@@ -339,22 +347,6 @@ namespace Medelit.Domain.CommandHandlers
             _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.API_DATA_INVALID));
             return Task.FromResult(false);
 
-        }
-
-
-
-        private decimal? GetSubTotal(decimal? ptFee, short? quantityHours)
-        {
-            if (ptFee.HasValue && quantityHours.HasValue)
-                return ptFee.Value * quantityHours.Value;
-            return null;
-        }
-
-        private decimal? GetCusotmerTaxAmount(decimal? subTotal, short? taxType)
-        {
-            if (subTotal.HasValue && taxType.HasValue)
-                return subTotal.Value * taxType.Value * (decimal)0.01;
-            return null;
         }
 
         public void Dispose()

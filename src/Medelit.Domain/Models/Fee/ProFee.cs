@@ -21,6 +21,6 @@ namespace Medelit.Domain.Models
         public decimal? A1 { get; set; }
         public decimal? A2 { get; set; }
 
-        public IEnumerable<VServiceProfessionalProFees> VServiceProfessionalProFees { get; set; }
+        public IEnumerable<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
     }
 }

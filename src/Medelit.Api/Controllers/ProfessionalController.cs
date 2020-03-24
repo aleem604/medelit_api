@@ -84,8 +84,6 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
-
-
         [HttpGet("professionals/connected-customers/{proId}")]
         public IActionResult GetConnectedCustomers(long proId)
         {

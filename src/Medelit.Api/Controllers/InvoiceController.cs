@@ -42,8 +42,8 @@ namespace Medelit.Api.Controllers
         [HttpGet("invoices/{invoiceId}")]
         public IActionResult GetInvoiceById(long invoiceId)
         {
-
-            return Response(_invoiceService.GetInvoiceById(invoiceId));
+            _invoiceService.GetInvoiceById(invoiceId);
+            return Response();
         }
 
         [HttpPost("invoices")]
@@ -76,6 +76,31 @@ namespace Medelit.Api.Controllers
             _invoiceService.DeleteInvoices(invoiceIds);
             return Response();
         }
+
+        //api/v1/
+        [HttpGet("invoices/bookings-to-add-to-invoice/{invoiceId}")]
+        public IActionResult GetBookingToAddToInvoice(long invoiceId)
+        {
+            _invoiceService.GetBookingToAddToInvoice(invoiceId);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpGet("invoices/process-invoice-emission/{invoiceId}")]
+        public IActionResult ProcessInvocieEmissional(long invoiceId)
+        {
+            _invoiceService.ProcessInvoiceEmission(invoiceId);
+            return Response();
+        }
+
+        //api/v1/
+        [HttpPost("invoices/add-bookings-to-invoice/{invoiceId}")]
+        public IActionResult AddBookingsToInvoice([FromBody] IEnumerable<long> bookingIds, long invoiceId)
+        {
+            _invoiceService.AddBookingsToInvoice(bookingIds, invoiceId);
+            return Response();
+        }
+
 
         //api/v1/
         [HttpPost("invoices/add-booking-to-invoice/{bookingId}")]

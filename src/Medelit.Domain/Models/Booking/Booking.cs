@@ -9,6 +9,9 @@ namespace Medelit.Domain.Models
     {
         [Column("name")]
         public string Name { get; set; }
+        [Column("sr_no")]
+        public int? SrNo { get; set; }
+
         [Column("invoice_entity_id")]
         public long? InvoiceEntityId { get; set; }
         [ForeignKey("InvoiceEntityId")]
@@ -39,7 +42,7 @@ namespace Medelit.Domain.Models
         public short? BuildingTypeId { get; set; }
         [Column("visit_street_name")]
         public string VisitStreetName { get; set; }
-        
+
         [Column("home_street_name")]
         public string HomeStreetName { get; set; }
         [Column("home_post_code")]
@@ -142,19 +145,21 @@ namespace Medelit.Domain.Models
         public decimal? PatientDiscount { get; set; }
         [Column("gross_total")]
         public decimal? GrossTotal { get; set; }
+        [Column("visit_date")]
+        public DateTime? VisitDate { get; set; }
         [Column("is_all_day_visit")]
         public short? IsAllDayVisit { get; set; }
         [Column("visit_start_date")]
         public DateTime? VisitStartDate { get; set; }
         [Column("visit_end_date")]
         public DateTime? VisitEndDate { get; set; }
-       
+
 
         [Column("pro_discount")]
         public decimal? ProDiscount { get; set; }
         [Column("cash_confirmation_email_id")]
         public short? CashConfirmationMailId { get; set; }
-        
+
         [Column("patient_age")]
         public short? PatientAge { get; set; }
         public short? Cycle { get; set; }
@@ -162,7 +167,7 @@ namespace Medelit.Domain.Models
         public short? CycleNumber { get; set; }
         [Column("pro_invoice_number")]
         public string ProInvoiceNumber { get; set; }
-       
+
         [Column("total_due")]
         public decimal? TotalDue { get; set; }
         [Column("total_paid")]
@@ -174,6 +179,7 @@ namespace Medelit.Domain.Models
 
         [Column("service_id")]
         public long ServiceId { get; set; }
+
         [ForeignKey("ServiceId")]
         public Service Service { get; set; }
 
@@ -187,17 +193,26 @@ namespace Medelit.Domain.Models
         public long PtFeeId { get; set; }
         public PtFee PtFees { get; set; }
 
+        [Column("is_pt_fee")]
+        public short IsPtFeeA1 { get; set; }
 
-        [Column("pt_fee")]
-        public decimal? PtFee { get; set; }
-        
+        [Column("pt_fee_a1")]
+        public decimal? PtFeeA1 { get; set; }
+        [Column("pt_fee_a2")]
+        public decimal? PtFeeA2 { get; set; }
+
 
         [Column("pro_fee_id")]
         public long ProFeeId { get; set; }
-
-        [Column("pro_fee")]
-        public decimal? ProFee { get; set; }
         public ProFee ProFees { get; set; }
+
+        [Column("is_pro_fee")]
+        public short IsProFeeA1 { get; set; }
+
+        [Column("pro_fee_a1")]
+        public decimal? ProFeeA1 { get; set; }
+        [Column("pro_fee_a2")]
+        public decimal? ProFeeA2 { get; set; }
 
         [Column("quantity_hours")]
         public short? QuantityHours { get; set; }
@@ -205,9 +220,37 @@ namespace Medelit.Domain.Models
         [Column("cycle_booking_id")]
         public long? CycleBookingId { get; set; }
 
+        [Column("invoice_id")]
+        public long? InvoiceId { get; set; }
+
+        [ForeignKey("InvoiceId")]
+        public Invoice Invoice { get; set; }
+
+        [Column("is_validated")]
+        public bool IsValidated { get; set; }
+
+        [NotMapped]
+        public decimal? PtFee
+        {
+            get
+            {
+                return IsPtFeeA1 == 1 ? PtFeeA1 : PtFeeA2;
+            }
+        }
+
+        [NotMapped]
+        public decimal? ProFee
+        {
+            get
+            {
+                return IsProFeeA1 == 1 ? ProFeeA1 : ProFeeA2;
+            }
+        }
+
         public Booking Clone()
         {
-            return new Booking {
+            return new Booking
+            {
                 CustomerId = this.CustomerId,
                 Name = this.Name,
                 InvoiceEntityId = this.InvoiceEntityId,
@@ -224,9 +267,10 @@ namespace Medelit.Domain.Models
                 FlatNumber = this.FlatNumber,
                 Floor = this.Floor,
                 BuildingTypeId = this.BuildingTypeId,
+                HomeStreetName = this.HomeStreetName,
                 VisitStreetName = this.VisitStreetName,
                 HomePostCode = this.HomePostCode,
-                VisitPostCode= this.VisitPostCode,
+                VisitPostCode = this.VisitPostCode,
                 HomeCityId = this.HomeCityId,
                 VisitCityId = this.VisitCityId,
                 PhoneNumber = this.PhoneNumber,
@@ -242,7 +286,7 @@ namespace Medelit.Domain.Models
                 ReasonForVisit = this.ReasonForVisit,
                 ImToProId = this.ImToProId,
                 PtCalledForAppointmentId = this.PtCalledForAppointmentId,
-                PaymentConcludedId= this.PaymentConcludedId,
+                PaymentConcludedId = this.PaymentConcludedId,
                 PaymentMethodId = this.PaymentMethodId,
                 AddToAccountingId = this.AddToAccountingId,
                 PaymentStatusId = this.PaymentStatusId,
@@ -254,7 +298,7 @@ namespace Medelit.Domain.Models
                 InvoiceNumber = this.InvoiceNumber,
                 InvoicingNotes = this.InvoicingNotes,
                 InvoiceDueDate = this.InvoiceDueDate,
-                NotesOnPayment =   this.NotesOnPayment,
+                NotesOnPayment = this.NotesOnPayment,
                 ReportDeliveredId = this.ReportDeliveredId,
                 AddToProAccountId = this.AddToProAccountId,
                 InsuranceCoverId = this.InsuranceCoverId,
@@ -266,7 +310,7 @@ namespace Medelit.Domain.Models
                 Vials = this.Vials,
                 RepeadPrescriptionNumber = this.RepeadPrescriptionNumber,
                 PrescriptionNumber = this.PrescriptionNumber,
-                Notes= this.Notes,
+                Notes = this.Notes,
                 PrivateFee = this.PrivateFee,
                 TicketFee = this.TicketFee,
                 ExcemptionCode = this.ExcemptionCode,
@@ -279,7 +323,7 @@ namespace Medelit.Domain.Models
                 IsAllDayVisit = this.IsAllDayVisit,
                 VisitStartDate = this.VisitStartDate,
                 VisitEndDate = this.VisitEndDate,
-                
+
 
                 ProDiscount = this.ProDiscount,
                 CashConfirmationMailId = this.CashConfirmationMailId,
@@ -292,14 +336,30 @@ namespace Medelit.Domain.Models
                 TotalDue = this.TotalDue,
                 TotalPaid = this.TotalPaid,
                 ServiceId = this.ServiceId,
-                ProfessionalId = this.ProfessionalId,
-                PtFee = this.PtFee,
-                ProFee = this.ProFee,
-               
+                //ProfessionalId = this.ProfessionalId,
+                //IsPtFeeA1 = this.IsPtFeeA1,
+                //PtFeeId = this.PtFeeId,
+                //PtFeeA1 = this.PtFeeA1,
+                //PtFeeA2 = this.PtFeeA2,
+
+                //IsProFeeA1 = this.IsProFeeA1,
+                //ProFeeId = this.ProFeeId,
+                //ProFeeA1 = this.ProFeeA1,
+                //ProFeeA2 = this.ProFeeA2,
+
                 Status = this.Status,
                 CreateDate = DateTime.UtcNow,
             };
 
+        }
+
+        public bool IsValid()
+        {
+            if ((InvoiceNumber == null && PaymentStatusId == 3 && PaymentConcludedId == 1 && PaymentMethodId != 4) || (InvoiceNumber == null && PaymentStatusId == 2 && (BookingStatusId == 4 || BookingStatusId == 6)))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

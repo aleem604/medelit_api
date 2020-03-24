@@ -8,7 +8,7 @@ namespace Medelit.Domain.Commands
 {
     public class UpdateFeesStatusCommand : Command
     {
-        public IEnumerable<VFees> Fees { get; set; }
+        public IEnumerable<PtFee> Fees { get; set; }
         public eRecordStatus Status { get; set; }
         public override bool IsValid()
         {

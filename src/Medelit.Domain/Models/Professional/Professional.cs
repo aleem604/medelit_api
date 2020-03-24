@@ -100,8 +100,7 @@ namespace Medelit.Domain.Models
         public ICollection<ProfessionalLanguages> ProfessionalLanguages { get; set; }
         public ICollection<ProfessionalFields> ProfessionalFields { get; set; }
         public ICollection<ProfessionalSubCategories> ProfessionalSubCategories { get; set; }
-        public ICollection<ProfessionalPtFees> ProfessionalPtFees { get; set; }
-        public ICollection<ProfessionalProFees> ProfessionalProFees { get; set; }
+        public ICollection<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
 
     }
 }

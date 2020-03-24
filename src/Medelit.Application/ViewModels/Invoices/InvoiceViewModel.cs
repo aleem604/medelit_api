@@ -1,6 +1,8 @@
-﻿using Medelit.Common;
+﻿using AutoMapper;
+using Medelit.Common;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Medelit.Application
@@ -23,8 +25,8 @@ namespace Medelit.Application
         public short? StatusId { get; set; }
         public DateTime? PaymentDue { get; set; }
         public DateTime? InvoiceDeliveryDate { get; set; }
-        public short? InvoiceSentByEmailId { get; set; }
-        public short? InvoiceSentByMailId { get; set; }
+        public short? InvoiceSentByEmailId { get; set; } = 0;
+        public short? InvoiceSentByMailId { get; set; } = 0;
         public short? PaymentMethodId { get; set; }
         public DateTime? PatientDateOfBirth { get; set; }
         public string IEBillingAddress { get; set; }
@@ -39,12 +41,16 @@ namespace Medelit.Application
         public short? InsuranceCoverId { get; set; }
         public string InvoiceDiagnosis { get; set; }
         public DateTime? DateOfVisit { get; set; }
+        [Required]
         public string TermsAndConditions { get; set; }
         public string InvoiceDescription { get; set; }
         public string ItemNameOnInvoice { get; set; }
 
         public DateTime? PaymentArrivalDate { get; set; }
         public DateTime? ProInvoiceDate { get; set; }
+        public bool IsProforma { get; set; }
+
+        [IgnoreMap]
         public dynamic InvoiceBookings { get; set; }
 
     }

@@ -101,7 +101,7 @@ namespace Medelit.Domain.Models
         public Customer Customer { get; set; }
         [Column("converted_at")]
         public DateTime? ConvertDate { get; set; }
-        public ICollection<LeadServiceRelation> Services { get; set; }
+        public ICollection<LeadServices> Services { get; set; }
 
     }
 }

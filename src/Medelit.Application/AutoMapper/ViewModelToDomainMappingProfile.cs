@@ -50,13 +50,14 @@ namespace Medelit.Application.AutoMapper
 
             // Leads
             CreateMap<LeadViewModel, Lead>((MemberList.Source));
-            CreateMap<LeadServiceRelationViewModel, LeadServiceRelation>();
+            CreateMap<LeadServiceRelationViewModel, LeadServices>();
             CreateMap<Lead, Customer>((MemberList.Source));
-            CreateMap<LeadServiceRelation, CustomerServiceRelation>((MemberList.Source));
+            CreateMap<LeadServices, CustomerServices>((MemberList.Source));
 
+            CreateMap<InvoiceViewModel, Invoice>((MemberList.Source));
 
             CreateMap<CustomerViewModel, Customer>((MemberList.Source));
-            CreateMap<CustomerServiceRelationViewModel, CustomerServiceRelation>((MemberList.Source));
+            CreateMap<CustomerServiceRelationViewModel, CustomerServices>((MemberList.Source));
 
             CreateMap<InvoiceEntityViewModel, InvoiceEntity>((MemberList.Source));
 

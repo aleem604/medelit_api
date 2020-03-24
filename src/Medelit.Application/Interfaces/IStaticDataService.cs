@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Medelit.Common;
 using Medelit.Domain.Models;
@@ -9,6 +10,7 @@ namespace Medelit.Application
     public interface IStaticDataService : IDisposable
     {
         IEnumerable<FilterModel> GetCustomersForImportFilter();
+        IEnumerable<FilterModel> GetCustomersForFilter();
         IEnumerable<FilterModel> GetInvoicesForFilter();
         IEnumerable<FilterModel> GetInvoiceEntities();
         dynamic GetServicesForFitler();
@@ -17,7 +19,7 @@ namespace Medelit.Application
         dynamic GePTFeesForFilter();
         dynamic GetPROFeesForFilter();
         IEnumerable<FilterModel> GetFieldsForFilter();
-        IEnumerable<FilterModel> GetSubCategoriesForFilter();
+        IEnumerable<FilterModel> GetSubCategoriesForFilter(IEnumerable<FilterModel> fields);
         IEnumerable<FilterModel> GetContractStatusOptions();
         IEnumerable<FilterModel> GetApplicationMethods();
         IEnumerable<FilterModel> GetApplicationMeans();

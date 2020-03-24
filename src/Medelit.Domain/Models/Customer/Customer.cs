@@ -98,6 +98,6 @@ namespace Medelit.Domain.Models
         public short? HaveDifferentIEId { get; set; }
         [Column("lead_id")]
         public long? LeadId { get; set; }
-        public ICollection<CustomerServiceRelation> Services { get; set; }
+        public ICollection<CustomerServices> Services { get; set; }
     }
 }

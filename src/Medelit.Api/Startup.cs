@@ -20,6 +20,9 @@ using Medelit.Infra.CrossCutting.Identity.Authorization;
 using System;
 using Medelit.Auth;
 using Medelit.Api.Configurations.Auth;
+using Hangfire;
+using Hangfire.SqlServer;
+using Medelit.Application;
 
 namespace Medelit.Api
 {
@@ -48,6 +51,30 @@ namespace Medelit.Api
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHangfire(configuration => configuration
+                    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UseSqlServerStorage(_configuration.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
+                    {
+                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                        QueuePollInterval = TimeSpan.Zero,
+                        UseRecommendedIsolationLevel = true,
+                        UsePageLocksOnDequeue = true,
+                        DisableGlobalLocks = true
+                    }));
+            services.AddHangfireServer();
+
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
+            });
 
             services.AddDbContext<ApplicationDbContext>(options =>
                options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")));
@@ -103,14 +130,12 @@ namespace Medelit.Api
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, RoleManager<IdentityRole> roleManager)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, RoleManager<IdentityRole> roleManager, IHangfireJobsService hangfireJobs)
         {
-            app.UseCors(c =>
-            {
-                c.AllowAnyHeader();
-                c.AllowAnyMethod();
-                c.AllowAnyOrigin();
-            });
+            app.UseCors("CorsPolicy");
+
+            app.UseHangfireDashboard();
+
             app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseSwagger();
@@ -128,6 +153,10 @@ namespace Medelit.Api
                 name: "default",
                 template: "{controller=Common}/{action=Get}/{id?}");
             });
+
+            RecurringJob.AddOrUpdate(() => hangfireJobs.SetLeadStatus(), Cron.Daily());
+            if (env.IsProduction())
+                RecurringJob.AddOrUpdate(() => hangfireJobs.RemoveConvertedLeads(), Cron.MinuteInterval(5));
 
             var task = RolesExtensions.InitializeAsync(roleManager);
             task.Wait();

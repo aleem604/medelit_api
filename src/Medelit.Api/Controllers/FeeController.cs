@@ -118,7 +118,7 @@ namespace Medelit.Api.Controllers
         [HttpGet("fees/fee-connected-services/{feeId}/{feeType}")]
         public IActionResult GetConnectedServices(long feeId, eFeeType feeType)
         {
-            _feeService.GetConnectedServices(feeId, feeType);
+            _feeService.GetFeeConnectedServices(feeId, feeType);
             return Response();
         }
 
@@ -139,17 +139,17 @@ namespace Medelit.Api.Controllers
         }
 
         //api/v1/
-        [HttpGet("fees/services-to-connect-with-fee/{feeId}")]
-        public IActionResult GetServicesToConnectWithFee(long feeId)
+        [HttpGet("fees/services-to-connect-with-fee/{feeId}/{feeType}")]
+        public IActionResult GetServicesToConnectWithFee(long feeId, eFeeType feeType)
         {
-            return Response(_feeService.GetServicesToConnectWithFee(feeId));
+            return Response(_feeService.GetServicesToConnectWithFee(feeId, feeType));
         }
 
         //api/v1/
-        [HttpPost("fees/services-to-connect-with-fee/{feeId}")]
-        public IActionResult SaveServicesToConnectWithFee([FromBody] IEnumerable<long> serviceIds, long feeId)
+        [HttpPost("fees/services-to-connect-with-fee/{feeId}/{feeType}")]
+        public IActionResult SaveServicesToConnectWithFee([FromBody] IEnumerable<long> serviceIds, long feeId, eFeeType feeType)
         {
-            _feeService.SaveServicesToConnectWithFee(serviceIds, feeId);
+            _feeService.SaveServicesToConnectWithFee(serviceIds, feeId, feeType);
             return Response();
         }
 
@@ -163,10 +163,21 @@ namespace Medelit.Api.Controllers
 
         //api/v1/
         [HttpPost("fees/professional-to-connect-with-fee/{feeId}/{feeType}")]
-        public IActionResult SaveProfessionalToConnectWithFee([FromBody] IEnumerable<long> serviceIds, long feeId, eFeeType feeType)
+        public IActionResult SaveProfessionalToConnectWithFee([FromBody] IEnumerable<long> serviceProFeeIds, long feeId, eFeeType feeType)
         {
-            _feeService.SaveProfessionlToConnectWithFee(serviceIds, feeId, feeType);
+            _feeService.SaveProfessionlToConnectWithFee(serviceProFeeIds, feeId, feeType);
             return Response();
         }
+
+
+        //api/v1/
+        [HttpPost("fees/delete-connected-services/{feeId}/{feeType}")]
+        public IActionResult DeleteConnectedServices([FromBody]IEnumerable<long> feeConnectedProfessionals, long feeId, short feeType)
+        {
+            
+            _feeService.DeleteConnectedServices(feeConnectedProfessionals, feeId, (eFeeType)feeType);
+            return Response();
+        }
+
     }
 }

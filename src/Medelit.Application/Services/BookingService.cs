@@ -76,8 +76,8 @@ namespace Medelit.Application
                          select new
                          {
                              b.Id,
-                             b.Name,
-                             Customer = c.Name,
+                             Name  = $"{b.Name} {b.SrNo}",
+                             Customer = $"{c.SurName} {c.Name}",
                              InvoicingEntity = b.InvoiceEntityId.HasValue ? invoicingEntities.FirstOrDefault(x => x.Id == b.InvoiceEntityId).Name : "",
                              Service = b.ServiceId > 0 ? services.FirstOrDefault(x => x.Id == b.ServiceId).Name : "",
                              Professional = b.ProfessionalId > 0 ? professionals.FirstOrDefault(x => x.Id == b.ProfessionalId).Name : "",
@@ -226,18 +226,23 @@ namespace Medelit.Application
         public BookingViewModel GetBookingById(long bookingId)
         {
             var viewModel = _mapper.Map<BookingViewModel>(_bookingRepository.GetById(bookingId));
-            if (viewModel.ServiceId > 0)
+            if (viewModel != null)
             {
-                var vatId = _serviceRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.ServiceId).VatId;
-                viewModel.TaxType = _dataRepository.GetVats().FirstOrDefault(x => x.Id == vatId)?.DecValue;
+
+                if (viewModel.ServiceId > 0)
+                {
+                    var vatId = _serviceRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.ServiceId).VatId;
+                    viewModel.TaxType = _dataRepository.GetVats().FirstOrDefault(x => x.Id == vatId)?.DecValue;
+                }
+                viewModel.InvoiceEntityName = _ieRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.InvoiceEntityId)?.Name;
+                var customer = _customerRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.CustomerId);
+
+                if (customer != null)
+                    viewModel.CustomerName = $"{customer.SurName} {customer.Name}";
+                viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
+                if (viewModel.InvoiceId.HasValue)
+                    viewModel.InvoiceNumber = _bookingRepository.GetBookingInvoiceNumber(viewModel.InvoiceId.Value);
             }
-            viewModel.InvoiceEntityName = _ieRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.InvoiceEntityId)?.Name;
-            var customer = _customerRepository.GetAll().FirstOrDefault(x => x.Id == viewModel.CustomerId);
-
-            if (customer != null)
-                viewModel.CustomerName = $"{customer.SurName} {customer.Name}";
-            viewModel.AssignedTo = GetAssignedUser(viewModel.AssignedToId);
-
             return viewModel;
         }
 
