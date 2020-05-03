@@ -46,6 +46,22 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
+        [HttpGet("invoices/invoice-bookings-for-crud/{invoiceId}")]
+        public IActionResult InvocieBookingsForCrud(long invoiceId)
+        {
+            _invoiceService.InvocieBookingsForCrud(invoiceId);
+            return Response();
+        }
+
+        [HttpPost("invoices/invoice-bookings-for-crud/{invoiceId}")]
+        public IActionResult SaveInvocieBookingsForCrud([FromBody]IEnumerable<FilterModel> model, long invoiceId)
+        {
+            _invoiceService.SaveInvocieBookingsForCrud(model, invoiceId);
+            return Response();
+        }
+
+
+
         [HttpPost("invoices")]
         [HttpPut("invoices")]
         public IActionResult SaveInvoice([FromBody] InvoiceViewModel model)
@@ -112,10 +128,10 @@ namespace Medelit.Api.Controllers
         }
 
         //api/v1/
-        [HttpDelete("invoices/delete-invoice-booking/{ibid}")]
-        public IActionResult DeleteInvoiceBooking(long ibid)
+        [HttpDelete("invoices/delete-invoice-booking/{invoiceid}/{bookingId}")]
+        public IActionResult DeleteInvoiceBooking(long invoiceId, long bookingId)
         {
-            _invoiceService.DeleteInvoiceBooking(ibid);
+            _invoiceService.DeleteInvoiceBooking(invoiceId, bookingId);
             return Response();
         }
 
@@ -149,6 +165,8 @@ namespace Medelit.Api.Controllers
         {
             return Response(_invoiceService.InvoiceConnectedBookings(invoiceId));
         }
+
+        
 
     }
 }

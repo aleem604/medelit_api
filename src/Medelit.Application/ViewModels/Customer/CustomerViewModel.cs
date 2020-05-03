@@ -42,9 +42,9 @@ namespace Medelit.Application
         [Required]
         public string VisitStreetName { get; set; }
         [Required]
-        public short HomeCityId { get; set; }
+        public string HomeCity { get; set; }
         [Required]
-        public short VisitCityId { get; set; }
+        public string VisitCity { get; set; }
         [Required]
         public string HomePostCode { get; set; }
         [Required]

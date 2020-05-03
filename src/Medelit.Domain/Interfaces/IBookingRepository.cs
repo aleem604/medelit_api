@@ -12,5 +12,6 @@ namespace Medelit.Domain.Interfaces
         dynamic BookingConnectedProfessional(long bookingId);
         dynamic BookingConnectedInvoices(long bookingId);
         string GetBookingInvoiceNumber(long invoiceId);
+        string GetItemNameOnInvoice(long serviceId, long? ptFeeId);
     }
 }

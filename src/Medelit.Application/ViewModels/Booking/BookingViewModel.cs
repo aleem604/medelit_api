@@ -27,8 +27,8 @@ namespace Medelit.Application
         public string HomeStreetName { get; set; }
         public string HomePostCode { get; set; }
         public string VisitPostCode { get; set; }
-        public short? HomeCityId { get; set; }
-        public short? VisitCityId { get; set; }
+        public string HomeCity { get; set; }
+        public string VisitCity { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
         public string Email2 { get; set; }
@@ -79,7 +79,6 @@ namespace Medelit.Application
         public decimal? TaxAmount { get; set; }
         public decimal? PatientDiscount { get; set; }
         public decimal? GrossTotal { get; set; }
-        public DateTime? VisitDate { get; set; }
         public bool? IsAllDayVisit { get; set; }
         public DateTime? VisitStartDate { get; set; }
         public DateTime? VisitEndDate { get; set; }
@@ -110,6 +109,8 @@ namespace Medelit.Application
         public decimal? ProFeeA2 { get; set; }
 
         public short? QuantityHours { get; set; }
+        public string ItemNameOnInvoice { get; set; }
+
         public string CustomerName { get; set; }
         public string InvoiceEntityName { get; set; }
         public long? InvoiceId { get; set; }

@@ -27,8 +27,8 @@ namespace Medelit.Application
         public string MailingAddress { get; set; }
         public string BillingPostCode { get; set; }
         public string MailingPostCode { get; set; }
-        public int? BillingCityId { get; set; }
-        public int? MailingCityId { get; set; }
+        public string BillingCity { get; set; }
+        public string MailingCity { get; set; }
         public int? BillingCountryId { get; set; }
         public int? MailingCountryId { get; set; }
         public string Description { get; set; }

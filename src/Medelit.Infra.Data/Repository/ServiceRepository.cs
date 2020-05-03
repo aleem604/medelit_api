@@ -275,25 +275,26 @@ namespace Medelit.Infra.Data.Repository
                               where spfs.ServiceId == serviceId
                               select new
                               {
+                                  spfs.Id,
                                   spfs.ServiceId,
                                   spfs.ProfessionalId,
                                   professional = spfs.Professional.Name,
                                   phone = spfs.Professional.Telephone,
                                   spfs.Professional.Email,
-                                  status = ((eCollaborationCodes)spfs.Professional.ActiveCollaborationId).ToString()
+                                  status = ((eCollaborationCodes)spfs.Professional.ActiveCollaborationId).ToString(),
 
-                                  //PtFeeRowId = spfs.Id,
-                                  //PtFeeId = spfs.PtFeeId,
-                                  //PtFeeName = spfs.PtFee == null ? default : spfs.PtFee.FeeName,
-                                  //PtFeeA1 = spfs.PtFee == null ? default : spfs.PtFee.A1,
-                                  //PtFeeA2 = spfs.PtFee == null ? default : spfs.PtFee.A2,
+                                  PtFeeRowId = spfs.Id,
+                                  PtFeeId = spfs.PtFeeId,
+                                  PtFeeName = spfs.PtFee == null ? default : spfs.PtFee.FeeName,
+                                  PtFeeA1 = spfs.PtFee == null ? default : spfs.PtFee.A1,
+                                  PtFeeA2 = spfs.PtFee == null ? default : spfs.PtFee.A2,
 
-                                  //ProFeeRowId = spfs.Id,
-                                  //ProFeeId = spfs.ProFeeId,
-                                  //ProFeeName = spfs.ProFee == null ? default : spfs.ProFee.FeeName,
-                                  //ProFeeA1 = spfs.ProFee == null ? default : spfs.ProFee.A1,
-                                  //ProFeeA2 = spfs.ProFee == null ? default : spfs.ProFee.A2,
-                              }).ToList();
+                                  ProFeeRowId = spfs.Id,
+                                  ProFeeId = spfs.ProFeeId,
+                                  ProFeeName = spfs.ProFee == null ? default : spfs.ProFee.FeeName,
+                                  ProFeeA1 = spfs.ProFee == null ? default : spfs.ProFee.A1,
+                                  ProFeeA2 = spfs.ProFee == null ? default : spfs.ProFee.A2,
+                              }).DistinctBy(d => d.ProfessionalId).ToList();
 
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
             }
@@ -309,26 +310,28 @@ namespace Medelit.Infra.Data.Repository
             {
                 var connectedProfessionals = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId).Select(x => x.ProfessionalId).Distinct().ToList();
 
-                var result = (from spfs in Db.ServiceProfessionalFees
-                              where !connectedProfessionals.Contains(spfs.ProfessionalId)
+                var result = (from p in Db.Professional
+                              where !connectedProfessionals.Contains(p.Id)
                               select new
                               {
-                                  spfs.ServiceId,
-                                  spfs.ProfessionalId,
-                                  pName = spfs.Professional.Name,
+                                  p.Id,
+                                  name = p.Name,
+                                  email = p.Email,
+                                  telephone = p.Telephone,
+                                  p.City,
+                                  country = p.Country.Value,
 
-                                  PtFeeRowId = spfs.Id,
-                                  PtFeeId = spfs.PtFeeId,
-                                  PtFeeName = spfs.PtFee == null ? default : spfs.PtFee.FeeName,
-                                  PtFeeA1 = spfs.PtFee == null ? default : spfs.PtFee.A1,
-                                  PtFeeA2 = spfs.PtFee == null ? default : spfs.PtFee.A2,
+                                  ////PtFeeRowId = p.Id,
+                                  //PtFeeId = p.ServiceProfessionalFees.FirstOrDefault().PtFeeId,
+                                  //PtFeeName = p.ServiceProfessionalFees.FirstOrDefault().PtFee.FeeName,
+                                  //PtFeeA1 = p.ServiceProfessionalFees.FirstOrDefault().PtFee.A1,
+                                  //PtFeeA2 = p.ServiceProfessionalFees.FirstOrDefault().PtFee.A2,
 
-                                  ProFeeRowId = spfs.Id,
-                                  ProFeeId = spfs.ProFeeId,
-                                  ProFeeName = spfs.ProFee == null ? default : spfs.ProFee.FeeName,
-                                  ProFeeA1 = spfs.ProFee == null ? default : spfs.ProFee.A1,
-                                  ProFeeA2 = spfs.ProFee == null ? default : spfs.ProFee.A2,
-                              }).DistinctBy(x => x.ProfessionalId).ToList();
+                                  //ProFeeId = p.ServiceProfessionalFees.FirstOrDefault().ProFeeId,
+                                  //ProFeeName = p.ServiceProfessionalFees.FirstOrDefault().ProFee.FeeName,
+                                  //ProFeeA1 = p.ServiceProfessionalFees.FirstOrDefault().ProFee.A1,
+                                  //ProFeeA2 = p.ServiceProfessionalFees.FirstOrDefault().ProFee.A2,
+                              }).DistinctBy(x => x.Id).ToList();
 
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
             }
@@ -338,38 +341,19 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
-        public void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<EditProfessionalServiceFeesModel> models, long serviceId)
+        public void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<long> proIds, long serviceId)
         {
             try
             {
-                foreach (var model in models)
+                foreach (var proId in proIds)
                 {
-                    if (model.PtFeeId.HasValue && serviceId > 0 && model.ProfessionalId.HasValue)
+                    if (serviceId > 0 && proId > 0)
                     {
-                        var ex = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == serviceId && x.ProfessionalId == model.ProfessionalId);
+                        var profees = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ProfessionalId == proId) ?? new ServiceProfessionalFees();
+                        var ex = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == serviceId && x.ProfessionalId == proId);
                         if (ex is null)
                         {
-                            Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = serviceId, ProfessionalId = model.ProfessionalId.Value, PtFeeId = model.PtFeeId.Value });
-                        }
-                        else
-                        {
-                            ex.PtFeeId = model.PtFeeId;
-                            Db.ServiceProfessionalFees.Update(ex);
-                        }
-                        Db.SaveChanges();
-                    }
-
-                    if (model.ProFeeId.HasValue && serviceId > 0 && model.ProfessionalId.HasValue)
-                    {
-                        var ex = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == serviceId && x.ProfessionalId == model.ProfessionalId);
-                        if (ex is null)
-                        {
-                            Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = serviceId, ProfessionalId = model.ProfessionalId.Value, ProFeeId = model.ProFeeId.Value });
-                        }
-                        else
-                        {
-                            ex.ProFeeId = model.ProFeeId;
-                            Db.ServiceProfessionalFees.Update(ex);
+                            Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = serviceId, ProfessionalId = proId });
                         }
                         Db.SaveChanges();
                     }
@@ -382,22 +366,14 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
-        public void RemoveProfessionalsFromService(IEnumerable<EditProfessionalServiceFeesModel> models, long serviceId)
+        public void RemoveProfessionalsFromService(IEnumerable<long> rowIds, long serviceId)
         {
             try
             {
-                foreach (var model in models)
-                {
-                    if (model.ProfessionalId > 0 && serviceId > 0)
-                    {
-                        var row = Db.ServiceProfessionalFees.Where(x => x.ProfessionalId == model.ProfessionalId && x.ServiceId == model.ServiceId).ToList();
-                        if (row != null && row.Count() > 0)
-                        {
-                            Db.ServiceProfessionalFees.RemoveRange(row);
-                            Db.SaveChanges();
-                        }
-                    }
-                }
+                var rows = Db.ServiceProfessionalFees.Where(x => rowIds.Contains(x.Id)).ToList();
+                Db.ServiceProfessionalFees.RemoveRange(rows);
+                Db.SaveChanges();
+
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, null));
             }
             catch (Exception ex)
@@ -406,58 +382,20 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
-        #region service connect pt fees
-        public void GetServiceConnectedPtFees(long serviceId)
+        public void GetServiceProfessionalFeeRowDetail(long rowId)
         {
             try
             {
-                var result = (from spt in Db.ServiceProfessionalFees
-                              where spt.ServiceId == serviceId && spt.PtFeeId > 0
+                var result = (from p in Db.ServiceProfessionalFees
+                              where p.Id == rowId
                               select new
                               {
-                                  spt.Id,
-                                  PtFeeId = spt.PtFeeId,
-                                  PtFeeName = spt.PtFee.FeeName,
-                                  PtFeeA1 = spt.PtFee.A1,
-                                  PtFeeA2 = spt.PtFee.A2,
-                                  spt.ServiceId,
-                                  spt.ProfessionalId,
-                                  Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == spt.PtFeeId && x.ServiceId == serviceId).Select(x => x.Professional.Name).Distinct().ToList())
-                              }).DistinctBy(x => x.PtFeeId).ToList();
-
-                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
-            }
-            catch (Exception ex)
-            {
-                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
-            }
-
-        }
-        public void GetServiceConnectedPtFeesToConnect(long serviceId)
-        {
-            try
-            {
-                var connectedPtFee = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId).Select(x => x.PtFeeId).ToList();
-                var connectedProfs = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId).Select(x => x.ProfessionalId).ToList();
-                var result = (from spt in Db.ServiceProfessionalFees
-                              where !connectedPtFee.Contains(spt.PtFeeId) && spt.PtFeeId > 0
-                              && !connectedProfs.Contains(spt.ProfessionalId)
-                              select new
-                              {
-                                  spt.Id,
-                                  uid = $"{spt.ServiceId}-{spt.ProfessionalId}-{spt.PtFeeId}",
-                                  PtFeeId = spt.PtFeeId,
-                                  PtFeeName = spt.PtFee.FeeName,
-                                  PtFeeA1 = spt.PtFee.A1,
-                                  PtFeeA2 = spt.PtFee.A2,
-                                  spt.ServiceId,
-                                  spt.ProfessionalId,
-                                  Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == spt.PtFeeId).Select(x => x.Professional.Name).Distinct().ToList()),
-                                  Services = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == spt.PtFeeId).Select(x => x.Service.Name).Distinct().ToList()),
-                                  Tags = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == spt.PtFeeId).Select(x => x.Service.Tags).Distinct().ToList()),
-                              })
-                              .DistinctBy(x => x.PtFeeId, x => x.ProfessionalId)
-                              .ToList();
+                                  p.Id,
+                                  p.ServiceId,
+                                  p.ProfessionalId,
+                                  p.PtFeeId,
+                                  p.ProFeeId
+                              }).FirstOrDefault();
 
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
             }
@@ -467,57 +405,260 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
-        public void SavePtFeesForService(IEnumerable<ServiceConnectedPtFeesModel> models, long serviceId)
+        public void GetServiceProfessionalFeesForFilter(long rowId)
         {
             try
             {
-                foreach (var model in models)
+                var ptFeesForFilter = new List<FilterModel>();
+                var proFeesForFilter = new List<FilterModel>();
+
+                var row = Db.ServiceProfessionalFees.Find(rowId);
+
+                if (row != null)
                 {
-                    if (model.Id > 0)
+                    var ptFees = Db.ServiceProfessionalFees.Where(x => x.ServiceId == row.ServiceId && x.ProfessionalId == row.ProfessionalId && x.PtFeeId != row.PtFeeId).Select(x => x.PtFeeId).Distinct().ToList();
+                    ptFeesForFilter = Db.PtFee.Where(x => !ptFees.Contains(x.Id)).Select(x => new FilterModel { Id = x.Id, Value = x.FeeName }).ToList();
+                }
+
+                if (row != null)
+                {
+                    var proFees = Db.ServiceProfessionalFees.Where(x => x.ServiceId == row.ServiceId && x.ProfessionalId == row.ProfessionalId && x.ProFeeId != row.ProFeeId).Select(x => x.ProFeeId).Distinct().ToList();
+                    proFeesForFilter = Db.ProFee.Where(x => !proFees.Contains(x.Id)).Select(x => new FilterModel { Id = x.Id, Value = x.FeeName }).ToList();
+                }
+
+
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, new { pt = ptFeesForFilter, pro = proFeesForFilter }));
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+        }
+
+        public void SaveProfessionalServicesFees(ProfessionalConnectedServicesModel model, long rowId)
+        {
+            try
+            {
+                if (model.PtFeeId > 0 && model.ProFeeId > 0)
+                {
+                    var row = Db.ServiceProfessionalFees.Find(rowId);
+                    if (row != null)
                     {
-                        var row = Db.ServiceProfessionalFees.Find(model.Id);
-                        if (row != null)
+                        row.PtFeeId = model.PtFeeId;
+                        row.ProFeeId = model.ProFeeId;
+                        Db.ServiceProfessionalFees.Update(row);
+                        Db.SaveChanges();
+                    }
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, row));
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+                return;
+            }
+
+            _bus.RaiseEvent(new DomainNotification(GetType().Name, "Invalid data"));
+        }
+
+
+
+
+        #region service connect fees
+        public void GetServiceConnectedFees(long serviceId, eFeeType feeType)
+        {
+            try
+            {
+                if (feeType == eFeeType.PTFee)
+                {
+                    var result = (from spt in Db.ServiceProfessionalFees
+                                  where spt.ServiceId == serviceId && spt.PtFeeId > 0
+                                  select new
+                                  {
+                                      spt.Id,
+                                      spt.PtFeeId,
+                                      PtFeeName = spt.PtFee.FeeName,
+                                      PtFeeA1 = spt.PtFee.A1,
+                                      PtFeeA2 = spt.PtFee.A2,
+                                      spt.ServiceId,
+                                      spt.ProfessionalId,
+                                      Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == spt.PtFeeId && x.ServiceId == serviceId).Select(x => x.Professional.Name).Distinct().ToList())
+                                  }).DistinctBy(x => x.PtFeeId).ToList();
+
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+                }
+                else
+                {
+                    var result = (from spt in Db.ServiceProfessionalFees
+                                  where spt.ServiceId == serviceId && spt.ProFeeId > 0
+                                  select new
+                                  {
+                                      spt.Id,
+                                      spt.ProFeeId,
+                                      ProFeeName = spt.ProFee.FeeName,
+                                      ProFeeA1 = spt.ProFee.A1,
+                                      ProFeeA2 = spt.ProFee.A2,
+                                      spt.ServiceId,
+                                      spt.ProfessionalId,
+                                      Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == spt.ProFeeId && x.ServiceId == serviceId).Select(x => x.Professional.Name).Distinct().ToList())
+                                  }).DistinctBy(x => x.ProFeeId).ToList();
+
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+                }
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+
+        }
+
+        public void GetServiceConnectedFeesToConnect(long serviceId, eFeeType feeType)
+        {
+            try
+            {
+                if (feeType == eFeeType.PTFee)
+                {
+                    var connectedPtFee = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId).Select(x => x.PtFeeId).ToList();
+                    var result = (from fee in Db.PtFee
+                                  where !connectedPtFee.Contains(fee.Id)
+                                  select new
+                                  {
+                                      fee.Id,
+                                      PtFeeId = fee.Id,
+                                      PtFeeName = fee.FeeName,
+                                      PtFeeA1 = fee.A1,
+                                      PtFeeA2 = fee.A2,
+                                      //Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Professional.Name).Distinct().ToList()),
+                                      //Services = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Service.Name).Distinct().ToList()),
+                                      //Tags = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Service.Tags).Distinct().ToList()),
+                                  })
+                                  .DistinctBy(x => x.Id)
+                                  .ToList();
+
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+                    return;
+                }
+                else
+                {
+                    var connectedProFee = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId).Select(x => x.ProFeeId).ToList();
+                    var result = (from fee in Db.ProFee
+                                  where !connectedProFee.Contains(fee.Id)
+                                  select new
+                                  {
+                                      fee.Id,
+                                      ProFeeId = fee.Id,
+                                      ProFeeName = fee.FeeName,
+                                      ProFeeA1 = fee.A1,
+                                      ProFeeA2 = fee.A2,
+                                      //Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == fee.Id).Select(x => x.Professional.Name).Distinct().ToList()),
+                                      //Services = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == fee.Id).Select(x => x.Service.Name).Distinct().ToList()),
+                                      //Tags = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == fee.Id).Select(x => x.Service.Tags).Distinct().ToList()),
+                                  })
+                                  .DistinctBy(x => x.Id)
+                                  .ToList();
+
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+        }
+
+        public void SaveFeesForService(IEnumerable<long> feeIds, long serviceId, eFeeType feeType)
+        {
+            try
+            {
+                if (feeType == eFeeType.PTFee)
+                {
+                    foreach (var feeId in feeIds)
+                    {
+                        if (feeId > 0)
                         {
-                            var exists = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == serviceId && x.ProfessionalId == row.ProfessionalId);
-                            if (exists is null)
+                            var row = Db.ServiceProfessionalFees.FirstOrDefault(x => x.PtFeeId == feeId && x.ServiceId == serviceId);
+                            if (row is null)
                             {
-                                Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ProfessionalId = row.ProfessionalId, ServiceId = serviceId, PtFeeId = model.PtFeeId });
+                                Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = serviceId, PtFeeId = feeId });
                                 Db.SaveChanges();
                             }
-
                         }
                     }
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, true));
                 }
-                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, true));
+                else
+                {
+                    foreach (var feeId in feeIds)
+                    {
+                        if (feeId > 0)
+                        {
+                            var row = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ProFeeId == feeId && x.ServiceId == serviceId);
+                            if (row is null)
+                            {
+                                Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = serviceId, ProFeeId = feeId });
+                                Db.SaveChanges();
+                            }
+                        }
+                    }
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, true));
+                }
             }
             catch (Exception ex)
             {
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
             }
         }
-        public void DetachPtFeeFromService(IEnumerable<ServiceConnectedPtFeesModel> models, long serviceId)
+        public void DetachFeeFromService(IEnumerable<long> feeIds, long serviceId, eFeeType feeType)
         {
             try
             {
-                foreach (var model in models)
+                if (feeType == eFeeType.PTFee)
                 {
-                    var rows = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId && x.PtFeeId == model.PtFeeId).ToList();
-                    foreach (var row in rows)
+                    foreach (var feeId in feeIds)
                     {
-                        if (row.ProFeeId > 0)
+                        var rows = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId && x.PtFeeId == feeId).ToList();
+                        foreach (var row in rows)
                         {
-                            row.PtFeeId = null;
-                            Db.ServiceProfessionalFees.Update(row);
-                            Db.SaveChanges();
-                        }
-                        else
-                        {
-                            Db.ServiceProfessionalFees.Remove(row);
-                            Db.SaveChanges();
+                            if (row.ProFeeId > 0)
+                            {
+                                row.PtFeeId = null;
+                                Db.ServiceProfessionalFees.Update(row);
+                                Db.SaveChanges();
+                            }
+                            else
+                            {
+                                Db.ServiceProfessionalFees.Remove(row);
+                                Db.SaveChanges();
+                            }
                         }
                     }
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, true));
                 }
-                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, true));
+                else
+                {
+                    foreach (var feeId in feeIds)
+                    {
+                        var rows = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId && x.ProFeeId == feeId).ToList();
+                        foreach (var row in rows)
+                        {
+                            if (row.PtFeeId > 0)
+                            {
+                                row.PtFeeId = null;
+                                Db.ServiceProfessionalFees.Update(row);
+                                Db.SaveChanges();
+                            }
+                            else
+                            {
+                                Db.ServiceProfessionalFees.Remove(row);
+                                Db.SaveChanges();
+                            }
+                        }
+                    }
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, true));
+                }
             }
             catch (Exception ex)
             {
@@ -606,7 +747,7 @@ namespace Medelit.Infra.Data.Repository
                             }
                             else
                             {
-                                if(!(exists.ProFeeId > 0))
+                                if (!(exists.ProFeeId > 0))
                                 {
                                     exists.ProFeeId = model.ProFeeId;
                                     Db.ServiceProfessionalFees.Update(exists);

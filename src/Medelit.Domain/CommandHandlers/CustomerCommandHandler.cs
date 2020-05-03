@@ -86,6 +86,7 @@ namespace Medelit.Domain.CommandHandlers
 
                     customerModel.PaymentMethodId = request.Customer.PaymentMethodId;
                     customerModel.ListedDiscountNetworkId = request.Customer.ListedDiscountNetworkId;
+                    customerModel.Discount = request.Customer.Discount;
                     customerModel.HaveDifferentIEId = request.Customer.HaveDifferentIEId;
                     customerModel.InvoiceEntityId = request.Customer.InvoiceEntityId;
                     customerModel.InvoicingNotes = request.Customer.Name;
@@ -205,9 +206,10 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                var customer = _customerRepository.GetById(request.CustomerId);
-                var lead = _leadRepository.GetById(customer.LeadId.Value);
-                var services = customer.Services;
+
+                var lead = request.Lead;
+                var customer = _customerRepository.GetById(lead.CustomerId.Value);
+                var services = lead.Services;
                 long firstBookingId = 0;
                 foreach (var service in services)
                 {
@@ -228,6 +230,8 @@ namespace Medelit.Domain.CommandHandlers
                     booking.IsProFeeA1 = service.IsProFeeA1;
                     booking.ProFeeA1 = service.PROFeeA1;
                     booking.ProFeeA2 = service.PROFeeA2;
+                    booking.ItemNameOnInvoice = _bookingRepository.GetItemNameOnInvoice(service.Id, service.PtFeeId);
+
 
                     if (!IsTimedService(booking.ServiceId))
                     {
@@ -244,7 +248,7 @@ namespace Medelit.Domain.CommandHandlers
                     booking.BuildingTypeId = customer.BuildingTypeId;
                     booking.Details = lead.LeadDescription;
                     booking.ReasonForVisit = lead.LeadDescription;
-                    booking.InsuranceCoverId = lead.InsuranceCoverId;
+                    booking.InsuranceCoverId = customer.InsuranceCoverId;
 
                     booking.BookingStatusId = 1;
                     booking.PaymentConcludedId = 0;
@@ -273,7 +277,12 @@ namespace Medelit.Domain.CommandHandlers
                     _bookingRepository.Add(booking);
                     if (Commit() && firstBookingId == 0)
                     {
-                        firstBookingId = booking.Id;
+                        if (booking.Id > 0)
+                        {
+                            firstBookingId = booking.Id;
+                            _leadRepository.Remove(lead.Id);
+                            Commit();
+                        }
                     }
 
                 }

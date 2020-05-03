@@ -28,10 +28,8 @@ namespace Medelit.Domain.Models
         public string CoverMap { get; set; }
         [Column("street_name")]
         public string StreetName { get; set; }
-        [Column("city_id")]
-        public short CityId { get; set; }
-        [ForeignKey("CityId")]
-        public City City { get; set; }
+        [Column("city_name")]
+        public string City { get; set; }
         [Column("post_code")]
         public string PostCode { get; set; }
         [Column("country_id")]
@@ -43,8 +41,9 @@ namespace Medelit.Domain.Models
         public string ClinicStreetName { get; set; }
         [Column("clinic_post_code")]
         public string ClinicPostCode { get; set; }
-        [Column("clinic_city_id")]
-        public short? ClinicCityId { get; set; }
+        [Column("clinic_city")]
+        public string ClinicCity { get; set; }
+
         [Column("clinic_phone_number")]
         public string ClinicPhoneNumber { get; set; }
         [Column("date_of_birth")]

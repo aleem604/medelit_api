@@ -73,8 +73,8 @@ namespace Medelit.Domain.CommandHandlers
                     ieModel.MailingAddress = request.Entity.MailingAddress;
                     ieModel.BillingPostCode = request.Entity.BillingPostCode;
                     ieModel.MailingPostCode = request.Entity.MailingPostCode;
-                    ieModel.BillingCityId = request.Entity.BillingCityId;
-                    ieModel.MailingCityId = request.Entity.MailingCityId;
+                    ieModel.BillingCity = request.Entity.BillingCity;
+                    ieModel.MailingCity = request.Entity.MailingCity;
                     ieModel.BillingCountryId = request.Entity.BillingCountryId;
                     ieModel.MailingCountryId = request.Entity.MailingCountryId;
                     ieModel.Description = request.Entity.Description;

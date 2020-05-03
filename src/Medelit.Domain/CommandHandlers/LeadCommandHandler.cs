@@ -75,6 +75,7 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.DateOfBirth = request.Lead.DateOfBirth;
                     leadModel.CountryOfBirthId = request.Lead.CountryOfBirthId;
                     leadModel.CountryId = request.Lead.CountryId;
+                    leadModel.City = request.Lead.City;
                     leadModel.VisitRequestingPerson = request.Lead.VisitRequestingPerson;
                     leadModel.VisitRequestingPersonRelationId = request.Lead.VisitRequestingPersonRelationId;
                     leadModel.GPCode = request.Lead.GPCode;
@@ -85,11 +86,10 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.ListedDiscountNetworkId = request.Lead.ListedDiscountNetworkId;
                     leadModel.HaveDifferentIEId = request.Lead.HaveDifferentIEId;
                     leadModel.InvoiceEntityId = request.Lead.InvoiceEntityId;
-                    leadModel.InvoicingNotes = request.Lead.Name;
+                    leadModel.InvoicingNotes = request.Lead.InvoicingNotes;
 
                     leadModel.AddressStreetName = request.Lead.AddressStreetName;
                     leadModel.PostalCode = request.Lead.PostalCode;
-                    leadModel.CountryId = request.Lead.CountryId;
                     leadModel.BuildingTypeId = request.Lead.BuildingTypeId;
                     leadModel.Buzzer = request.Lead.Buzzer;
                     leadModel.FlatNumber = request.Lead.FlatNumber;
@@ -128,7 +128,7 @@ namespace Medelit.Domain.CommandHandlers
                     leadModel.AssignedToId = CurrentUser.Id;
                     leadModel.CreatedById = CurrentUser.Id;
                     leadModel.ContactPhone = leadModel.ContactPhone ?? leadModel.MainPhone;
-
+                    leadModel.LeadStatusId = (short)eLeadsStatus.Hot;
                     _leadRepository.Add(leadModel);
                     commmitResult = Commit();
                     request.Lead = leadModel;
@@ -183,14 +183,7 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                foreach (var feeId in request.LeadIds)
-                {
-                    var feeModel = _leadRepository.GetById(feeId);
-                    feeModel.Status = eRecordStatus.Deleted;
-                    feeModel.DeletedAt = DateTime.UtcNow;
-                    feeModel.DeletedById = CurrentUser.Id;
-                    _leadRepository.Update(feeModel);
-                }
+                    _leadRepository.RemoveAll(request.LeadIds.ToList());
                 if (Commit())
                 {
                     _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.LeadIds));
@@ -213,65 +206,76 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var lead = _leadRepository.GetWithInclude(request.LeadId);
-                var customer = _mapper.Map<Customer>(lead);
-                //customer.Services = _mapper.Map<ICollection<CustomerServiceRelation>>(lead.Services);
-
-                customer.PaymentMethodId = lead.PreferredPaymentMethodId;
-                customer.Email2 = lead.Email2;
-                customer.HomeStreetName = lead.AddressStreetName;
-                customer.VisitStreetName = lead.AddressStreetName;
-
-                customer.HomeCityId = lead.CityId;
-                customer.VisitCityId = lead.CityId;
-                customer.CountryOfBirthId = lead.CountryId;
-                customer.HomeCountryId = lead.CountryId;
-                customer.VisitCountryId = lead.CountryId;
-                customer.HomePostCode = lead.PostalCode;
-                customer.VisitPostCode = lead.PostalCode;
-                customer.ContactPhone = lead.ContactPhone;
-               
-                customer.LeadId = lead.Id;
-                customer.Id = 0;
-                customer.Services = new List<CustomerServices>();
-                customer.CreatedById = CurrentUser.Id;
-                _customerRepository.Add(customer);
-
-                lead.ConvertDate = DateTime.UtcNow;
-                lead.UpdatedById = CurrentUser.Id;
-                _leadRepository.Update(lead);
-
-                if (Commit())
+                if (lead.CustomerId > 0)
                 {
-                    if (customer.Id > 0)
-                    {
-                        var services = _mapper.Map<ICollection<CustomerServices>>(lead.Services);
-                        var newServices = new List<CustomerServices>();
-                        foreach (var service in services)
-                        {
-                            newServices.Add(new CustomerServices
-                            {
-                                CustomerId = customer.Id,
-                                ServiceId = service.ServiceId,
-                                ProfessionalId = service.ProfessionalId,
-                                PtFeeId = service.PtFeeId,
-                                PTFeeA1 = service.PTFeeA1,
-                                PTFeeA2 = service.PTFeeA2,
-                                PROFeeId = service.PROFeeId,
-                                PROFeeA1 = service.PROFeeA1,
-                                PROFeeA2 = service.PROFeeA2
-                            });
-                        }
-                        _customerRepository.SaveCustomerRelation(newServices);
-                        _bus.SendCommand(new ConvertCustomerToBookingCommand { CustomerId = customer.Id }).Wait();
-                    }
-
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.LeadId));
+                    _bus.SendCommand(new ConvertCustomerToBookingCommand {Lead = lead }).Wait();
                     return Task.FromResult(true);
                 }
                 else
                 {
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
-                    return Task.FromResult(false);
+                    var customer = _mapper.Map<Customer>(lead);
+                    //customer.Services = _mapper.Map<ICollection<CustomerServiceRelation>>(lead.Services);
+
+                    customer.PaymentMethodId = lead.PreferredPaymentMethodId;
+                    customer.Email2 = lead.Email2;
+                    customer.HomeStreetName = lead.AddressStreetName;
+                    customer.VisitStreetName = lead.AddressStreetName;
+
+                    customer.HomeCity = lead.City;
+                    customer.VisitCity = lead.City;
+                    customer.CountryOfBirthId = lead.CountryId;
+                    customer.HomeCountryId = lead.CountryId;
+                    customer.VisitCountryId = lead.CountryId;
+                    customer.HomePostCode = lead.PostalCode;
+                    customer.VisitPostCode = lead.PostalCode;
+                    customer.ContactPhone = lead.ContactPhone;
+
+                    customer.LeadId = lead.Id;
+                    customer.Id = 0;
+                    customer.Services = new List<CustomerServices>();
+                    customer.CreatedById = CurrentUser.Id;
+                    _customerRepository.Add(customer);
+
+                   
+
+                    if (Commit())
+                    {
+                        lead.ConvertDate = DateTime.UtcNow;
+                        lead.UpdatedById = CurrentUser.Id;
+                        lead.CustomerId = customer.Id;
+                        _leadRepository.Update(lead);
+
+                        if (customer.Id > 0)
+                        {
+                            var services = _mapper.Map<ICollection<CustomerServices>>(lead.Services);
+                            var newServices = new List<CustomerServices>();
+                            foreach (var service in services)
+                            {
+                                newServices.Add(new CustomerServices
+                                {
+                                    CustomerId = customer.Id,
+                                    ServiceId = service.ServiceId,
+                                    ProfessionalId = service.ProfessionalId,
+                                    PtFeeId = service.PtFeeId,
+                                    PTFeeA1 = service.PTFeeA1,
+                                    PTFeeA2 = service.PTFeeA2,
+                                    PROFeeId = service.PROFeeId,
+                                    PROFeeA1 = service.PROFeeA1,
+                                    PROFeeA2 = service.PROFeeA2
+                                });
+                            }
+                            _customerRepository.SaveCustomerRelation(newServices);
+                            _bus.SendCommand(new ConvertCustomerToBookingCommand { Lead = lead}).Wait();
+                        }
+
+                        _bus.RaiseEvent(new DomainNotification(request.MessageType, null, request.LeadId));
+                        return Task.FromResult(true);
+                    }
+                    else
+                    {
+                        _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
+                        return Task.FromResult(false);
+                    }
                 }
             }
             catch (Exception ex)
@@ -320,7 +324,7 @@ namespace Medelit.Domain.CommandHandlers
                         lead.GPCode = obj.GPCode;
                         lead.AddressStreetName = obj.AddressStreetName;
                         lead.PostalCode = obj.PostalCode;
-                        lead.CityId = GetCityId(obj.City);
+                        lead.City = obj.City;
                         lead.CountryId = GetCountryId(obj.Country);
                         lead.BuildingTypeId = GetBuildingTypeId(obj.Country);
                         lead.FlatNumber = obj.FlatNumber;
@@ -462,18 +466,6 @@ namespace Medelit.Domain.CommandHandlers
                 return default;
 
             var obj = _staticRepository.GetCountries().FirstOrDefault(x => x.Value.Equals(country.CLower(), StringComparison.InvariantCultureIgnoreCase));
-            if (obj is null)
-                return default;
-            else
-                return obj.Id;
-        }
-
-        private short GetCityId(string city)
-        {
-            if (string.IsNullOrEmpty(city))
-                return default;
-
-            var obj = _staticRepository.GetCities().FirstOrDefault(x => x.Value.Equals(city.CLower(), StringComparison.InvariantCultureIgnoreCase));
             if (obj is null)
                 return default;
             else

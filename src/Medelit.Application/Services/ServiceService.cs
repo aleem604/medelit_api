@@ -122,57 +122,49 @@ namespace Medelit.Application
             _serviceRepository.GetProfessionalsWithFeesToConnectWithService(serviceId);
         }
 
-        public void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId)
+        public void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<long> proIds, long serviceId)
         {
-            _serviceRepository.SaveProfessionalsWithFeesToConnectWithService(model, serviceId);
+            _serviceRepository.SaveProfessionalsWithFeesToConnectWithService(proIds, serviceId);
         }
-        public void RemoveProfessionalsFromService(IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId)
+        public void RemoveProfessionalsFromService(IEnumerable<long> model, long serviceId)
         {
             _serviceRepository.RemoveProfessionalsFromService(model, serviceId);
         }
 
-        #region service connect pt fees
-        public void GetServiceConnectedPtFees(long serviceId)
+        public void GetServiceProfessionalFeeRowDetail(long rowId)
         {
-            _serviceRepository.GetServiceConnectedPtFees(serviceId);
+            _serviceRepository.GetServiceProfessionalFeeRowDetail(rowId);
         }
-        public void GetServiceConnectedPtFeesToConnect(long serviceId)
+        public void GetServiceProfessionalFeesForFilter(long rowId)
         {
-            _serviceRepository.GetServiceConnectedPtFeesToConnect(serviceId);
+            _serviceRepository.GetServiceProfessionalFeesForFilter(rowId);
         }
-        public void SavePtFeesForService(IEnumerable<ServiceConnectedPtFeesModel> model, long serviceId)
+
+         public void SaveProfessionalServicesFees(ProfessionalConnectedServicesModel model, long rowId)
         {
-            _serviceRepository.SavePtFeesForService(model, serviceId);
+            _serviceRepository.SaveProfessionalServicesFees(model, rowId);
         }
-        public void DetachPtFeeFromService(IEnumerable<ServiceConnectedPtFeesModel> model, long serviceId)
+
+
+
+        #region service connect fees
+        public void GetServiceConnectedFees(long serviceId, eFeeType feeType)
         {
-            _serviceRepository.DetachPtFeeFromService(model, serviceId);
+            _serviceRepository.GetServiceConnectedFees(serviceId, feeType);
+        }
+        public void GetServiceConnectedFeesToConnect(long serviceId, eFeeType feeType)
+        {
+            _serviceRepository.GetServiceConnectedFeesToConnect(serviceId, feeType);
+        }
+        public void SaveFeesForService(IEnumerable<long> model, long serviceId, eFeeType feeType)
+        {
+            _serviceRepository.SaveFeesForService(model, serviceId, feeType);
+        }
+        public void DetachFeeFromService(IEnumerable<long> model, long serviceId, eFeeType feeType)
+        {
+            _serviceRepository.DetachFeeFromService(model, serviceId, feeType);
         }
         #endregion service connect pt fees
-
-        #region service connect pro fees
-        public void GetServiceConnectedProFees(long serviceId)
-        {
-            _serviceRepository.GetServiceConnectedProFees(serviceId);
-        }
-        public void GetServiceConnectedProFeesToConnect(long serviceId)
-        {
-            _serviceRepository.GetServiceConnectedProFeesToConnect(serviceId);
-        }
-        public void SaveProFeesForService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
-        {
-            _serviceRepository.SaveProFeesForService(model, serviceId);
-        }
-        public void DetachProFeeFromService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId)
-        {
-            _serviceRepository.DetachProFeeFromService(model, serviceId);
-        }
-        #endregion service connect pt fees
-
-
-
-
-
 
         public dynamic GetServiceProfessionals(ServicFilterViewModel viewModel)
         {

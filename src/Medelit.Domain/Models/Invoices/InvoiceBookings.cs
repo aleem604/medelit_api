@@ -8,8 +8,8 @@ namespace Medelit.Domain.Models
     [Table("invoice_bookings")]
     public class InvoiceBookings
     {
-        public long Id { get; set; }   
-        
+        public long Id { get; set; }
+
         [Column("invoice_id")]
         public long InvoiceId { get; set; }
         [ForeignKey("InvoiceId")]

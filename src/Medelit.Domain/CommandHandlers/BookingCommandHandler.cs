@@ -74,7 +74,7 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.HomeStreetName = request.Booking.HomeStreetName;
                     bookingModel.VisitPostCode = request.Booking.VisitPostCode;
                     bookingModel.HomePostCode = request.Booking.HomePostCode;
-                    bookingModel.VisitCityId = request.Booking.VisitCityId;
+                    bookingModel.VisitCity = request.Booking.VisitCity;
                     bookingModel.PhoneNumber = request.Booking.PhoneNumber;
 
                     bookingModel.VisitCountryId = request.Booking.VisitCountryId;
@@ -115,7 +115,6 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.NHSOrPrivateId = request.Booking.NHSOrPrivateId;
                     bookingModel.PatientDiscount = request.Booking.PatientDiscount;
 
-                    bookingModel.VisitDate = request.Booking.VisitDate;
                     bookingModel.IsAllDayVisit = request.Booking.IsAllDayVisit;
                     bookingModel.VisitStartDate = request.Booking.VisitStartDate;
                     bookingModel.VisitEndDate = request.Booking.VisitEndDate;
@@ -159,7 +158,7 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.ProFeeA2 = request.Booking.ProFeeA2;
                     bookingModel.IsProFeeA1 = request.Booking.IsProFeeA1;
 
-                    //bookingModel.ProFee = request.Booking.ProFee;
+                    bookingModel.ItemNameOnInvoice = request.Booking.ItemNameOnInvoice;
 
                     bookingModel.CashReturn = request.Booking.PtFee;
                     bookingModel.QuantityHours = request.Booking.QuantityHours;
@@ -334,8 +333,13 @@ namespace Medelit.Domain.CommandHandlers
                             lastCycleId = newBooking.Id;
                         _invoiceRepository.UpdateBookingStats(new List<long> { newBooking.Id });
                     }
+                    booking.CycleNumber = 1;
+                    booking.Cycle = request.NumberOfCycles;
+                    _bookingRepository.Update(booking);
+                    Commit();
+                    _invoiceRepository.UpdateBookingStats(new List<long> { booking.Id });
 
-                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, lastCycleId));
+                    _bus.RaiseEvent(new DomainNotification(request.MessageType, null, booking.Id));
                     return Task.FromResult(true);
                 }
             }

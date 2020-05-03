@@ -206,6 +206,7 @@ namespace Medelit.Application
                 model.Customer = customerObj.Name;
                 model.FromCustomerId = fromCustomerId;
                 model.Id = leadId;
+                
                 model.AssignedTo = GetAssignedUser(model.AssignedToId);
                 return model;
             }

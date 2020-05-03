@@ -20,13 +20,13 @@ namespace Medelit.Application
         public string Fax { get; set; }
         public string CoverMap { get; set; }
         public string StreetName { get; set; }
-        public short CityId { get; set; }
+        public string City { get; set; }
         public string PostCode { get; set; }
         public short CountryId { get; set; }
         public string Description { get; set; }
         public string ClinicStreetName { get; set; }
         public string ClinicPostCode { get; set; }
-        public short? ClinicCityId { get; set; }
+        public string ClinicCity { get; set; }
         public string ClinicPhoneNumber { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string CompanyName { get; set; }

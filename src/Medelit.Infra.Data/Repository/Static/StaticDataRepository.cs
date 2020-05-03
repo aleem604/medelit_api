@@ -20,7 +20,7 @@ namespace Medelit.Infra.Data.Repository
 
         public IQueryable<FilterModel> GetCustomersForImportFilter()
         {
-            return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.SurName} - {x.DateOfBirth.CustomDateString("dd/MM/yyyy")}" });
+            return Db.Customer.Where(x => x.Status == eRecordStatus.Active).Select(x => new FilterModel { Id = x.Id, Value = $"{x.Name} {x.SurName} - {x.DateOfBirth.CustomDateString("dd/MM/yyyy")}" });
         }
 
         public IQueryable<FilterModel> GetCustomersForFilter()
@@ -57,31 +57,19 @@ namespace Medelit.Infra.Data.Repository
             var ptFees = Db.ServiceProfessionalFees.Include(x => x.PtFee).ToList();
             var proFees = Db.ServiceProfessionalFees.Include(x => x.ProFee).ToList();
 
-            if (serviceId.HasValue)
-            {   
-               return (from v in Db.ServiceProfessionalFees
-                              where v.ServiceId == serviceId
-                              select new
-                              {
-                                  id = v.ProfessionalId,
-                                  Value = v.Professional.Name,
-                                  sid = v.ServiceId,
-                                  ptFees = new { v.ServiceId, v.ProfessionalId, v.PtFee.FeeName, id = v.PtFeeId, v.PtFee.A1, v.PtFee.A2 },
-                                  proFees = new { v.ServiceId, v.ProfessionalId, v.ProFee.FeeName, id = v.ProFeeId, v.ProFee.A1, v.ProFee.A2 },
-                              }).DistinctBy(x => x.id).ToList();
-            }
-            else
-            {
-                return (from v in Db.ServiceProfessionalFees
-                        select new
-                        {
-                            id = v.ProfessionalId,
-                            Value = v.Professional.Name,
-                            sid = v.ServiceId,
-                            ptFees = new { v.ServiceId, v.ProfessionalId, v.PtFee.FeeName, id = v.PtFeeId, v.PtFee.A1, v.PtFee.A2 },
-                            proFees = new { v.ServiceId, v.ProfessionalId, v.ProFee.FeeName, id = v.ProFeeId, v.ProFee.A1, v.ProFee.A2 },
-                        }).DistinctBy(x => x.id).ToList();
-            }
+            return (from v in Db.ServiceProfessionalFees
+                    where 
+                    /*v.ServiceId == serviceId &&*/ 
+                    v.PtFeeId.HasValue && v.ProFeeId.HasValue
+                    select new
+                    {
+                        spfId= v.Id,
+                        id = v.ProfessionalId,
+                        value = v.Professional.Name,
+                        sid = v.ServiceId,
+                        ptFees = new { v.ServiceId, v.ProfessionalId, v.PtFee.FeeName, id = v.PtFeeId, v.PtFee.A1, v.PtFee.A2 },
+                        proFees = new { v.ServiceId, v.ProfessionalId, v.ProFee.FeeName, id = v.ProFeeId, v.ProFee.A1, v.ProFee.A2 },
+                    }).ToList();
         }
 
         private IEnumerable<object> GetPtFeeList(IEnumerable<ServiceProfessionalFees> ptFees, long? serviceId, long? professionalId)
@@ -135,7 +123,7 @@ namespace Medelit.Infra.Data.Repository
 
         public IQueryable<FilterModel> GetFieldsForFilter()
         {
-            return Db.FieldSubCategory.Where(x=>!string.IsNullOrEmpty(x.Field)).Select(x => new FilterModel { Id = x.Id, Value = x.Field });
+            return Db.FieldSubCategory.Where(x => !string.IsNullOrEmpty(x.Field)).Select(x => new FilterModel { Id = x.Id, Value = x.Field });
         }
 
         public IQueryable<FilterModel> GetSubCategoriesForFilter(IEnumerable<FilterModel> fields)

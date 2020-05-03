@@ -23,9 +23,9 @@ namespace Medelit.Application.AutoMapper
                     opts => opts.MapFrom(
                         src => src.PaymentMethodId
                     ))
-                 .ForMember(dest => dest.CityId,
+                 .ForMember(dest => dest.City,
                     opts => opts.MapFrom(
-                        src => src.HomeCityId
+                        src => src.HomeCity
                     ))
                 .ForMember(dest => dest.CountryId,
                     opts => opts.MapFrom(

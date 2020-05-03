@@ -67,8 +67,8 @@ namespace Medelit.Domain.Models
         public string AddressStreetName { get; set; }
         [Column("post_code")]
         public string PostalCode { get; set; }
-        [Column("city_id")]
-        public short CityId { get; set; }
+        [Column("city_name")]
+        public string City { get; set; }
         [Column("country_id")]
         public short CountryId { get; set; }
         [Column("building_type_id")]

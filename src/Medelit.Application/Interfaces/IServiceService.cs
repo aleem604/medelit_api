@@ -14,25 +14,24 @@ namespace Medelit.Application
         void SaveService(ServiceViewModel feeViewModel);
         void DeleteServices(IEnumerable<long> list);
         void UpdateStatus(IEnumerable<ServiceViewModel> services, eRecordStatus status);
+
+        #region service professional connect
         void GetServiceConnectedProfessionals(long serviceId);
         void GetProfessionalsWithFeesToConnectWithService(long serviceId);
-        void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId);
-        void RemoveProfessionalsFromService(IEnumerable<EditProfessionalServiceFeesModel> model, long serviceId);
+        void SaveProfessionalsWithFeesToConnectWithService(IEnumerable<long> professionalids, long serviceId);
+        void RemoveProfessionalsFromService(IEnumerable<long> model, long serviceId);
+        void GetServiceProfessionalFeeRowDetail(long rowId);
+        void GetServiceProfessionalFeesForFilter(long rowId);
+        void SaveProfessionalServicesFees(ProfessionalConnectedServicesModel model, long rowId);
 
-        #region service connect pt fees
-        void GetServiceConnectedPtFees(long serviceId);
-        void GetServiceConnectedPtFeesToConnect(long serviceId);
-        void SavePtFeesForService(IEnumerable<ServiceConnectedPtFeesModel> model,long serviceId);
-        void DetachPtFeeFromService(IEnumerable<ServiceConnectedPtFeesModel> model,long serviceId);
+        #endregion service professional connect
+
+        #region service connect fees
+        void GetServiceConnectedFees(long serviceId, eFeeType feeType);
+        void GetServiceConnectedFeesToConnect(long serviceId,eFeeType feeType);
+        void SaveFeesForService(IEnumerable<long> model,long serviceId, eFeeType feeType);
+        void DetachFeeFromService(IEnumerable<long> model,long serviceId, eFeeType feeType);
         #endregion service connect pt fees
-
-        #region service connect pro fees
-        void GetServiceConnectedProFees(long serviceId);
-        void GetServiceConnectedProFeesToConnect(long serviceId);
-        void SaveProFeesForService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId);
-        void DetachProFeeFromService(IEnumerable<ServiceConnectedProFeesModel> model, long serviceId);
-        #endregion service connect pt fees
-
 
 
         dynamic GetServiceProfessionals(ServicFilterViewModel viewModel);

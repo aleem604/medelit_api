@@ -87,5 +87,12 @@ namespace Medelit.Infra.Data.Repository
 
         }
 
+       public string GetItemNameOnInvoice(long serviceId, long? ptFeeId)
+        {
+            string serviceName = Db.Service.Where(x => x.Id == serviceId).Select(s => s.Name).FirstOrDefault();
+            string feeName = ptFeeId.HasValue ? Db.PtFee.Where(x => x.Id == ptFeeId).Select(s => s.FeeName).FirstOrDefault() : string.Empty;
+            return $"{serviceName} {feeName}";
+        }
+
     }
 }

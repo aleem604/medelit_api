@@ -45,7 +45,7 @@ namespace Medelit.Application
         [Required]
         public string PostalCode { get; set; }
         [Required]
-        public short CityId { get; set; }
+        public string City { get; set; }
         [Required]
         public short CountryId { get; set; }
         public short? BuildingTypeId { get; set; }

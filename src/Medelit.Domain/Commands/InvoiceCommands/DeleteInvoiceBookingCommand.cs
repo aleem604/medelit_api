@@ -7,7 +7,8 @@ namespace Medelit.Domain.Commands
 {
    public class DeleteInvoiceBookingCommand: Command
     {
-        public long InvoiceBookingId { get; set; }
+        public long InvoiceId { get; set; }
+        public long BookingId { get; set; }
         public override bool IsValid()
         {
             return true;

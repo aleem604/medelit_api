@@ -76,7 +76,7 @@ namespace Medelit.Application
                 Customer = customers.FirstOrDefault(c => c.Id == x.CustomerId).Name,
                 x.StatusId,
 
-                InvoiceStatus = invoiceStatus.FirstOrDefault(i => i.Id == x.StatusId).Value,
+                InvoiceStatus = x.IsProforma ? "Proforma": "Emitted",
                 x.Status,
                 x.CreateDate,
                 x.PaymentMethodId
@@ -246,9 +246,9 @@ namespace Medelit.Application
             }
         }
 
-        public void DeleteInvoiceBooking(long ibid)
+        public void DeleteInvoiceBooking(long invoiceId, long bookingId)
         {
-            _bus.SendCommand(new DeleteInvoiceBookingCommand { InvoiceBookingId = ibid });
+            _bus.SendCommand(new DeleteInvoiceBookingCommand { InvoiceId = invoiceId, BookingId = bookingId });
         }
 
         public dynamic GetInvoiceView(long invoiceId)
@@ -272,6 +272,16 @@ namespace Medelit.Application
         public dynamic InvoiceConnectedBookings(long invoiceId)
         {
             return _invoiceRepository.InvoiceConnectedBookings(invoiceId);
+        }
+
+        public void InvocieBookingsForCrud(long invoiceId)
+        {
+            _invoiceRepository.InvocieBookingsForCrud(invoiceId);
+        }
+
+        public void SaveInvocieBookingsForCrud(IEnumerable<FilterModel> model, long invoiceId)
+        {
+            _invoiceRepository.SaveInvocieBookingsForCrud(model, invoiceId);
         }
 
 

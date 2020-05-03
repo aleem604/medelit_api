@@ -213,40 +213,36 @@ namespace Medelit.Infra.Data.Repository
 
             if (feeType == eFeeType.PTFee)
             {
-                var profs = Db.ServiceProfessionalFees.Where(x => x.PtFeeId == feeId).Select((s) => $"{s.ServiceId}--{s.ProfessionalId}").ToList();
+                var serviceIds = Db.ServiceProfessionalFees.Where(x => x.PtFeeId == feeId).Select((s) => s.ServiceId).ToList();
 
-                var result = (from sp in Db.ServiceProfessionalFees
-                              where !profs.Contains($"{sp.ServiceId}--{sp.ProfessionalId}") && sp.PtFeeId != null
+                var result = (from s in Db.Service
+                              where !serviceIds.Contains(s.Id)
                               select new
                               {
-                                  sp.Id,
-                                  sp.ServiceId,
-                                  sp.ProfessionalId,
-                                  uid = $"{sp.ServiceId}--{sp.ProfessionalId}",
-                                  serviceName = sp.Service.Name,
-                                  cField = sp.Service.Field.Field,
-                                  cSubcategory = sp.Service.SubCategory.SubCategory,
-                                  professional = sp.Professional.Name,
-                              }).DistinctBy(x => x.ServiceId, x => x.ProfessionalId).ToList();
+                                  s.Id,
+                                  serviceName = s.Name,
+                                  cField = s.Field.Field,
+                                  cSubcategory = s.SubCategory.SubCategory,
+                              })
+                              .DistinctBy(x => x.Id)
+                              .ToList();
                 return result;
             }
             else
             {
-                var profs = Db.ServiceProfessionalFees.Where(x => x.ProFeeId == feeId).Select((s) => $"{s.ServiceId}--{s.ProfessionalId}").ToList();
+                var serviceIds = Db.ServiceProfessionalFees.Where(x => x.ProFeeId == feeId).Select((s) => s.ServiceId).ToList();
 
-                var result = (from sp in Db.ServiceProfessionalFees
-                              where !profs.Contains($"{sp.ServiceId}--{sp.ProfessionalId}") && sp.ProFeeId != null
+                var result = (from s in Db.Service
+                              where !serviceIds.Contains(s.Id)
                               select new
                               {
-                                  sp.Id,
-                                  sp.ServiceId,
-                                  sp.ProfessionalId,
-                                  uid = $"{sp.ServiceId}--{sp.ProfessionalId}",
-                                  serviceName = sp.Service.Name,
-                                  cField = sp.Service.Field.Field,
-                                  cSubcategory = sp.Service.SubCategory.SubCategory,
-                                  professional = sp.Professional.Name,
-                              }).DistinctBy(x => x.ServiceId, x => x.ProfessionalId).ToList();
+                                  s.Id,
+                                  serviceName = s.Name,
+                                  cField = s.Field.Field,
+                                  cSubcategory = s.SubCategory.SubCategory,
+                              })
+                              .DistinctBy(x => x.Id)
+                              .ToList();
                 return result;
             }
         }
@@ -264,23 +260,12 @@ namespace Medelit.Infra.Data.Repository
 
                 if (feeType == eFeeType.PTFee)
                 {
-                    foreach (var spids in serviceIds)
+                    foreach (var sid in serviceIds)
                     {
-                        var rowObj = Db.ServiceProfessionalFees.Find(spids);
-                        if (rowObj != null)
+                        var rowObj = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == sid && x.PtFeeId == feeId);
+                        if (rowObj is null)
                         {
-                            var obj = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == rowObj.ServiceId && x.ProfessionalId == rowObj.ProfessionalId);
-                            if (obj != null)
-                            {
-                                obj.PtFeeId = feeId;
-                                Db.ServiceProfessionalFees.Update(obj);
-                            }
-                            else
-                            {
-                                var exists = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == rowObj.ServiceId && x.ProfessionalId == rowObj.ProfessionalId && x.PtFeeId == feeId);
-                                if (exists is null)
-                                    Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = rowObj.ServiceId, ProfessionalId = rowObj.ProfessionalId, PtFeeId = feeId });
-                            }
+                            Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = sid, PtFeeId = feeId });
                             Db.SaveChanges();
                         }
                     }
@@ -289,23 +274,12 @@ namespace Medelit.Infra.Data.Repository
                 }
                 else
                 {
-                    foreach (var spids in serviceIds)
+                    foreach (var sid in serviceIds)
                     {
-                        var rowObj = Db.ServiceProfessionalFees.Find(spids);
-                        if (rowObj != null)
+                        var rowObj = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == sid && x.ProFeeId == feeId);
+                        if (rowObj is null)
                         {
-                            var obj = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == rowObj.ServiceId && x.ProfessionalId == rowObj.ProfessionalId);
-                            if (obj != null)
-                            {
-                                obj.ProFeeId = feeId;
-                                Db.ServiceProfessionalFees.Update(obj);
-                            }
-                            else
-                            {
-                                var exists = Db.ServiceProfessionalFees.FirstOrDefault(x => x.ServiceId == rowObj.ServiceId && x.ProfessionalId == rowObj.ProfessionalId && x.ProFeeId == feeId);
-                                if (exists is null)
-                                    Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = rowObj.ServiceId, ProfessionalId = rowObj.ProfessionalId, ProFeeId = feeId });
-                            }
+                            Db.ServiceProfessionalFees.Add(new ServiceProfessionalFees { ServiceId = sid, ProFeeId = feeId });
                             Db.SaveChanges();
                         }
                     }
@@ -380,7 +354,7 @@ namespace Medelit.Infra.Data.Repository
         }
 
 
-       
+
         public void GetConnectedProfessionals(long feeId, eFeeType feeType)
         {
             try
@@ -397,7 +371,7 @@ namespace Medelit.Infra.Data.Repository
                                       professionalId = sp.ProfessionalId,
                                       sp.ServiceId,
                                       pName = sp.Professional.Name,
-                                      pCity = sp.Professional.City.Value,
+                                      pCity = sp.Professional.City,
                                       cService = sp.Service.Name,
                                       cField = sp.Service.Field.Field,
                                       cSubcategory = sp.Service.SubCategory.SubCategory
@@ -416,7 +390,7 @@ namespace Medelit.Infra.Data.Repository
                                       professionalId = sp.ProfessionalId,
                                       sp.ServiceId,
                                       pName = sp.Professional.Name,
-                                      pCity = sp.Professional.City.Value,
+                                      pCity = sp.Professional.City,
                                       cService = sp.Service.Name,
                                       cField = sp.Service.Field.Field,
                                       cSubcategory = sp.Service.SubCategory.SubCategory
@@ -449,7 +423,7 @@ namespace Medelit.Infra.Data.Repository
                                       sp.ServiceId,
                                       uid = $"{sp.ServiceId}--{sp.ProfessionalId}",
                                       pName = sp.Professional.Name,
-                                      pCity = sp.Professional.City.Value,
+                                      pCity = sp.Professional.City,
                                       cService = sp.Service.Name,
                                       cField = sp.Service.Field.Field,
                                       cSubcategory = sp.Service.SubCategory.SubCategory
@@ -470,7 +444,7 @@ namespace Medelit.Infra.Data.Repository
                                       sp.ServiceId,
                                       uid = $"{sp.ServiceId}--{sp.ProfessionalId}",
                                       pName = sp.Professional.Name,
-                                      pCity = sp.Professional.City.Value,
+                                      pCity = sp.Professional.City,
                                       cService = sp.Service.Name,
                                       cField = sp.Service.Field.Field,
                                       cSubcategory = sp.Service.SubCategory.SubCategory
@@ -658,7 +632,7 @@ namespace Medelit.Infra.Data.Repository
 
         }
 
-        
+
 
     }
 }

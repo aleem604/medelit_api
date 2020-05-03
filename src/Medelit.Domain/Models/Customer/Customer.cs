@@ -49,18 +49,25 @@ namespace Medelit.Domain.Models
         public string HomeStreetName { get; set; }
         [Column("visit_street_name")]
         public string VisitStreetName { get; set; }
-        [Column("home_city_id")]
-        public short? HomeCityId { get; set; }
-        [Column("visit_city_id")]
-        public short? VisitCityId { get; set; }
+        [Column("home_city")]
+        public string HomeCity { get; set; }
+
+        [Column("visit_city")]
+        public string VisitCity { get; set; }
+
         [Column("home_post_code")]
         public string HomePostCode { get; set; }
         [Column("visit_post_code")]
         public string VisitPostCode { get; set; }
         [Column("home_country_id")]
         public short? HomeCountryId { get; set; }
+        [ForeignKey("HomeCountryId")]
+        public Country HomeCountry { get; set; }
+
         [Column("visit_country_id")]
         public short? VisitCountryId { get; set; }
+        public Country VisitCountry { get; set; }
+
         [Column("visit_venue_detail")]
         public string VisitVenueDetail { get; set; }
         [Column("bank_name")]

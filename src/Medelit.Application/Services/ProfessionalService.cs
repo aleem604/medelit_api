@@ -77,7 +77,7 @@ namespace Medelit.Application
                 Field = string.Join("<br/>", s.ProfessionalFields.Select(x=>x.Field.Field).Distinct().ToList()),
                 SubCategory = string.Join("<br/>", s.ProfessionalSubCategories.Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
                 Services = string.Join("<br/>", s.ServiceProfessionalFees.Select(x => x.Service.Name).Distinct().ToList()),
-                City = s.CityId > 0 ? cities.FirstOrDefault(c => c.Id == s.CityId).Value : "",
+                s.City,
                 s.ContractDate,
                 s.ContractEndDate,
 

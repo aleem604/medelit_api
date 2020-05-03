@@ -49,10 +49,10 @@ namespace Medelit.Domain.Models
         public string HomePostCode { get; set; }
         [Column("visit_post_code")]
         public string VisitPostCode { get; set; }
-        [Column("home_city_id")]
-        public short? HomeCityId { get; set; }
-        [Column("visit_city_id")]
-        public short? VisitCityId { get; set; }
+        [Column("home_city")]
+        public string HomeCity { get; set; }
+        [Column("visit_city")]
+        public string VisitCity { get; set; }
         [Column("phone_number")]
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
@@ -145,8 +145,7 @@ namespace Medelit.Domain.Models
         public decimal? PatientDiscount { get; set; }
         [Column("gross_total")]
         public decimal? GrossTotal { get; set; }
-        [Column("visit_date")]
-        public DateTime? VisitDate { get; set; }
+
         [Column("is_all_day_visit")]
         public short? IsAllDayVisit { get; set; }
         [Column("visit_start_date")]
@@ -217,6 +216,9 @@ namespace Medelit.Domain.Models
         [Column("quantity_hours")]
         public short? QuantityHours { get; set; }
 
+        [Column("item_name_on_invoice")]
+        public string ItemNameOnInvoice { get; set; }
+
         [Column("cycle_booking_id")]
         public long? CycleBookingId { get; set; }
 
@@ -271,8 +273,8 @@ namespace Medelit.Domain.Models
                 VisitStreetName = this.VisitStreetName,
                 HomePostCode = this.HomePostCode,
                 VisitPostCode = this.VisitPostCode,
-                HomeCityId = this.HomeCityId,
-                VisitCityId = this.VisitCityId,
+                HomeCity = this.HomeCity,
+                VisitCity = this.VisitCity,
                 PhoneNumber = this.PhoneNumber,
                 Email = this.Email,
                 Phone2 = this.Phone2,
@@ -328,6 +330,7 @@ namespace Medelit.Domain.Models
                 ProDiscount = this.ProDiscount,
                 CashConfirmationMailId = this.CashConfirmationMailId,
                 QuantityHours = this.QuantityHours,
+                ItemNameOnInvoice = this.ItemNameOnInvoice,
                 //DiscountNetworkId = this.DiscountNetworkId,
                 PatientAge = this.PatientAge,
                 Cycle = this.Cycle,
@@ -336,16 +339,16 @@ namespace Medelit.Domain.Models
                 TotalDue = this.TotalDue,
                 TotalPaid = this.TotalPaid,
                 ServiceId = this.ServiceId,
-                //ProfessionalId = this.ProfessionalId,
-                //IsPtFeeA1 = this.IsPtFeeA1,
-                //PtFeeId = this.PtFeeId,
-                //PtFeeA1 = this.PtFeeA1,
-                //PtFeeA2 = this.PtFeeA2,
+                ProfessionalId = this.ProfessionalId,
+                IsPtFeeA1 = this.IsPtFeeA1,
+                PtFeeId = this.PtFeeId,
+                PtFeeA1 = this.PtFeeA1,
+                PtFeeA2 = this.PtFeeA2,
 
-                //IsProFeeA1 = this.IsProFeeA1,
-                //ProFeeId = this.ProFeeId,
-                //ProFeeA1 = this.ProFeeA1,
-                //ProFeeA2 = this.ProFeeA2,
+                IsProFeeA1 = this.IsProFeeA1,
+                ProFeeId = this.ProFeeId,
+                ProFeeA1 = this.ProFeeA1,
+                ProFeeA2 = this.ProFeeA2,
 
                 Status = this.Status,
                 CreateDate = DateTime.UtcNow,

@@ -10,6 +10,7 @@ namespace Medelit.Domain.Models
         public string Subject { get; set; }
         [Column("invoicing_entity_id")]
         public long? InvoiceEntityId { get; set; }
+
         [ForeignKey("InvoiceEntityId")]
         public InvoiceEntity InvoiceEntity { get; set; }
         
@@ -30,8 +31,8 @@ namespace Medelit.Domain.Models
         public decimal? TotalInvoice { get; set; }
         [Column("status_id")]
         public short? StatusId { get; set; }
-        [Column("payment_due")]
-        public DateTime? PaymentDue { get; set; }
+        [Column("payment_due_date")]
+        public DateTime? PaymentDueDate { get; set; }
         [Column("invoice_delivery_date")]
         public DateTime? InvoiceDeliveryDate { get; set; }
         [Column("invoice_sent_by_email_id")]
@@ -50,14 +51,22 @@ namespace Medelit.Domain.Models
         public string IEBillingPostCode { get; set; }
         [Column("mailing_post_code")]
         public string MailingPostCode { get; set; }
-        [Column("ie_billing_city_id")]
-        public short? IEBillingCityId { get; set; }
-        [Column("mailing_city_id")]
-        public short? MailingCityId { get; set; }
+        [Column("ie_billing_city")]
+        public string IEBillingCity { get; set; }
+
+        [Column("mailing_city")]
+        public string MailingCity { get; set; }
+
         [Column("ie_billing_country_id")]
         public short? IEBillingCountryId { get; set; }
+        [ForeignKey("IEBillingCountryId")]
+        public Country BillingCountry { get; set; }
+
         [Column("mailing_country_id")]
         public short? MailingCountryId { get; set; }
+        [ForeignKey("MailingCountryId")]
+        public Country MailingCountry { get; set; }
+
         [Column("invoice_notes")]
         public string InvoiceNotes { get; set; }
         [Column("insurance_cover_id")]

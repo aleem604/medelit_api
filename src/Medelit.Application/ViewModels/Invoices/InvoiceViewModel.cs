@@ -23,7 +23,7 @@ namespace Medelit.Application
         public decimal? Discount { get; set; }
         public decimal? TotalInvoice { get; set; }
         public short? StatusId { get; set; }
-        public DateTime? PaymentDue { get; set; }
+        public DateTime? PaymentDueDate { get; set; }
         public DateTime? InvoiceDeliveryDate { get; set; }
         public short? InvoiceSentByEmailId { get; set; } = 0;
         public short? InvoiceSentByMailId { get; set; } = 0;
@@ -33,8 +33,8 @@ namespace Medelit.Application
         public string MailingAddress { get; set; }
         public string IEBillingPostCode { get; set; }
         public string MailingPostCode { get; set; }
-        public short? IEBillingCityId { get; set; }
-        public short? MailingCityId { get; set; }
+        public string IEBillingCity { get; set; }
+        public string MailingCity { get; set; }
         public short? IEBillingCountryId { get; set; }
         public short? MailingCountryId { get; set; }
         public string InvoiceNotes { get; set; }

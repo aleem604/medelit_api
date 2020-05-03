@@ -8,7 +8,9 @@ namespace Medelit.Domain.Interfaces
 {
     public interface IInvoiceRepository : IRepository<Invoice>
     {
+        void InvocieBookingsForCrud(long invoiceId);
         InvoiceBookings AddBookingToInvoice(long bookingId, long invoiceId);
+        void SaveInvocieBookingsForCrud(IEnumerable<FilterModel> model, long invoiceId);
         IQueryable<InvoiceBookings> GetInvoiceBookings();
         void UpdateInvoiceTotal(long invoiceId);
         void UpdateBookingStats(List<long> bookingIds);
@@ -22,6 +24,7 @@ namespace Medelit.Domain.Interfaces
         dynamic InvoiceConnectedCustomers(long invoiceId);
         dynamic InvoiceConnectedInvoiceEntity(long invoiceId);
         dynamic InvoiceConnectedBookings(long invoiceId);
-       
+        string GetProformaInoviceNumber(long invoiceId);
+        
     }
 }

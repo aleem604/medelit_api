@@ -20,7 +20,7 @@ namespace Medelit.Application
 
         public IEnumerable<FilterModel> GetCustomersForImportFilter()
         {
-            return _acodeRepository.GetCustomersForImportFilter().ToList();
+            return _acodeRepository.GetCustomersForImportFilter().DistinctBy(d => d.Id).ToList();
         }
         public IEnumerable<FilterModel> GetCustomersForFilter()
         {

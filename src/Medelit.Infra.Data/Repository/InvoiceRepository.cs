@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Medelit.Common;
 using Medelit.Domain.Core.Bus;
@@ -7,7 +8,6 @@ using Medelit.Domain.Core.Notifications;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
 using Medelit.Infra.Data.Context;
-using Medelit.Infra.Data.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,9 +34,28 @@ namespace Medelit.Infra.Data.Repository
             return invioceBooking;
         }
 
+        public void SaveInvocieBookingsForCrud(IEnumerable<FilterModel> model, long invoiceId)
+        {
+            try
+            {
+                foreach (var item in model)
+                {
+                    var booking = Db.Booking.Find(item.Id);
+                    booking.ItemNameOnInvoice = item.Value;
+                    Db.Update(booking);
+                }
+                Db.SaveChanges();
+                InvocieBookingsForCrud(invoiceId);
+            }
+            catch (Exception ex)
+            {
+                HandleException(GetType(), ex);
+            }
+        }
+
         public void DeleteInvoiceBooking(InvoiceBookings ib)
         {
-            var booking = Db.Booking.Find(ib.InvoiceId);
+            var booking = Db.Booking.Find(ib.BookingId);
             booking.InvoiceId = null;
             booking.UpdateDate = DateTime.UtcNow;
             booking.UpdatedById = CurrentUser.Id;
@@ -44,15 +63,6 @@ namespace Medelit.Infra.Data.Repository
             Db.InvoiceBookings.Remove(ib);
             Db.SaveChanges();
             UpdateInvoiceTotal(ib.InvoiceId);
-        }
-
-        public void ProcessInvoiceEmission(long invoiceId)
-        {
-            var invoice = Db.Invoice.Find(invoiceId);
-            invoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(5, '0')}/{DateTime.Now.ToString("ddMM/yyyy")}";
-            invoice.IsProforma = false;
-            Db.Invoice.Update(invoice);
-            Db.SaveChanges();
         }
 
         public void GetInvoiceById(long invoiceId, IEnumerable<AuthUser> users)
@@ -63,30 +73,64 @@ namespace Medelit.Infra.Data.Repository
                 invoice.AssignedTo = users.FirstOrDefault(x => x.Id == invoice.AssignedToId).FullName;
                 var invoiceBookings = Db.InvoiceBookings.Where(x => x.InvoiceId == invoiceId).Select(x => x.Id).ToList();
 
-                invoice.InvoiceBookingView = (from ib in Db.InvoiceBookings
-                                              where ib.InvoiceId == invoiceId
-                                              select new
-                                              {
-                                                  ib.Id,
-                                                  ib.InvoiceId,
-                                                  ib.BookingId,
-                                                  Booking = new
-                                                  {
-                                                      ib.Booking.Id,
-                                                      ib.Booking.Name,
-                                                      ib.Booking.CustomerId,
-                                                      CustomerName = ib.Booking.Customer.Name,
-                                                      Quantity = ib.Booking.QuantityHours,
-                                                      Service = ib.Booking.Service.Name,
-                                                      ib.Booking.PtFees.FeeName,
-                                                      ib.Booking.TaxAmount,
-                                                      ib.Booking.PatientDiscount,
-                                                      subTotal = ib.Booking.SubTotal,
-                                                      ib.Booking.GrossTotal
-                                                  }
-                                              }).ToList();
+                //invoice.InvoiceBookingView = (from ib in Db.InvoiceBookings
+                //                              where ib.InvoiceId == invoiceId
+                //                              select new
+                //                              {
+                //                                  ib.Id,
+                //                                  ib.InvoiceId,
+                //                                  ib.BookingId
+                //                                  //Booking = new
+                //                                  //{
+                //                                  //    ib.Booking.Id,
+                //                                  //    ib.Booking.Name,
+                //                                  //    ib.Booking.CustomerId,
+                //                                  //    CustomerName = ib.Booking.Customer.Name,
+                //                                  //    Quantity = ib.Booking.QuantityHours,
+                //                                  //    Service = ib.Booking.Service.Name,
+                //                                  //    itemNameOnInvoice = ib.Booking.ItemNameOnInvoice,
+                //                                  //    ib.Booking.PtFees.FeeName,
+                //                                  //    ib.Booking.TaxAmount,
+                //                                  //    ib.Booking.PatientDiscount,
+                //                                  //    subTotal = ib.Booking.SubTotal,
+                //                                  //    ib.Booking.GrossTotal
+                //                                  //}
+                //                              }).ToList();
                 HandleResponse(GetType(), invoice);
 
+            }
+            catch (Exception ex)
+            {
+                HandleException(GetType(), ex);
+            }
+        }
+
+        public void InvocieBookingsForCrud(long invoiceId)
+        {
+            try
+            {
+                UpdateInvoiceTotal(invoiceId);
+                var inoviceTotal = Db.Invoice.Where(x => x.Id == invoiceId).FirstOrDefault().TotalInvoice;
+                var result = (from b in Db.Booking
+                              where b.InvoiceId == invoiceId
+                              select new
+                              {
+                                  b.Id,
+                                  bookingName = b.Name,
+                                  serviceName = b.Service.Name,
+                                  customerId = b.CustomerId,
+                                  customerName = b.Customer.Name,
+                                  b.QuantityHours,
+                                  b.ItemNameOnInvoice,
+                                  b.PtFees.FeeName,
+                                  taxes = b.TaxAmount.HasValue ? b.TaxAmount.Value.ToString("f2") : string.Empty,
+                                  subTotal = b.SubTotal.HasValue ? b.SubTotal.Value.ToString("f2") : string.Empty,
+                                  discount = b.PatientDiscount.HasValue ? b.PatientDiscount.Value.ToString("f2") : string.Empty,
+                                  total = b.GrossTotal.HasValue ? b.GrossTotal.Value.ToString("f2") : string.Empty,
+                                  inoviceTotal = inoviceTotal.HasValue ? inoviceTotal.Value.ToString("f2") : string.Empty
+                              }).ToList();
+
+                HandleResponse(GetType(), result);
             }
             catch (Exception ex)
             {
@@ -102,26 +146,26 @@ namespace Medelit.Infra.Data.Repository
                 var result = new List<dynamic>();
 
                 var bookings = (from b in Db.Booking
-                              where b.InvoiceId == null && b.IsValidated
-                              select new
-                              {
-                                  b.Id,
-                                  b.Name,
-                                  b.PhoneNumber,
-                                  b.PtFees.FeeName,
-                                  b.InvoiceNumber,
-                                  b.PaymentStatusId,
-                                  b.PaymentConcludedId,
-                                  b.PaymentMethodId,
-                                  b.BookingStatusId
-                              }).ToList();
+                                where b.InvoiceId == null && b.IsValidated
+                                select new
+                                {
+                                    b.Id,
+                                    Name = $"{b.Name} {b.SrNo}",
+                                    b.PhoneNumber,
+                                    b.PtFees.FeeName,
+                                    b.InvoiceNumber,
+                                    b.PaymentStatusId,
+                                    b.PaymentConcludedId,
+                                    b.PaymentMethodId,
+                                    b.BookingStatusId
+                                }).ToList();
                 foreach (var b in bookings)
                 {
-                    var booking = new Booking {InvoiceNumber = b.InvoiceNumber, PaymentStatusId = b.PaymentStatusId, PaymentConcludedId = b.PaymentConcludedId, PaymentMethodId = b.PaymentMethodId };
+                    var booking = new Booking { InvoiceNumber = b.InvoiceNumber, PaymentStatusId = b.PaymentStatusId, PaymentConcludedId = b.PaymentConcludedId, PaymentMethodId = b.PaymentMethodId };
                     if (booking.IsValid())
                         result.Add(b);
                 }
-              
+
                 HandleResponse(GetType(), result);
             }
             catch (Exception ex)
@@ -193,41 +237,97 @@ namespace Medelit.Infra.Data.Repository
 
         public dynamic GetInvoiceView(long invoiceId)
         {
-            var invoiceInfo = Db.Invoice.Include(x => x.Customer).FirstOrDefault(x => x.Id == invoiceId);
-            var paymentMethods = Db.StaticData.Select((s) => new { s.Id, Value = s.PaymentMethods }).Where(x => x.Value != null);
-            var status = Db.StaticData.Select((s) => new { s.Id, Value = s.PaymentStatus }).Where(x => x.Value != null);
-
-            var invoiceBookings = Db.InvoiceBookings.Where(x => x.InvoiceId == invoiceId).ToList();
-            var bookingIds = invoiceBookings.Select(b => b.BookingId).ToList();
-            var bookings = Db.Booking.Where(x => bookingIds.Contains(x.Id)).Include(x => x.Service).ToList();
-
-            return new
+            try
             {
-                invoiceInfo.Id,
-                invoiceInfo.Subject,
-                invoiceInfo.PaymentMethodId,
-                invoiceInfo.InvoiceNumber,
-                PaymentMethod = paymentMethods.FirstOrDefault(x => x.Id == invoiceInfo.PaymentMethodId)?.Value,
-                invoiceInfo.StatusId,
-                Status = paymentMethods.FirstOrDefault(x => x.Id == invoiceInfo.StatusId)?.Value,
-                invoiceInfo.DueDate,
-                invoiceInfo.PaymentDue,
-                invoiceInfo.TotalInvoice,
 
-                invoiceInfo.Customer.BankName,
-                invoiceInfo.Customer.SortCode,
-                invoiceInfo.Customer.AccountNumber,
-                invoiceInfo.CustomerId,
-                invoiceInfo.Customer.SurName,
-                invoiceInfo.Customer.Name,
-                invoiceInfo.Customer.HomePostCode,
-                invoiceInfo.Customer.HomeCityId,
-                City = Db.City.FirstOrDefault(x => x.Id == invoiceInfo.Customer.HomeCityId)?.Value,
-                Country = Db.Countries.FirstOrDefault(x => x.Id == invoiceInfo.Customer.HomeCountryId)?.Value,
+                var invoiceInfo = Db.Invoice
+                                .Include(x => x.Customer).ThenInclude(c => c.HomeCity)
+                                .Include(x => x.Customer).ThenInclude(c => c.HomeCountry)
+                                .Include(x => x.Customer).ThenInclude(c => c.VisitCity)
+                                .Include(x => x.Customer).ThenInclude(c => c.VisitCountry)
+
+                                .Include(x => x.InvoiceEntity)
+                                .Include(x => x.IEBillingCity)
+                                .Include(x => x.BillingCountry)
+                                .Include(x => x.MailingCity)
+                                .Include(x => x.MailingCountry)
+                                .FirstOrDefault(x => x.Id == invoiceId);
+
+                var paymentMethods = Db.StaticData.Select((s) => new { s.Id, Value = s.PaymentMethods }).Where(x => x.Value != null);
+                var status = Db.StaticData.Select((s) => new { s.Id, Value = s.PaymentStatus }).Where(x => x.Value != null);
+
+                var invoiceBookings = Db.InvoiceBookings.Where(x => x.InvoiceId == invoiceId).ToList();
+                var bookingIds = invoiceBookings.Select(b => b.BookingId).ToList();
+                var bookings = Db.Booking.Where(x => bookingIds.Contains(x.Id)).Include(x => x.Service).ToList();
+
+                dynamic obj = new ExpandoObject();
 
 
-                bookings,
-            };
+
+                obj.id = invoiceInfo.Id;
+                obj.subject = invoiceInfo.Subject;
+                obj.paymentMethodId = invoiceInfo.PaymentMethodId;
+                obj.invoiceNumber = invoiceInfo.InvoiceNumber;
+                obj.paymentMethod = paymentMethods.FirstOrDefault(x => x.Id == invoiceInfo.PaymentMethodId)?.Value;
+                obj.invoiceDate = invoiceInfo.InvoiceDate;
+                obj.itemNameOnInvoice = invoiceInfo.ItemNameOnInvoice;
+
+                obj.statusId = invoiceInfo.StatusId;
+                obj.status = paymentMethods.FirstOrDefault(x => x.Id == invoiceInfo.StatusId)?.Value;
+                obj.dueDate = invoiceInfo.DueDate;
+                obj.paymentDue = invoiceInfo.PaymentDueDate;
+                obj.totalInvoice = invoiceInfo.TotalInvoice;
+
+                obj.bankName = invoiceInfo.Customer.BankName;
+                obj.sortCode = invoiceInfo.Customer.SortCode;
+                obj.accountNumber = invoiceInfo.Customer.AccountNumber;
+                obj.customerId = invoiceInfo.CustomerId;
+
+                obj.surName = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.Name : invoiceInfo.Customer.SurName;
+                obj.name = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.Name : invoiceInfo.Customer.Name;
+                obj.dateOfBirth = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.DateOfBirth : invoiceInfo.Customer.DateOfBirth;
+                obj.vatNumber = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.VatNumber : string.Empty;
+
+
+                obj.billingAddress = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.BillingAddress : invoiceInfo.Customer.HomeStreetName;
+                obj.billingCity = invoiceInfo.InvoiceEntityId.HasValue ?
+                                            (!string.IsNullOrEmpty(invoiceInfo.InvoiceEntity.BillingCity) ? invoiceInfo.InvoiceEntity.BillingCity : string.Empty) :
+                                            invoiceInfo.Customer.HomeCity;
+
+                obj.billingCountry = invoiceInfo.InvoiceEntityId.HasValue ?
+                                            (invoiceInfo.InvoiceEntity.BillingCountryId.HasValue ? invoiceInfo.InvoiceEntity.BillingCountry.Value : string.Empty) :
+                                            invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
+
+                obj.billingPostCode = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.BillingPostCode : invoiceInfo.Customer.HomePostCode;
+
+
+                obj.mailingAddress = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.MailingAddress : invoiceInfo.Customer.HomeStreetName;
+                obj.mailingCity = invoiceInfo.InvoiceEntityId.HasValue ?
+                                             (!string.IsNullOrEmpty(invoiceInfo.InvoiceEntity.MailingCity) ? invoiceInfo.InvoiceEntity.MailingCity : string.Empty) :
+                                             invoiceInfo.Customer.HomeCity;
+
+                obj.mailingCountry = invoiceInfo.InvoiceEntityId.HasValue ?
+                                            (invoiceInfo.InvoiceEntity.MailingCountryId.HasValue ? invoiceInfo.InvoiceEntity.MailingCountry.Value : string.Empty) :
+                                            invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
+
+                obj.mailingPostCode = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.MailingPostCode : invoiceInfo.Customer.HomePostCode;
+
+                obj.homePostCode = invoiceInfo.Customer.HomePostCode;
+                obj.homeCity = !string.IsNullOrEmpty(invoiceInfo.Customer.HomeCity) ? invoiceInfo.Customer.HomeCity : string.Empty;
+                obj.homeCountry = invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
+                obj.termsAndConditions = invoiceInfo.TermsAndConditions;
+
+                obj.bookings = bookings;
+
+                return obj;
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    ex.Message
+                };
+            }
         }
 
         public dynamic InvoiceConnectedProfessional(long invoiceId)
@@ -271,7 +371,7 @@ namespace Medelit.Infra.Data.Repository
                         customer = ib.Customer.Name,
                         phoneNumber = ib.InvoiceEntity.MainPhoneNumber,
                         email = ib.InvoiceEntity.Email,
-                        service = $@"<span class='font-500'>Service(s):</span> {string.Join(", ", ib.InvoiceBookings.Select(s=>s.Booking.Service.Name).Distinct().ToList())} <br/> <span class='font-500'>Gross Total:</span> {ib.InvoiceBookings.Select(s => s.Booking.GrossTotal).Sum()}",
+                        service = $@"<span class='font-500'>Service(s):</span> {string.Join(", ", ib.InvoiceBookings.Select(s => s.Booking.Service.Name).Distinct().ToList())} <br/> <span class='font-500'>Gross Total:</span> {ib.InvoiceBookings.Select(s => s.Booking.GrossTotal).Sum()}",
                         visitDate = ib.DateOfVisit,
                         professional = string.Join(", ", ib.InvoiceBookings.Select(s => s.Booking.Professional.Name).ToList())
                     }).ToList();
@@ -351,6 +451,24 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
+
+
+
+
+        public void ProcessInvoiceEmission(long invoiceId)
+        {
+            var invoice = Db.Invoice.Find(invoiceId);
+            invoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(7, '0')}/{DateTime.Now.ToString("yyyy")}";
+            invoice.Subject = invoice.Subject.Replace("PROFORMA", "");
+            invoice.IsProforma = false;
+            Db.Invoice.Update(invoice);
+            Db.SaveChanges();
+        }
+
+        public string GetProformaInoviceNumber(long invoiceId)
+        {
+            return $"{invoiceId.ToString().PadLeft(7, '0')}/{DateTime.Now.ToString("yyyy")} PROFORMA";
+        }
 
     }
 }

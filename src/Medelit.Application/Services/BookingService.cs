@@ -263,9 +263,9 @@ namespace Medelit.Application
             _bus.SendCommand(new DeleteBookingsCommand { BookingIds = bookingIds });
         }
 
-        public void ConvertToBooking(long customerId)
+        public void ConvertToBooking(long bookingId)
         {
-            _bus.SendCommand(new ConvertCustomerToBookingCommand { CustomerId = customerId });
+            _bus.SendCommand(new ConvertCustomerToBookingCommand { BookingId = bookingId });
         }
 
         public void CreateClones(long bookingId, short bookings)

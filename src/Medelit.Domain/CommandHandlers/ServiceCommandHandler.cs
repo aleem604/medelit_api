@@ -54,7 +54,7 @@ namespace Medelit.Domain.CommandHandlers
                 if (request.Service.Id > 0)
                 {
                     var vm = request.Service;
-                    var serviceModel = _serviceRepository.GetById(request.Service.Id);
+                    var serviceModel = _serviceRepository.GetByIdWithIncludes(request.Service.Id);
                     serviceModel.UpdateDate = DateTime.UtcNow;
 
                     serviceModel.Name = vm.Name;
@@ -75,7 +75,7 @@ namespace Medelit.Domain.CommandHandlers
                     serviceModel.RefundNotes = vm.RefundNotes;
                     var fieldCode = _fieldSubcategoryRepository.GetAll().Where(x => x.Id == serviceModel.FieldId).FirstOrDefault().Code;
                     serviceModel.ServiceCode = $"{fieldCode}{vm.Id.ToString().PadLeft(6, '0')}";
-                    _serviceRepository.RemoveProfessionals(request.Service.Id);
+                    //_serviceRepository.RemoveProfessionals(request.Service.Id);
 
                     //serviceModel.ServiceProfessionals = vm.ServiceProfessionals;
 
@@ -172,14 +172,10 @@ namespace Medelit.Domain.CommandHandlers
         public Task<bool> Handle(DeleteServicesCommand request, CancellationToken cancellationToken)
         {
             try
-            {
+            {              
                 foreach (var serviceId in request.ServiceIds)
                 {
-                    var serviceModel = _serviceRepository.GetById(serviceId);
-                    serviceModel.Status = eRecordStatus.Deleted;
-                    serviceModel.DeletedAt = DateTime.UtcNow;
-                    serviceModel.DeletedById = CurrentUser.Id;
-                    _serviceRepository.Update(serviceModel);
+                    _serviceRepository.Remove(serviceId);
                 }
                 if (Commit())
                 {

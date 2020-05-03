@@ -10,6 +10,8 @@ namespace Medelit.Application
         dynamic GetInvoices();
         dynamic FindInvoices(SearchViewModel model);
         void GetInvoiceById(long invoiceId);
+        void InvocieBookingsForCrud(long invoiceId);
+        void SaveInvocieBookingsForCrud(IEnumerable<FilterModel> model, long invoiceId);
         void SaveInvoice(InvoiceViewModel model);
         void UpdateStatus(IEnumerable<InvoiceViewModel> invoices, eRecordStatus status);
         void DeleteInvoices(IEnumerable<long> invoiceIds);
@@ -17,7 +19,7 @@ namespace Medelit.Application
         void GetBookingToAddToInvoice(long invoiceId);
         void AddBookingsToInvoice(IEnumerable<long> bookingIds, long invoiceId);
         void AddBookingToInvoice(long bookingId, long invoiceId);
-        void DeleteInvoiceBooking(long ibid);
+        void DeleteInvoiceBooking(long invoiceId, long bookingId);
         dynamic GetInvoiceView(long invoiceId);
         dynamic InvoiceConnectedProfessional(long bookingId);
         dynamic InvoiceConnectedCustomers(long invoiceId);

@@ -12,6 +12,9 @@ namespace Medelit.Domain.Models
 
         [Column("pt_fee_id")]
         public long? PtFeeId { get; set; }
+        [ForeignKey("PtFeeId")]
+        public PtFee PtFee { get; set; }
+
         [Column("is_pt_fee")]
         public short IsPtFeeA1 { get; set; }
         [Column("pt_fee_a1")]
@@ -21,6 +24,9 @@ namespace Medelit.Domain.Models
 
         [Column("pro_fee_id")]
         public long? PROFeeId { get; set; }
+        [ForeignKey("PROFeeId")]
+        public ProFee ProFee { get; set; }
+
         [Column("is_pro_fee")]
         public short IsProFeeA1 { get; set; }
         [Column("pro_fee_a1")]

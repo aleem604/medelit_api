@@ -67,13 +67,13 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.Fax = req.Fax;
                     proModel.CoverMap = req.CoverMap;
                     proModel.StreetName = req.StreetName;
-                    proModel.CityId = req.CityId;
+                    proModel.City = req.City;
                     proModel.PostCode = req.PostCode;
                     proModel.CountryId = req.CountryId;
                     proModel.Description = req.Description;
                     proModel.ClinicStreetName = req.ClinicStreetName;
                     proModel.ClinicPostCode = req.ClinicPostCode;
-                    proModel.ClinicCityId = req.ClinicCityId;
+                    proModel.ClinicCity = req.ClinicCity;
                     proModel.ClinicPhoneNumber = req.ClinicPhoneNumber;
                     proModel.CompanyNumber = req.CompanyNumber;
                     proModel.InvoicingNotes = req.InvoicingNotes;
