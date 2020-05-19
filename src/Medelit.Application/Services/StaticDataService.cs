@@ -232,6 +232,12 @@ namespace Medelit.Application
             return _acodeRepository.GetLabs().ToList();
         }
 
+        public dynamic GetAccountInfo()
+        {
+            return _acodeRepository.GetAccountInfo();
+        }
+
+
         public void Dispose()
         {
             GC.SuppressFinalize(this);

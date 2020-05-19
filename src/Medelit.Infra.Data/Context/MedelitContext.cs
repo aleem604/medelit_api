@@ -45,6 +45,7 @@ namespace Medelit.Infra.Data.Context
         public DbSet<City> City { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<Language> Languages { get; set; }
+        public DbSet<CompanyAccountInfo> CompanyAccountInfo { get; set; }
 
         #endregion static data models
 

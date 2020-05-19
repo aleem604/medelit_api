@@ -40,6 +40,13 @@ namespace Medelit.Api.Controllers
             return Response(_feeService.GetFees());
         }
 
+        [HttpGet("fees/tags")]
+        public IActionResult GetFeeTags()
+        {
+            _feeService.GetFeeTags();
+            return Response();
+        }
+
         [HttpPost("fees/find")]
         public IActionResult FindFees([FromBody] SearchViewModel model)
         {

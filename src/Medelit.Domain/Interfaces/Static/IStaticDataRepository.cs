@@ -49,5 +49,6 @@ namespace Medelit.Domain.Interfaces
         IQueryable<FilterModel> GetTitles();
         IQueryable<FilterModel> GetVats();
         IQueryable<FilterModel> GetVisitVenues();
+        dynamic GetAccountInfo();
     }
 }

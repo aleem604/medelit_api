@@ -21,6 +21,16 @@ namespace Medelit.Infra.Data.Repository
         {
         }
 
+        public IQueryable<PtFee> GetPtFees()
+        {
+            return Db.PtFee;
+        }
+
+        public IQueryable<ProFee> GetProFees()
+        {
+            return Db.ProFee;
+        }
+
         public PtFee GetPtFee(long feeId)
         {
             return Db.PtFee.Find(feeId);

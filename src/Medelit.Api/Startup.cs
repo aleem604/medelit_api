@@ -23,6 +23,7 @@ using Medelit.Api.Configurations.Auth;
 using Hangfire;
 using Hangfire.SqlServer;
 using Medelit.Application;
+using Wkhtmltopdf.NetCore;
 
 namespace Medelit.Api
 {
@@ -65,7 +66,7 @@ namespace Medelit.Api
                         DisableGlobalLocks = true
                     }));
             services.AddHangfireServer();
-
+            services.AddWkhtmltopdf();
 
             services.AddCors(options =>
             {

@@ -44,7 +44,7 @@ namespace Medelit.Infra.Data.Repository
 
         public Customer GetCustomerId(long? fromCustomerId)
         {
-            var customer = Db.Customer.Include(x => x.Services).FirstOrDefault(x => x.Id == fromCustomerId);
+            var customer = Db.Customer.FirstOrDefault(x => x.Id == fromCustomerId);
             return customer;
         }
 

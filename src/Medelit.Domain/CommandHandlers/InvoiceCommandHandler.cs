@@ -126,7 +126,7 @@ namespace Medelit.Domain.CommandHandlers
                     _invoiceRepository.Add(invoiceModel);
                     commmitResult = Commit();
                     request.Invoice = invoiceModel;
-                    
+
                 }
                 if (commmitResult)
                 {
@@ -261,18 +261,18 @@ namespace Medelit.Domain.CommandHandlers
                 invoice.InvoiceEntityId = booking.InvoiceEntityId;
                 invoice.CustomerId = booking.CustomerId;
                 invoice.InvoiceNumber = $"{DateTime.Now.ToString("yyyy")} PROFORMA";
-                invoice.DueDate = booking.InvoiceDueDate ?? DateTime.Now;
+                invoice.DueDate = GetInvoiceDueDate(booking);
                 invoice.InvoiceDate = booking.VisitStartDate;
                 //invoice.TaxCodeId = 
                 invoice.StatusId = booking.BookingStatusId;
                 //invoice.PaymentDueDate = booking.InvoiceDueDate;
 
-                invoice.InvoiceSentByEmailId = 0; 
+                invoice.InvoiceSentByEmailId = 0;
                 invoice.InvoiceSentByMailId = 0;
                 invoice.PaymentMethodId = booking.PaymentMethodId;
                 invoice.PatientDateOfBirth = booking.DateOfBirth;
 
-                invoice.IEBillingAddress =  invoiceEntity.BillingAddress ?? customer.HomePostCode;
+                invoice.IEBillingAddress = invoiceEntity.BillingAddress ?? customer.HomePostCode;
                 invoice.MailingAddress = invoiceEntity.MailingAddress ?? customer.VisitStreetName;
 
                 invoice.IEBillingPostCode = invoiceEntity.BillingPostCode ?? customer.HomePostCode;
@@ -342,7 +342,7 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var ib = _invoiceRepository.GetInvoiceBookings().FirstOrDefault(x => x.InvoiceId == request.InvoiceId && x.BookingId == request.BookingId);
-                if(ib is null)
+                if (ib is null)
                 {
 
                 }
@@ -365,6 +365,21 @@ namespace Medelit.Domain.CommandHandlers
             {
                 return HandleException(request.MessageType, ex);
             }
+        }
+
+        private DateTime? GetInvoiceDueDate(Booking booking)
+        {
+            var paymentMethod = booking.PaymentMethodId;
+            if (!paymentMethod.HasValue || Convert.ToInt16(booking.BookingStatusId) == (short)eBookingStatus.CancelledAfterAcceptance)
+            {
+                return null;
+            }
+            else if (booking.PaymentMethodId.HasValue && booking.PaymentMethodId == (short?)ePaymentMethods.Insurance)
+            {
+                if (booking.VisitStartDate.HasValue)
+                    return booking.VisitStartDate.Value.AddDays(30);
+            }
+            return null;
         }
 
         public void Dispose()

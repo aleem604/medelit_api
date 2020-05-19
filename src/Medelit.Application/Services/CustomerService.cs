@@ -66,7 +66,8 @@ namespace Medelit.Application
                             x.Id,
                             x.SurName,
                             x.Name,
-                            Age = x.DateOfBirth.HasValue ?  $"{Utils.GetAge(x.DateOfBirth).Item1} years and {Utils.GetAge(x.DateOfBirth).Item2} months" : string.Empty,
+                            //Age = x.DateOfBirth.HasValue ?  $"{Utils.GetAge(x.DateOfBirth).Item1} years and {Utils.GetAge(x.DateOfBirth).Item2} months" : string.Empty,
+                            Age = x.DateOfBirth.HasValue ?  $"{Utils.GetAge(x.DateOfBirth).Item1} years" : string.Empty,
                             Email = x.Email,
                             Address = x.HomeStreetName,
                             x.MainPhone

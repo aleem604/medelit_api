@@ -102,6 +102,21 @@ namespace Medelit.Application
             _bus.SendCommand(new SaveServiceCommand { Service = serviceModel });
         }
 
+        public void GetServiceTags()
+        {
+            var retTags = new List<string>();
+            var tags = _serviceRepository.GetAll().Select(s => s.Tags).ToList();
+            tags.ForEach(t => { 
+            if(!string.IsNullOrEmpty(t))
+                {
+                    var tagArr = t.Split(',');
+                    retTags.AddRange(tagArr);
+                }
+            });
+            _bus.RaiseEvent(new DomainNotification(GetType().Name, null, retTags));
+
+        }
+
         public void UpdateStatus(IEnumerable<ServiceViewModel> services, eRecordStatus status)
         {
             _bus.SendCommand(new UpdateServicesStatusCommand { Services = _mapper.Map<IEnumerable<Service>>(services), Status = status });

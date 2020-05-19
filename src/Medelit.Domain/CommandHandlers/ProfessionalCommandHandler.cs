@@ -59,6 +59,8 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.Email2 = req.Email2;
                     //proModel.FieldId = req.FieldId;
                     //proModel.SubCategoryId = req.SubCategoryId;
+
+                    proModel.DateOfBirth = req.DateOfBirth;
                     proModel.Telephone = req.Telephone;
                     proModel.AccountingCodeId = req.AccountingCodeId;
                     proModel.Website = req.Website;

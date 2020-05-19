@@ -310,6 +310,11 @@ namespace Medelit.Infra.Data.Repository
             return Db.Lab.Select(x => new FilterModel { Id = x.Id, Value = x.Name });
         }
 
+        public dynamic GetAccountInfo()
+        {
+            return Db.CompanyAccountInfo.FirstOrDefault();
+        }
+
     }
 }
 

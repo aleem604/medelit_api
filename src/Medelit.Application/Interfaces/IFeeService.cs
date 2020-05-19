@@ -10,6 +10,7 @@ namespace Medelit.Application
         void SaveFee(FeeViewModel feeViewModel);
         dynamic GetFees();
         void FindFees(SearchViewModel model);
+        void GetFeeTags();
         void UpdateStatus(IEnumerable<FeeViewModel> fees, eRecordStatus status);
         void DeleteFees(IList<FeeViewModel> feeIds);
         void GetFeeById(long feeId, eFeeType feeType);

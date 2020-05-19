@@ -55,5 +55,6 @@ namespace Medelit.Application
         IEnumerable<FilterModel> GetInvoiceEntityTypes();
         dynamic GetStaticData();
         IEnumerable<FilterModel> GetLabsForFilter();
+        dynamic GetAccountInfo();
     }
 }

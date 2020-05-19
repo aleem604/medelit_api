@@ -1,6 +1,8 @@
 ﻿using Medelit.Common;
 using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Infra.CrossCutting.Identity.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,10 +10,16 @@ namespace Medelit.Application
 {
     public  class BaseService
     {
+        private readonly IHttpContextAccessor _contextAccessor;
         private readonly ApplicationDbContext _context;
-        public BaseService(ApplicationDbContext context)
+        private readonly IConfiguration _config;
+
+        public BaseService(ApplicationDbContext context, IHttpContextAccessor contextAccessor, IConfiguration config)
         {
             _context = context;
+            _contextAccessor = contextAccessor;
+            _config = config;
+
         }
         public string GetAssignedUser(string assignedToId)
         {
@@ -37,6 +45,28 @@ namespace Medelit.Application
             return commonUser;
         }
 
+        internal string AwsKey
+        {
+            get
+            {
+                return _config.GetValue<string>("AWS:AccessKey");
+            }
+        }
+        internal string AwsSecretKey
+        {
+            get
+            {
+                return _config.GetValue<string>("AWS:SecretKey");
+            }
+        }
+
+        internal string BucketName
+        {
+            get
+            {
+                return _config.GetValue<string>("AWS:BucketName");
+            }
+        }
 
     }
 }

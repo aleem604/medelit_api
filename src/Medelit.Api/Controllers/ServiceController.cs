@@ -55,6 +55,13 @@ namespace Medelit.Api.Controllers
             return Response();
         }
 
+        [HttpGet("services/tags")]
+        public IActionResult GetServiceTags()
+        {
+            _serviceService.GetServiceTags();
+            return Response();
+        }
+
         //api/v1/
         [HttpDelete("services/{serviceId}")]
         public IActionResult DeleteService(long serviceId)

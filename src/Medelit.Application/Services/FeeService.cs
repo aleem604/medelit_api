@@ -37,6 +37,22 @@ namespace Medelit.Application
             return _feeRepository.GetAll().Select(x => new { x.Id, x.FeeCode }).ToList();
         }
 
+        public void GetFeeTags()
+        {
+            var result = new List<string>();
+  
+                var tags = _feeRepository.GetPtFees().Select(s => s.Tags).ToList();
+                tags.ForEach(t => {
+                    if (!string.IsNullOrEmpty(t))
+                    {
+                        var tagArr = t.Split(',');
+                        result.AddRange(tagArr);
+                    }
+                });
+            
+            _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+        }
+
         public void FindFees(SearchViewModel viewModel)
         {
             try

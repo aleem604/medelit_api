@@ -241,15 +241,10 @@ namespace Medelit.Infra.Data.Repository
             {
 
                 var invoiceInfo = Db.Invoice
-                                .Include(x => x.Customer).ThenInclude(c => c.HomeCity)
                                 .Include(x => x.Customer).ThenInclude(c => c.HomeCountry)
-                                .Include(x => x.Customer).ThenInclude(c => c.VisitCity)
                                 .Include(x => x.Customer).ThenInclude(c => c.VisitCountry)
-
                                 .Include(x => x.InvoiceEntity)
-                                .Include(x => x.IEBillingCity)
                                 .Include(x => x.BillingCountry)
-                                .Include(x => x.MailingCity)
                                 .Include(x => x.MailingCountry)
                                 .FirstOrDefault(x => x.Id == invoiceId);
 
@@ -316,6 +311,7 @@ namespace Medelit.Infra.Data.Repository
                 obj.homeCity = !string.IsNullOrEmpty(invoiceInfo.Customer.HomeCity) ? invoiceInfo.Customer.HomeCity : string.Empty;
                 obj.homeCountry = invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
                 obj.termsAndConditions = invoiceInfo.TermsAndConditions;
+                obj.accountInfo = Db.CompanyAccountInfo.FirstOrDefault();
 
                 obj.bookings = bookings;
 

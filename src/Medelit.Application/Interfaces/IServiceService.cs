@@ -12,6 +12,7 @@ namespace Medelit.Application
         void FindServices(SearchViewModel model);
         ServiceViewModel GetServiceById(long serviceId);
         void SaveService(ServiceViewModel feeViewModel);
+        void GetServiceTags();
         void DeleteServices(IEnumerable<long> list);
         void UpdateStatus(IEnumerable<ServiceViewModel> services, eRecordStatus status);
 
@@ -39,6 +40,7 @@ namespace Medelit.Application
         void DetachProfessional(long serviceId, long proId);
         dynamic GetProfessionalRelations(long proId);
         dynamic GetConnectedCustomersInvoicingEntities(long serviceId);
+        
         dynamic GetConnectedBookings(long serviceId);
         dynamic GetConnectedCustomerInvoices(long serviceId);
         dynamic GetConnectedLeads(long serviceId);

@@ -324,6 +324,7 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.VisitStartDate = null;
                         newBooking.VisitEndDate = null;
                         newBooking.QuantityHours = null;
+                        newBooking.BookingStatusId = (short)eBookingStatus.Created;
                         newBooking.CycleBookingId = booking.Id;
                         newBooking.CreatedById = CurrentUser.Id;
                         newBooking.AssignedToId = CurrentUser.Id;

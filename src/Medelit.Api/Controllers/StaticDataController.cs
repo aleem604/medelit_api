@@ -29,7 +29,6 @@ namespace Medelit.Api.Controllers
             _logger = logger;
         }
 
-
         [HttpGet("static/customers")]
         public IActionResult GetCustomersForImportFilter()
         {
@@ -288,6 +287,12 @@ namespace Medelit.Api.Controllers
         public IActionResult GetLabsForFilter()
         {
             return Response(_dataService.GetLabsForFilter());
+        }
+
+        [HttpGet("static/account-info")]
+        public IActionResult GetAccountInfo()
+        {
+            return Response(_dataService.GetAccountInfo());
         }
 
 

@@ -10,10 +10,7 @@ using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Medelit.Common;
 using Medelit.Domain.Models;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace Medelit.Domain.CommandHandlers
 {
@@ -232,7 +229,6 @@ namespace Medelit.Domain.CommandHandlers
                     booking.ProFeeA2 = service.PROFeeA2;
                     booking.ItemNameOnInvoice = _bookingRepository.GetItemNameOnInvoice(service.Id, service.PtFeeId);
 
-
                     if (!IsTimedService(booking.ServiceId))
                     {
                         booking.QuantityHours = 1;
@@ -255,7 +251,7 @@ namespace Medelit.Domain.CommandHandlers
                     booking.CCAuthorizationId = 0;
                     booking.CashConfirmationMailId = 0;
                     booking.BankTransfterReceiptId = 0;
-                    booking.PaymentStatusId = 4;
+                    booking.PaymentStatusId = (short)ePaymentStatus.Pending;
                     booking.PaymentConcludedId = 0;
                     booking.ImToProId = 0;
                     booking.MailToPtId = 0;
