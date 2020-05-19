@@ -30,11 +30,9 @@ namespace Medelit.Application
                             IMediatorHandler bus,
                             ILeadRepository leadRepository
 
-            ) : base(context)
+            ) : base(context, httpContext, configuration)
         {
             _mapper = mapper;
-            _httpContext = httpContext;
-            _configuration = configuration;
             _bus = bus;
             _leadRepository = leadRepository;
 

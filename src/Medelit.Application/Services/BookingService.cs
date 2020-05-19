@@ -25,8 +25,6 @@ namespace Medelit.Application
         private readonly IProfessionalRepository _professionalRepository;
         private readonly IStaticDataRepository _dataRepository;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly IMediatorHandler _bus;
 
         public BookingService(IMapper mapper,
@@ -42,11 +40,9 @@ namespace Medelit.Application
                             IProfessionalRepository professionalRepository,
                             IStaticDataRepository dataRepository
 
-            ) : base(context)
+            ) : base(context,httpContext, configuration)
         {
             _mapper = mapper;
-            _httpContext = httpContext;
-            _configuration = configuration;
             _bus = bus;
             _ieRepository = ieRepository;
             _customerRepository = customerRepository;

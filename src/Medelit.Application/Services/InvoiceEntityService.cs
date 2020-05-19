@@ -33,11 +33,9 @@ namespace Medelit.Application
                             ILanguageRepository langRepository,
                             IStaticDataRepository staticRepository
 
-            ) : base(context)
+            ) : base(context, httpContext, configuration)
         {
             _mapper = mapper;
-            _httpContext = httpContext;
-            _configuration = configuration;
             _bus = bus;
             _invoiceEntityRepository = invoiceEntityRepository;
             _langRepository = langRepository;

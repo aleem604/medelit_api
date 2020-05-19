@@ -24,8 +24,10 @@ namespace Medelit.Application
 
         public FeeService(IMapper mapper,
             ApplicationDbContext context,
+            IHttpContextAccessor httpContext,
+                            IConfiguration configuration,
                             IMediatorHandler bus,
-                            IFeeRepository feeRepository) : base(context)
+                            IFeeRepository feeRepository) : base(context, httpContext, configuration)
         {
             _mapper = mapper;
             _bus = bus;
