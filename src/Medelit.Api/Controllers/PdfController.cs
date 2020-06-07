@@ -18,6 +18,7 @@ namespace Medelit.Api.Controllers
     public class PdfController : ApiController
     {
         private IGeneratePdf _generatePdf;
+        private readonly IPdfService _pdfService;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly INotificationHandler<DomainNotification> _notifications;
         private readonly ILogger<PdfController> _logger;
@@ -25,11 +26,13 @@ namespace Medelit.Api.Controllers
 
         public PdfController(
             IGeneratePdf generatePdf,
+            IPdfService pdfService,
             IHostingEnvironment hostingEnvironment,
             INotificationHandler<DomainNotification> notifications,
             ILogger<PdfController> logger,
             IMediatorHandler bus) : base(notifications, bus)
         {
+            _pdfService = pdfService;
             _generatePdf = generatePdf;
             _hostingEnvironment = hostingEnvironment;
             _notifications = notifications;
@@ -38,38 +41,20 @@ namespace Medelit.Api.Controllers
         }
         [AllowAnonymous]
         [HttpGet("pdf/generate-pdf/{invoiceId}")]
-        public IActionResult GeneratePdf(long invoiceId)
+        public async Task<IActionResult> GeneratePdf(long invoiceId)
         {
-            var path = Path.Combine(_hostingEnvironment.WebRootPath, "assets","exicons", "150x150-Name-&-Logo.png");
-            
-            var html = $@"<html><body><h2>Test</h2>
-                        <img src='data:image/png;base64, {GetBase64(path)}' width='50' height='50' />
-                        </body></html>";
-            var pdf = _generatePdf.GetPDF(html);
-            var pdfStreamResult = new MemoryStream();
-            pdfStreamResult.Write(pdf, 0, pdf.Length);
-            pdfStreamResult.Position = 0;
+            var file = await _pdfService.GenerateAndSavePdf(invoiceId);
+            return Response(file);
 
-
-
-            var inputStream = new MemoryStream();
-
-            pdfStreamResult.CopyTo(inputStream);
-
-            var fileBytes = inputStream.ToArray();
-
-            var outputStream = new MemoryStream(fileBytes);
-
-            return File(outputStream, "application/pdf");
         }
-
-        private string GetBase64(string path)
+        [AllowAnonymous]
+        [HttpGet("download-doc/{folderName}/{fileName}")]
+        public async Task<IActionResult> DownloadDoc(string folderName, string fileName)
         {
-            byte[] imageArray = System.IO.File.ReadAllBytes(path);
-            string base64ImageRepresentation = Convert.ToBase64String(imageArray);
-            return base64ImageRepresentation;
-        }
+            var file = await _pdfService.DownloadDoc(folderName, fileName);
 
+            return Content(file, "application/octet-stream");
+        }
 
 
     }

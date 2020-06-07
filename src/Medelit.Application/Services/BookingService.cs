@@ -12,6 +12,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
@@ -27,6 +28,7 @@ namespace Medelit.Application
         private readonly IMapper _mapper;
         private readonly IMediatorHandler _bus;
 
+
         public BookingService(IMapper mapper,
             ApplicationDbContext context,
                             IHttpContextAccessor httpContext,
@@ -38,9 +40,10 @@ namespace Medelit.Application
                             ILanguageRepository langRepository,
                             IServiceRepository serviceRepository,
                             IProfessionalRepository professionalRepository,
-                            IStaticDataRepository dataRepository
+                            IStaticDataRepository dataRepository,
+                            IHostingEnvironment env
 
-            ) : base(context,httpContext, configuration)
+            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
@@ -72,10 +75,14 @@ namespace Medelit.Application
                          select new
                          {
                              b.Id,
-                             Name  = $"{b.Name} {b.SrNo}",
+                             Name = $"{b.Name} {b.SrNo}",
                              Customer = $"{c.SurName} {c.Name}",
+                             b.CustomerId,
+                             b.InvoiceEntityId,
                              InvoicingEntity = b.InvoiceEntityId.HasValue ? invoicingEntities.FirstOrDefault(x => x.Id == b.InvoiceEntityId).Name : "",
+                             b.ServiceId,
                              Service = b.ServiceId > 0 ? services.FirstOrDefault(x => x.Id == b.ServiceId).Name : "",
+                             b.ProfessionalId,
                              Professional = b.ProfessionalId > 0 ? professionals.FirstOrDefault(x => x.Id == b.ProfessionalId).Name : "",
                              b.BookingDate,
                              VisitDate = b.VisitStartDate,
@@ -85,7 +92,8 @@ namespace Medelit.Application
                              b.BookingStatusId,
                              b.PaymentStatusId,
                              b.InsuranceCoverId,
-                             b.InvoiceNumber
+                             b.InvoiceNumber,
+                             AssignedTo = GetAssignedUser(b.AssignedToId)
                          });
 
 
@@ -154,7 +162,7 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.Customer);
                     break;
 
-                case "invoicingentity":
+                case "invoicingEntity":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.InvoicingEntity);
                     else
@@ -175,27 +183,27 @@ namespace Medelit.Application
                         query = query.OrderByDescending(x => x.Professional);
                     break;
 
-                case "bookingdate":
+                case "bookingDate":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.BookingDate);
                     else
                         query = query.OrderByDescending(x => x.BookingDate);
                     break;
 
-                case "visitdate":
+                case "visitDate":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.VisitDate);
                     else
                         query = query.OrderByDescending(x => x.VisitDate);
                     break;
-                case "paymentmethod":
+                case "paymentMethod":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.PaymentMethod);
                     else
                         query = query.OrderByDescending(x => x.PaymentMethod);
                     break;
 
-                case "ptfee":
+                case "ptFee":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.PtFee);
                     else

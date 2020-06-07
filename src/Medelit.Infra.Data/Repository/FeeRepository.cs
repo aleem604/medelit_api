@@ -21,6 +21,150 @@ namespace Medelit.Infra.Data.Repository
         {
         }
 
+        public void FindFees(SearchViewModel viewModel)
+        {
+            try
+            {
+                viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+                var services = Db.Service;
+                var serviceProFees = Db.ServiceProfessionalFees.Select(s => new { s.PtFeeId, s.ProFeeId, s.Service, s.Professional });
+
+                var query = Db.VFees.Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new
+                {
+                    x.Id,
+                    x.FeeName,
+                    x.FeeTypeId,
+                    FeeType = x.FeeTypeId.GetDescription(),
+                    services = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Service.Name).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Service.Name).Distinct().ToList()),
+                    field = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Service.Field.Field).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Service.Field.Field).Distinct().ToList()),
+                    subCategory = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Service.SubCategory.SubCategory).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Service.SubCategory.SubCategory).Distinct().ToList()),
+                    professionals = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Professional.Name).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Professional.Name).Distinct().ToList()),
+
+                    x.FeeCode,
+                    x.Tags,
+                    x.A1,
+                    x.A2,
+                    x.CreateDate,
+                    x.UpdateDate
+                }); ;
+
+                if (!string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    viewModel.Filter.Search = viewModel.Filter.Search.Trim();
+                    query = query.Where(x =>
+                    (
+                        (!string.IsNullOrEmpty(x.FeeName) && x.FeeName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.FeeCode) && x.FeeCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.FeeType) && x.FeeType.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.A1.ToString()) && x.A1.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.services) && x.services.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.field) && x.field.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.professionals) && x.professionals.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Tags) && x.Tags.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.Id.ToString().Contains(viewModel.Filter.Search))
+
+                    ));
+                }
+
+                if (viewModel.Filter.FeeType != eFeeType.All)
+                {
+                    query = query.Where(x => x.FeeTypeId == viewModel.Filter.FeeType);
+                }
+
+                switch (viewModel.SortField)
+                {
+                    case "feeName":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.FeeName);
+                        else
+                            query = query.OrderByDescending(x => x.FeeName);
+                        break;
+
+                    case "feeType":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.FeeType);
+                        else
+                            query = query.OrderByDescending(x => x.FeeType);
+                        break;
+
+                    case "feeCode":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.FeeCode);
+                        else
+                            query = query.OrderByDescending(x => x.FeeCode);
+                        break;
+                    case "services":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.services);
+                        else
+                            query = query.OrderByDescending(x => x.services);
+                        break;
+                    case "professionals":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.professionals);
+                        else
+                            query = query.OrderByDescending(x => x.professionals);
+                        break;
+                    case "field":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.field);
+                        else
+                            query = query.OrderByDescending(x => x.field);
+                        break;
+                    case "subCategory":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.subCategory);
+                        else
+                            query = query.OrderByDescending(x => x.subCategory);
+                        break;
+
+                    case "tags":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Tags);
+                        else
+                            query = query.OrderByDescending(x => x.Tags);
+                        break;
+
+                    case "a1":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.A1);
+                        else
+                            query = query.OrderByDescending(x => x.A1);
+                        break;
+                    case "a2":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.A2);
+                        else
+                            query = query.OrderByDescending(x => x.A2);
+                        break;
+
+                    default:
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.FeeCode);
+                        else
+                            query = query.OrderByDescending(x => x.FeeCode);
+
+                        break;
+                }
+
+                var totalCount = query.LongCount();
+
+                var result = new
+                {
+                    items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
+                    totalCount
+                };
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+        }
+
         public IQueryable<PtFee> GetPtFees()
         {
             return Db.PtFee;

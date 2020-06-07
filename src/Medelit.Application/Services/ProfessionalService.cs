@@ -14,6 +14,7 @@ using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Common.Models;
 using Medelit.Domain.Core.Notifications;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
@@ -38,9 +39,10 @@ namespace Medelit.Application
                             ILanguageRepository langRepository,
                             IFieldSubcategoryRepository fieldRepository,
                             IServiceRepository serviceRepository,
-                            IStaticDataRepository dataRepository
+                            IStaticDataRepository dataRepository,
+                            IHostingEnvironment env
 
-            ) : base(context, httpContext, configuration)
+            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
@@ -78,8 +80,9 @@ namespace Medelit.Application
                 s.City,
                 s.ContractDate,
                 s.ContractEndDate,
-
-                s.ContractStatusId
+                
+                s.ContractStatusId,
+                assignedTo = GetAssignedUser(s.AssignedToId)
             });
 
             if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.CurrentProfessionals)

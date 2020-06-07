@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Domain.Core.Notifications;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
@@ -27,7 +28,9 @@ namespace Medelit.Application
             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
-                            IFeeRepository feeRepository) : base(context, httpContext, configuration)
+                            IFeeRepository feeRepository,
+                            IHostingEnvironment env
+                            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
@@ -57,106 +60,7 @@ namespace Medelit.Application
 
         public void FindFees(SearchViewModel viewModel)
         {
-            try
-            {
-                viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-
-                var query = _feeRepository.GetAll().Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new
-                {
-                    x.Id,
-                    x.FeeName,
-                    x.FeeTypeId,
-                    FeeType = x.FeeTypeId.GetDescription(),
-                    x.FeeCode,
-                    x.Tags,
-                    x.A1,
-                    x.A2,
-                    x.CreateDate,
-                    x.UpdateDate,
-                    AssignedTo = GetAssignedUser(x.AssignedToId)
-                });
-
-                if (!string.IsNullOrEmpty(viewModel.Filter.Search))
-                {
-                    viewModel.Filter.Search = viewModel.Filter.Search.Trim();
-                    query = query.Where(x =>
-                    (
-                        (!string.IsNullOrEmpty(x.FeeName) && x.FeeName.CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.FeeCode) && x.FeeCode.CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.FeeType) && x.FeeType.CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.A1.ToString()) && x.A1.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.AssignedTo) && x.AssignedTo.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.Tags) && x.Tags.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (x.Id.ToString().Contains(viewModel.Filter.Search))
-
-                    ));
-                }
-
-                if (viewModel.Filter.FeeType != eFeeType.All)
-                {
-                    query = query.Where(x => x.FeeTypeId == viewModel.Filter.FeeType);
-                }
-
-                switch (viewModel.SortField)
-                {
-                    case "feename":
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.FeeName);
-                        else
-                            query = query.OrderByDescending(x => x.FeeName);
-                        break;
-
-                    case "feetype":
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.FeeType);
-                        else
-                            query = query.OrderByDescending(x => x.FeeType);
-                        break;
-
-                    case "feecode":
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.FeeCode);
-                        else
-                            query = query.OrderByDescending(x => x.FeeCode);
-                        break;
-                    case "a1":
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.A1);
-                        else
-                            query = query.OrderByDescending(x => x.A1);
-                        break;
-                    case "a2":
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.A2);
-                        else
-                            query = query.OrderByDescending(x => x.A2);
-                        break;
-
-                    default:
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.FeeCode);
-                        else
-                            query = query.OrderByDescending(x => x.FeeCode);
-
-                        break;
-                }
-
-                var totalCount = query.LongCount();
-
-                var result = new
-                {
-                    items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
-                    totalCount
-                };
-                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
-
-            }
-            catch (Exception ex)
-            {
-                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
-            }
+            _feeRepository.FindFees(viewModel);
         }
 
         public void GetFeeById(long feeId, eFeeType feeType)

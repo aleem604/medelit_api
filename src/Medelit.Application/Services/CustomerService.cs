@@ -12,19 +12,14 @@ using Medelit.Domain.Models;
 using System.Linq;
 using System.Collections.Generic;
 using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
     public class CustomerService : BaseService, ICustomerService
     {
         private readonly ICustomerRepository _customerRepository;
-        private readonly ILanguageRepository _langRepository;
-        private readonly IStaticDataRepository _staticRepository;
-        private readonly IServiceRepository _serviceRepository;
-        private readonly IProfessionalRepository _professoinalRepository;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly IMediatorHandler _bus;
 
         public CustomerService(IMapper mapper,
@@ -33,18 +28,12 @@ namespace Medelit.Application
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             ICustomerRepository customerRepository,
-                            ILanguageRepository langRepository,
-                           IStaticDataRepository staticRepository, 
-                           IServiceRepository serviceRepository,
-                            IProfessionalRepository professionalRepository): base(context, httpContext, configuration)
+                           IHostingEnvironment env) :
+            base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
             _customerRepository = customerRepository;
-            _langRepository = langRepository;
-            _staticRepository = staticRepository;
-            _serviceRepository = serviceRepository;
-            _professoinalRepository = professionalRepository;
         }
 
         public dynamic GetCustomers()
@@ -64,11 +53,16 @@ namespace Medelit.Application
                             x.Id,
                             x.SurName,
                             x.Name,
-                            //Age = x.DateOfBirth.HasValue ?  $"{Utils.GetAge(x.DateOfBirth).Item1} years and {Utils.GetAge(x.DateOfBirth).Item2} months" : string.Empty,
-                            Age = x.DateOfBirth.HasValue ?  $"{Utils.GetAge(x.DateOfBirth).Item1} years" : string.Empty,
-                            Email = x.Email,
+                            x.InvoiceEntityId,
+                            InvoiceEntity = x.InvoiceEntityId.HasValue ? x.InvoiceEntity.Name : string.Empty,
+                            x.MainPhone,
+                            x.Email,
+                            City = x.HomeCity,
+                            Country = x.HomeCountryId.HasValue ? x.HomeCountry.Value : string.Empty,
+                            x.UpdateDate,
+                            Age = x.DateOfBirth.HasValue ? $"{Utils.GetAge(x.DateOfBirth).Item1} years" : string.Empty,
                             Address = x.HomeStreetName,
-                            x.MainPhone
+                            AssignedTo = GetAssignedUser(x.AssignedToId)
                         });
 
 

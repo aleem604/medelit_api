@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
@@ -17,11 +18,8 @@ namespace Medelit.Application
     {
 
         private readonly IInvoiceEntityRepository _invoiceEntityRepository;
-        private readonly ILanguageRepository _langRepository;
         private readonly IStaticDataRepository _staticRepository;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly IMediatorHandler _bus;
 
         public InvoiceEntityService(IMapper mapper,
@@ -30,15 +28,14 @@ namespace Medelit.Application
                             IConfiguration configuration,
                             IMediatorHandler bus,
                             IInvoiceEntityRepository invoiceEntityRepository,
-                            ILanguageRepository langRepository,
-                            IStaticDataRepository staticRepository
+                            IStaticDataRepository staticRepository,
+                            IHostingEnvironment env
 
-            ) : base(context, httpContext, configuration)
+            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
             _invoiceEntityRepository = invoiceEntityRepository;
-            _langRepository = langRepository;
             _staticRepository = staticRepository;
         }
 
@@ -58,10 +55,16 @@ namespace Medelit.Application
             {
                 s.Id,
                 s.Name,
-                Phone = s.MainPhoneNumber,
+                ieType = s.IETypeId.HasValue ? ieTypes.FirstOrDefault(x => x.Id == s.IETypeId).Value : string.Empty,
+                rating = s.RatingId.HasValue ? ratings.FirstOrDefault(x => x.Id == s.RatingId).Value : string.Empty,
+                phone = s.MainPhoneNumber,
                 s.Email,
+                city = s.BillingCity,
+                country = s.BillingCountryId.HasValue ? s.BillingCountry.Value : string.Empty,
+                s.UpdateDate,
                 address = s.BillingAddress,
-                s.ContractedId
+                s.ContractedId,
+                AssignedTo = GetAssignedUser(s.AssignedToId)
             });
 
 
@@ -71,12 +74,16 @@ namespace Medelit.Application
                 query = query.Where(x =>
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.ieType) && x.ieType.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.rating) && x.rating.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.phone) && x.phone.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.city) && x.city.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.country) && x.country.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.address) && x.address.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
-
                 ));
-
             }
 
             if (viewModel.Filter.IEFilter == eIEFilter.Contracted)
@@ -92,21 +99,55 @@ namespace Medelit.Application
                     else
                         query = query.OrderByDescending(x => x.Name);
                     break;
-
+                case "ietype":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.ieType);
+                    else
+                        query = query.OrderByDescending(x => x.ieType);
+                    break;
+                case "rating":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.rating);
+                    else
+                        query = query.OrderByDescending(x => x.rating);
+                    break;
+                case "phone":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.phone);
+                    else
+                        query = query.OrderByDescending(x => x.phone);
+                    break;
                 case "email":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Email);
                     else
                         query = query.OrderByDescending(x => x.Email);
                     break;
-
-
-                case "phone":
+                case "city":
                     if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Phone);
+                        query = query.OrderBy(x => x.city);
                     else
-                        query = query.OrderByDescending(x => x.Phone);
+                        query = query.OrderByDescending(x => x.city);
                     break;
+                case "country":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.country);
+                    else
+                        query = query.OrderByDescending(x => x.country);
+                    break;
+                case "address":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.address);
+                    else
+                        query = query.OrderByDescending(x => x.address);
+                    break;
+                case "updatedate":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.UpdateDate);
+                    else
+                        query = query.OrderByDescending(x => x.UpdateDate);
+                    break;
+
 
                 default:
                     if (viewModel.SortOrder.Equals("asc"))
@@ -171,7 +212,7 @@ namespace Medelit.Application
 
             return _invoiceEntityRepository.InvoiceEntityConnectedBookings(invoiceEntityId);
         }
-        
+
         public dynamic InvoiceEntityConnectedLeads(long invoiceEntityId)
         {
             return _invoiceEntityRepository.InvoiceEntityConnectedLeads(invoiceEntityId);

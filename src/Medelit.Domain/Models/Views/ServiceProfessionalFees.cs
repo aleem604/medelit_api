@@ -9,6 +9,7 @@ namespace Medelit.Domain.Models
     public class ServiceProfessionalFees
     {
         public long Id { get; set; }
+
         [Column("service_id")]
         public long ServiceId { get; set; }
         [ForeignKey("ServiceId")]

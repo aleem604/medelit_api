@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Medelit.Common;
 using Medelit.Domain.Core.Models;
@@ -8,6 +9,7 @@ namespace Medelit.Domain.Models
     [Table("v_fees")]
     public class VFees : BaseEntity
     {
+
         [Column("fee_name")]
         public string FeeName { get; set; }
         [Column("fee_code")]
@@ -18,6 +20,7 @@ namespace Medelit.Domain.Models
         public decimal? A1 { get; set; }
         public decimal? A2 { get; set; }
 
+        public ICollection<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
         public PtFee GetPtFee()
         {
             return new PtFee

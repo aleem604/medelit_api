@@ -58,9 +58,9 @@ namespace Medelit.Application
         {
             //return _mapper.Map<ServiceViewModel>(_serviceRepository.GetByIdWithIncludes(serviceId));
 
-            var service = _serviceRepository.GetByIdWithIncludes(serviceId);
+            var service = _serviceRepository.GetById(serviceId);
             var viewModel = _mapper.Map<ServiceViewModel>(service);
-            //viewModel.Professionals = service.ServiceProfessionals.Select((s) => new FilterModel { Id = s.ProfessionalId, Value = s.Professional?.Name }).ToList();
+            //viewModel.Professionals = service.ServiceProfessionalFees.Select((s) => new FilterModel { Id = s.ProfessionalId, Value = s.Professional?.Name }).ToList();
             return viewModel;
 
         }

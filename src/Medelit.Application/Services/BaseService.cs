@@ -1,10 +1,12 @@
 ﻿using Medelit.Common;
 using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Infra.CrossCutting.Identity.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
+
 
 namespace Medelit.Application
 {
@@ -13,12 +15,14 @@ namespace Medelit.Application
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _config;
+        private readonly IHostingEnvironment _env;
 
-        public BaseService(ApplicationDbContext context, IHttpContextAccessor contextAccessor, IConfiguration config)
+        public BaseService(ApplicationDbContext context, IHttpContextAccessor contextAccessor, IConfiguration config, IHostingEnvironment env)
         {
             _context = context;
             _contextAccessor = contextAccessor;
             _config = config;
+            _env = env;
 
         }
         public string GetAssignedUser(string assignedToId)
@@ -65,6 +69,17 @@ namespace Medelit.Application
             get
             {
                 return _config.GetValue<string>("AWS:BucketName");
+            }
+        }
+
+        internal string GetUrlLeftPart
+        {
+            get
+            {
+                if (_env.IsDevelopment())
+                    return $"{_contextAccessor.HttpContext.Request.Scheme}://{_contextAccessor.HttpContext.Request.Host}/api/v1";
+                else
+                    return $"{_contextAccessor.HttpContext.Request.Scheme}://{_contextAccessor.HttpContext.Request.Host}/Prod/api/v1";
             }
         }
 

@@ -26,6 +26,7 @@ namespace Medelit.Infra.Data.Repository
         {
             try
             {
+
                 viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
                 var query = from s in Db.Service
 
@@ -34,8 +35,14 @@ namespace Medelit.Infra.Data.Repository
                             {
                                 s.Id,
                                 s.Name,
+                                field = s.Field.Field,
+                                subCategory = s.SubCategory.SubCategory,
                                 PtFees = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.PtFee.FeeName).Distinct().ToList()),
+                                PtFeesA1 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.PtFee.A1)).Distinct().ToList()),
+                                PtFeesA2 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.PtFee.A2)).Distinct().ToList()),
                                 ProFees = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.ProFee.FeeName).Distinct().ToList()),
+                                ProFeesA1 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.ProFee.A1)).Distinct().ToList()),
+                                ProFeesA2 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.ProFee.A2)).Distinct().ToList()),
                                 Professionals = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.Professional.Name).Distinct().ToList()),
                                 s.Covermap,
                                 s.Status,
@@ -43,17 +50,28 @@ namespace Medelit.Infra.Data.Repository
                                 s.CreatedById
                             };
 
-
                 if (!string.IsNullOrEmpty(viewModel.Filter.Search))
                 {
                     viewModel.Filter.Search = viewModel.Filter.Search.Trim();
                     query = query.Where(x =>
                     (
                         (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
+
                     || (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.field) && x.field.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.subCategory) && x.subCategory.CLower().Contains(viewModel.Filter.Search.CLower()))
+
                     || (!string.IsNullOrEmpty(x.PtFees) && x.PtFees.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.PtFeesA1) && x.PtFeesA1.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.PtFeesA2) && x.ProFeesA2.CLower().Contains(viewModel.Filter.Search.CLower()))
+
                     || (!string.IsNullOrEmpty(x.ProFees) && x.ProFees.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ProFeesA1) && x.ProFeesA1.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ProFeesA2) && x.ProFeesA2.CLower().Contains(viewModel.Filter.Search.CLower()))
+
+                    || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.Covermap) && x.Covermap.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.CreateDate.ToString("dd/MM/yyyy")) && x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                     ));
@@ -73,6 +91,22 @@ namespace Medelit.Infra.Data.Repository
                             query = query.OrderByDescending(x => x.Name);
                         break;
 
+                    case "field":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.field);
+                        else
+                            query = query.OrderByDescending(x => x.field);
+                        break;
+
+                    case "subCategory":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.subCategory);
+                        else
+                            query = query.OrderByDescending(x => x.subCategory);
+                        break;
+
+
+
                     case "professional":
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.Name);
@@ -86,12 +120,40 @@ namespace Medelit.Infra.Data.Repository
                         else
                             query = query.OrderByDescending(x => x.PtFees);
                         break;
-                    case "profees":
+                    case "ptFeesA1":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.PtFeesA1);
+                        else
+                            query = query.OrderByDescending(x => x.PtFeesA1);
+                        break;
+                    case "ptFeesA2":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.PtFeesA2);
+                        else
+                            query = query.OrderByDescending(x => x.PtFeesA2);
+                        break;
+
+
+                    case "proFees":
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.ProFees);
                         else
                             query = query.OrderByDescending(x => x.ProFees);
                         break;
+                    case "proFeesA1":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.ProFeesA1);
+                        else
+                            query = query.OrderByDescending(x => x.ProFeesA2);
+                        break;
+                    case "status":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Status);
+                        else
+                            query = query.OrderByDescending(x => x.Status);
+                        break;
+
+
                     case "covermap":
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.Covermap);

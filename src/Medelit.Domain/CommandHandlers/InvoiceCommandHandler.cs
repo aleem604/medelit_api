@@ -265,12 +265,12 @@ namespace Medelit.Domain.CommandHandlers
                 invoice.InvoiceDate = booking.VisitStartDate;
                 //invoice.TaxCodeId = 
                 invoice.StatusId = booking.BookingStatusId;
-                //invoice.PaymentDueDate = booking.InvoiceDueDate;
+                invoice.PaymentDueDate = GetInvoicePaymentDueDate(booking);
 
                 invoice.InvoiceSentByEmailId = 0;
                 invoice.InvoiceSentByMailId = 0;
                 invoice.PaymentMethodId = booking.PaymentMethodId;
-                invoice.PatientDateOfBirth = booking.DateOfBirth;
+                invoice.PatientDateOfBirth = booking.InvoiceEntityId.HasValue ? invoiceEntity.DateOfBirth : customer.DateOfBirth;
 
                 invoice.IEBillingAddress = invoiceEntity.BillingAddress ?? customer.HomePostCode;
                 invoice.MailingAddress = invoiceEntity.MailingAddress ?? customer.VisitStreetName;
@@ -296,6 +296,7 @@ namespace Medelit.Domain.CommandHandlers
                 invoice.PaymentArrivalDate = booking.PaymentArrivalDate;
                 invoice.ProInvoiceDate = booking.InvoiceDueDate;
                 invoice.InvoiceDeliveryDate = DateTime.Now;
+                invoice.StatusId = (short)eInvoiceStatus.Proforma;
 
                 invoice.CreateDate = DateTime.UtcNow;
                 invoice.CreatedById = CurrentUser.Id;
@@ -369,17 +370,32 @@ namespace Medelit.Domain.CommandHandlers
 
         private DateTime? GetInvoiceDueDate(Booking booking)
         {
-            var paymentMethod = booking.PaymentMethodId;
-            if (!paymentMethod.HasValue || Convert.ToInt16(booking.BookingStatusId) == (short)eBookingStatus.CancelledAfterAcceptance)
-            {
-                return null;
-            }
-            else if (booking.PaymentMethodId.HasValue && booking.PaymentMethodId == (short?)ePaymentMethods.Insurance)
+            var invoiceDueDate = booking.VisitStartDate;
+
+            if (booking.PaymentMethodId == (short?)ePaymentMethods.Insurance)
             {
                 if (booking.VisitStartDate.HasValue)
-                    return booking.VisitStartDate.Value.AddDays(30);
+                    invoiceDueDate = booking.VisitStartDate.Value.AddDays(30);
             }
-            return null;
+            
+            return invoiceDueDate;
+        }
+
+        private DateTime? GetInvoicePaymentDueDate(Booking booking)
+        {
+            var paymentDueDate = booking.VisitStartDate;
+
+            var paymentMethod = booking.PaymentMethodId;
+            if (booking.PaymentMethodId == (short?)ePaymentMethods.Insurance)
+            {
+                if (booking.VisitStartDate.HasValue)
+                    paymentDueDate = booking.VisitStartDate.Value.AddDays(30);
+            }
+            if (!paymentMethod.HasValue || Convert.ToInt16(booking.BookingStatusId) == (short)eBookingStatus.CancelledAfterAcceptance)
+            {
+                paymentDueDate = null;
+            }
+            return paymentDueDate;
         }
 
         public void Dispose()

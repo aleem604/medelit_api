@@ -62,7 +62,6 @@ namespace Medelit.Domain.CommandHandlers
                     customerModel.SurName = request.Customer.SurName;
                     customerModel.Name = request.Customer.Name;
 
-
                     customerModel.LanguageId = request.Customer.LanguageId;
                     customerModel.MainPhone = request.Customer.MainPhone;
                     customerModel.MainPhoneOwner = request.Customer.MainPhoneOwner;
@@ -203,7 +202,6 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-
                 var lead = request.Lead;
                 var customer = _customerRepository.GetById(lead.CustomerId.Value);
                 var services = lead.Services;
@@ -216,7 +214,7 @@ namespace Medelit.Domain.CommandHandlers
                     booking.CustomerId = customer.Id;
 
                     booking.ServiceId = service.ServiceId;
-                    booking.ProfessionalId = service.ProfessionalId;
+                    booking.ProfessionalId = (long)service.ProfessionalId;
 
                     booking.PtFeeId = service.PtFeeId.Value;
                     booking.IsPtFeeA1 = service.IsPtFeeA1;
@@ -259,10 +257,12 @@ namespace Medelit.Domain.CommandHandlers
                     booking.NHSOrPrivateId = 0;
                     booking.PtCalledForAppointmentId = 0;
                     booking.ProAvailabilityAskedId = 0;
-
+                    
                     if (customer.DateOfBirth.HasValue)
                         booking.PatientAge = (short?)((DateTime.Now - customer.DateOfBirth).Value.Days / 365.25);
 
+
+                    booking.CashReturn = GetCashReturn(booking);
                     booking.SubTotal = GetSubTotal(booking.PtFee, booking.QuantityHours);
                     booking.TaxAmount = GetCusotmerTaxAmount(booking.SubTotal, booking.TaxType);
                     booking.GrossTotal = booking.SubTotal + booking.TaxAmount;
@@ -291,6 +291,20 @@ namespace Medelit.Domain.CommandHandlers
             {
                 return HandleException(request.MessageType, ex);
             }
+        }
+
+        private decimal? GetCashReturn(Booking booking)
+        {
+            decimal? cashReturn = booking.PtFee;
+            if (booking.PaymentMethodId.HasValue && (booking.PaymentMethodId == (short)ePaymentMethods.BankTransfer || booking.PaymentMethodId == (short)ePaymentMethods.CreditDebitCard || booking.PaymentMethodId == (short)ePaymentMethods.Insurance))
+            {
+                cashReturn = booking.PtFee;
+            }
+            if(booking.PaymentMethodId == (short)ePaymentMethods.Cash)
+            {
+                cashReturn = default;
+            }
+            return cashReturn;
         }
 
         private bool IsTimedService(long serviceId)

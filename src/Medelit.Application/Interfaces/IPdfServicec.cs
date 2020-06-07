@@ -7,6 +7,7 @@ namespace Medelit.Application
 {
     public interface IPdfService : IDisposable
     {
-        
+        Task<DocumentModel> GenerateAndSavePdf(long invoiceId);
+        Task<string> DownloadDoc(string folderName, string fileName);
     }
 }

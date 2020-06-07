@@ -82,6 +82,7 @@ namespace Medelit.Infra.Data.Repository
                         invoiceNumber = ib.Invoice.InvoiceNumber,
                         ieName = ib.Booking.InvoiceEntityId.HasValue ? ib.Booking.InvoiceEntity.Name : string.Empty,
                         invoiceDate = ib.Invoice.InvoiceDate,
+                        invoiceDueDate = ib.Invoice.DueDate,
                         totalInvoice = ib.Invoice.TotalInvoice
                     }).ToList();
 

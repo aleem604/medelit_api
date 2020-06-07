@@ -11,20 +11,16 @@ using System.Collections.Generic;
 using Medelit.Domain.Commands;
 using Microsoft.EntityFrameworkCore;
 using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
     public class InvoiceService : BaseService, IInvoiceService
     {
         private readonly IInvoiceRepository _invoiceRepository;
-        private readonly IInvoiceEntityRepository _ieRepository;
         private readonly ICustomerRepository _customerRepository;
-        private readonly ILanguageRepository _langRepository;
         private readonly IStaticDataRepository _staticRepository;
-        private readonly IBookingRepository _bookingRepository;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly IMediatorHandler _bus;
 
         public InvoiceService(IMapper mapper,
@@ -35,20 +31,16 @@ namespace Medelit.Application
                             IInvoiceRepository invoiceRepository,
                             IInvoiceEntityRepository ieRepository,
                             ICustomerRepository customerRepository,
-                            ILanguageRepository langRepository,
                             IStaticDataRepository staticRepository,
-                            IBookingRepository bookingRepository
-
-            ) : base(context, httpContext, configuration)
+                            IHostingEnvironment env
+           
+            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
             _invoiceRepository = invoiceRepository;
-            _ieRepository = ieRepository;
             _customerRepository = customerRepository;
-            _langRepository = langRepository;
             _staticRepository = staticRepository;
-            _bookingRepository = bookingRepository;
         }
 
         public dynamic GetInvoices()
@@ -67,19 +59,23 @@ namespace Medelit.Application
                 x.Id,
                 x.InvoiceNumber,
                 x.Subject,
-                Amount = x.TotalInvoice,
                 x.InvoiceDate,
                 x.DueDate,
-                x.CustomerId,
                 Customer = customers.FirstOrDefault(c => c.Id == x.CustomerId).Name,
+                InvoiceEntity = x.InvoiceEntityId.HasValue ? x.InvoiceEntity.Name : string.Empty,
+                Status = x.IsProforma ? "Proforma" : "Emitted",
                 x.StatusId,
-
-                InvoiceStatus = x.IsProforma ? "Proforma": "Emitted",
-                x.Status,
+                InvoiceStatus = string.Empty, // phase II item
+                PaymentMethod = x.PaymentMethodId.HasValue ? ((ePaymentMethods)x.PaymentMethodId.Value).ToString() : string.Empty,
+                x.PaymentMethodId,
+                x.DateOfVisit,
+                
+                Amount = x.TotalInvoice,
+                x.UpdateDate,
                 x.CreateDate,
-                x.PaymentMethodId
-
-            });
+                assignedTo = GetAssignedUser(x.AssignedToId)
+                
+            }) ;
 
             if (!string.IsNullOrEmpty(viewModel.Filter.Search))
             {
@@ -89,11 +85,18 @@ namespace Medelit.Application
                     (!string.IsNullOrEmpty(x.InvoiceNumber) && x.InvoiceNumber.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.InvoiceNumber.Equals(viewModel.Filter.Search))
                 || (!string.IsNullOrEmpty(x.Subject) && x.Subject.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (!string.IsNullOrEmpty(x.Customer) && x.Customer.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (!string.IsNullOrEmpty(x.InvoiceStatus) && x.InvoiceStatus.CLower().Contains(viewModel.Filter.Search.CLower()))
-                || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.InvoiceDate.HasValue && x.InvoiceDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.DueDate.HasValue && x.DueDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Customer) && x.Customer.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.InvoiceEntity) && x.InvoiceEntity.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Status) && x.Status.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.StatusId.HasValue && x.StatusId.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.InvoiceStatus) && x.InvoiceStatus.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.DateOfVisit.HasValue && x.DateOfVisit.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Amount.HasValue && x.Amount.Value.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.assignedTo) && x.assignedTo.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
                 ));
             }

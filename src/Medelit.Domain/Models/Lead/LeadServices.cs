@@ -39,7 +39,7 @@ namespace Medelit.Domain.Models
         [Column("ServiceId")]
         public Service Service { get; set; }
         [Column("professional_id")]
-        public long ProfessionalId { get; set; }
+        public long? ProfessionalId { get; set; }
         [ForeignKey("ProfessionalId")]
         public Professional Professional { get; set; }
         [Column("lead_id")]

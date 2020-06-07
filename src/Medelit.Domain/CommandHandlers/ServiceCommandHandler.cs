@@ -54,7 +54,7 @@ namespace Medelit.Domain.CommandHandlers
                 if (request.Service.Id > 0)
                 {
                     var vm = request.Service;
-                    var serviceModel = _serviceRepository.GetByIdWithIncludes(request.Service.Id);
+                    var serviceModel = _serviceRepository.GetById(request.Service.Id);
                     serviceModel.UpdateDate = DateTime.UtcNow;
 
                     serviceModel.Name = vm.Name;

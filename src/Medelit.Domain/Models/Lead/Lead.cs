@@ -71,6 +71,9 @@ namespace Medelit.Domain.Models
         public string City { get; set; }
         [Column("country_id")]
         public short CountryId { get; set; }
+        [ForeignKey("CountryId")]
+        public Country Country { get; set; }
+
         [Column("building_type_id")]
         public short? BuildingTypeId { get; set; }
         [Column("flat_no")]

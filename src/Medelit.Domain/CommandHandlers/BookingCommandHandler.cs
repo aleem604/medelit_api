@@ -160,7 +160,7 @@ namespace Medelit.Domain.CommandHandlers
 
                     bookingModel.ItemNameOnInvoice = request.Booking.ItemNameOnInvoice;
 
-                    bookingModel.CashReturn = request.Booking.PtFee;
+                    bookingModel.CashReturn = request.Booking.CashReturn;
                     bookingModel.QuantityHours = request.Booking.QuantityHours;
                     bookingModel.TaxType = request.Booking.TaxType;
                     bookingModel.IsValidated = true;
@@ -188,6 +188,7 @@ namespace Medelit.Domain.CommandHandlers
             return Task.FromResult(false);
         }
 
+      
         public Task<bool> Handle(UpdateBookingsStatusCommand request, CancellationToken cancellationToken)
         {
             try
@@ -282,6 +283,9 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.QuantityHours = null;
                         newBooking.CreatedById = CurrentUser.Id;
                         newBooking.AssignedToId = CurrentUser.Id;
+                        newBooking.PaymentMethodId = booking.PaymentMethodId;
+                        newBooking.PaymentStatusId = booking.PaymentStatusId;
+                        newBooking.PaymentConcludedId = booking.PaymentConcludedId;
 
                         _bookingRepository.Add(newBooking);
                         Commit();
@@ -328,6 +332,10 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.CycleBookingId = booking.Id;
                         newBooking.CreatedById = CurrentUser.Id;
                         newBooking.AssignedToId = CurrentUser.Id;
+                        newBooking.PaymentMethodId = booking.PaymentMethodId;
+                        newBooking.PaymentStatusId = booking.PaymentStatusId;
+                        newBooking.PaymentConcludedId = booking.PaymentConcludedId;
+
                         _bookingRepository.Add(newBooking);
                         Commit();
                         if (lastCycleId == 0)

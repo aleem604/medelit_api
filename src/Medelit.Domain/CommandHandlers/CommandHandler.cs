@@ -74,5 +74,6 @@ namespace Medelit.Domain.CommandHandlers
                 return subTotal.Value * taxType.Value * (decimal)0.01;
             return null;
         }
+
     }
 }

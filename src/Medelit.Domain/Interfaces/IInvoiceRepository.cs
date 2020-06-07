@@ -1,6 +1,7 @@
 ﻿using Medelit.Common;
 using Medelit.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,6 +26,6 @@ namespace Medelit.Domain.Interfaces
         dynamic InvoiceConnectedInvoiceEntity(long invoiceId);
         dynamic InvoiceConnectedBookings(long invoiceId);
         string GetProformaInoviceNumber(long invoiceId);
-        
+        (string, string) GetInvoiceHtml(long invoiceId);
     }
 }

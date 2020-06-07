@@ -7,6 +7,7 @@ namespace Medelit.Domain.Interfaces
 {
     public interface IFeeRepository : IRepository<VFees>
     {
+        void FindFees(SearchViewModel viewModel);
         IQueryable<PtFee> GetPtFees();
         IQueryable<ProFee> GetProFees();
         PtFee GetPtFee(long feeId);
@@ -32,6 +33,5 @@ namespace Medelit.Domain.Interfaces
         void GetServiceProfessionalsForFilter(long serviceId, long feeId, eFeeType feeType);
         void AttachNewServiceProfessionalToFee(long serviceId, long professionalId, long feeId, eFeeType feeType);
         void DeleteConnectedServices(IEnumerable<long> serviceProFeeIds, long feeId, eFeeType feedType);
-       
     }
 }

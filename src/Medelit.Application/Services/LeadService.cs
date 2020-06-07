@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
@@ -18,11 +19,7 @@ namespace Medelit.Application
         private readonly ILeadRepository _leadRepository;
         private readonly IStaticDataRepository _staticRepository;
         private readonly ILanguageRepository _langRepository;
-        private readonly IServiceRepository _serviceRepository;
-        private readonly IProfessionalRepository _professoinalRepository;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly IMediatorHandler _bus;
 
         public LeadService(IMapper mapper,
@@ -33,18 +30,15 @@ namespace Medelit.Application
                             ILeadRepository leadRepository,
                             ILanguageRepository langRepository,
                             IStaticDataRepository staticRepository,
-                            IServiceRepository serviceRepository,
-                            IProfessionalRepository professionalRepository
+                            IHostingEnvironment env
 
-            ): base(context, httpContext, configuration)
+            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
             _leadRepository = leadRepository;
             _staticRepository = staticRepository;
             _langRepository = langRepository;
-            _serviceRepository = serviceRepository;
-            _professoinalRepository = professionalRepository;
         }
 
         public dynamic GetLeads()
@@ -59,8 +53,8 @@ namespace Medelit.Application
             var statics = _staticRepository.GetAll().ToList();
 
             var query = (from lead in _leadRepository.GetAllWithService()
-                         //where lead.ConvertDate == null 
-                         //&& lead.Status != eRecordStatus.Deleted
+                             //where lead.ConvertDate == null 
+                             //&& lead.Status != eRecordStatus.Deleted
                          select lead)
                         .Select((x) => new
                         {
@@ -70,8 +64,11 @@ namespace Medelit.Application
                             x.SurName,
                             x.Name,
                             x.Email,
+                            x.City,
+                            Country = x.CountryId > 0 ? x.Country.Value : string.Empty,
                             x.MainPhone,
                             x.CreateDate,
+                            x.UpdateDate,
                             AssignedTo = GetAssignedUser(x.AssignedToId)
                         });
 
@@ -82,8 +79,12 @@ namespace Medelit.Application
                 (
                     (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.SurName) && x.SurName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.City) && x.City.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Country) && x.Country.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.MainPhone) && x.MainPhone.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.CreateDate.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
+                || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
                 || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                 ));
@@ -116,6 +117,25 @@ namespace Medelit.Application
                     else
                         query = query.OrderByDescending(x => x.Email);
                     break;
+                case "city":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.City);
+                    else
+                        query = query.OrderByDescending(x => x.City);
+                    break;
+                case "country":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.Country);
+                    else
+                        query = query.OrderByDescending(x => x.Country);
+                    break;
+                case "mainphone":
+                    if (viewModel.SortOrder.Equals("asc"))
+                        query = query.OrderBy(x => x.MainPhone);
+                    else
+                        query = query.OrderByDescending(x => x.MainPhone);
+                    break;
+
                 case "language":
                     if (viewModel.SortOrder.Equals("asc"))
                         query = query.OrderBy(x => x.Language);
@@ -204,7 +224,7 @@ namespace Medelit.Application
                 model.Customer = customerObj.Name;
                 model.FromCustomerId = fromCustomerId;
                 model.Id = leadId;
-                
+
                 model.AssignedTo = GetAssignedUser(model.AssignedToId);
                 return model;
             }

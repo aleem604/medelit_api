@@ -78,6 +78,8 @@ namespace Medelit.Infra.CrossCutting.IoC
             // Upload
             services.AddScoped<IUploadService, UploadService>();
 
+            // pdf service
+            services.AddScoped<IPdfService, PdfService>();
         }
 
         private static void RegisterCommands(IServiceCollection services)

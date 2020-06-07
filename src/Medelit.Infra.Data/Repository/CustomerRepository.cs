@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Medelit.Common;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
@@ -80,13 +81,14 @@ namespace Medelit.Infra.Data.Repository
                     where b.CustomerId == customerId
                     select new
                     {
+                        b.ProfessionalId,
                         proName = b.Professional.Name,
                         phone = b.Professional.Telephone,
                         email = b.Professional.Email,
                         b.VisitStartDate,
                         b.Professional.ActiveCollaborationId,
                         Status = b.Professional.ActiveCollaborationId > 0 ? collaborations.FirstOrDefault(x=>x.Id == b.Professional.ActiveCollaborationId).Value : string.Empty
-                    }).ToList();
+                    }).DistinctBy(x => x.ProfessionalId).ToList();
 
         }
 
@@ -94,10 +96,10 @@ namespace Medelit.Infra.Data.Repository
         {
             return (from b in Db.Booking
                     where b.CustomerId == customerId
+                    orderby b.SrNo ascending
                     select new
                     {
-                        bookingName = b.Name,
-
+                        bookingName = $"{b.Name} {b.SrNo}",
                         serviceName = b.Service.Name,
                         PtFee = b.PtFees.FeeName,
                         PtFeeA1 = b.PtFees.A1,

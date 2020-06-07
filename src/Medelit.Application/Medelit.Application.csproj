@@ -27,8 +27,10 @@
     <PackageReference Include="Hangfire.Core" Version="1.7.9" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.7.9" />
     <PackageReference Include="JWT" Version="5.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="Sendgrid" Version="9.11.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
     <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />

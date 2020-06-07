@@ -12,6 +12,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Medelit.Application
 {
@@ -28,9 +29,10 @@ namespace Medelit.Application
                             IHttpContextAccessor httpContext,
                             IConfiguration configuration,
                             IMediatorHandler bus,
-                            ILeadRepository leadRepository
+                            ILeadRepository leadRepository,
+                            IHostingEnvironment env
 
-            ) : base(context, httpContext, configuration)
+            ) : base(context, httpContext, configuration, env)
         {
             _mapper = mapper;
             _bus = bus;
