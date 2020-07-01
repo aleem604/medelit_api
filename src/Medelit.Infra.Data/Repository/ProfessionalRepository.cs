@@ -4,6 +4,7 @@ using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Infra.Data.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +16,292 @@ namespace Medelit.Infra.Data.Repository
 {
     public class ProfessionalRepository : Repository<Professional>, IProfessionalRepository
     {
-        public ProfessionalRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus)
+        private readonly ApplicationDbContext _appContext;
+        private readonly IStaticDataRepository _static;
+
+        public ProfessionalRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus, ApplicationDbContext appContext, IStaticDataRepository @static)
             : base(context, contextAccessor, bus)
         {
+            _appContext = appContext;
+            _static = @static;
         }
+
+        public void FindProfessionals(SearchViewModel viewModel)
+        {
+            try
+            {
+                viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+                if (viewModel.SearchOnly && string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    var res = new
+                    {
+                        items = new List<dynamic>(),
+                        totalCount = 0
+                    };
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, res));
+                    return;
+                }
+
+                var titles = _static.GetTitles();
+                var accountingCodes = _static.GetAccountingCodes();
+                var langs = Db.Languages.ToList();
+                var services = Db.Service.ToList();
+                var collaborations = _static.GetCollaborationCodes();
+                var applicationMeans = _static.GetApplicationMeans();
+                var applicationMethods = _static.GetApplicationMethods();
+                var contractStatus = _static.GetContractStatus();
+                var documnetList = _static.GetDocumentListSents();
+                var proTaxCodes = _static.GetProTaxCodes();
+
+                var query = Db.Professional.Select((s) => new
+                {
+                    s.Id,
+                    s.Code,
+                    s.TitleId,
+                    Title = (titles.FirstOrDefault(f => f.Id == s.TitleId) ?? new FilterModel()).Value,
+                    s.Name,
+                    s.Email,
+                    s.Telephone,
+                    s.AccountingCodeId,
+                    AccountingCode = (accountingCodes.FirstOrDefault(f => f.Id == s.AccountingCodeId) ?? new FilterModel()).Value,
+                    s.Website,
+                    s.MobilePhone,
+                    s.HomePhone,
+                    s.Email2,
+                    s.Fax,
+                    s.CoverMap,
+                    s.StreetName,
+                    s.City,
+                    s.PostCode,
+                    s.CountryId,
+                    Country = s.CountryId > 0 ? s.Country.Value : string.Empty,
+                    s.Description,
+                    s.ClinicStreetName,
+                    s.ClinicPostCode,
+                    s.ClinicCity,
+                    s.ClinicPhoneNumber,
+                    s.DateOfBirth,
+                    s.CompanyName,
+                    s.CompanyNumber,
+                    s.InvoicingNotes,
+                    s.Bank,
+                    s.Branch,
+                    s.AccountName,
+                    s.AccountNumber,
+                    s.SortCode,
+                    s.ContractDate,
+                    s.ContractEndDate,
+                    s.WorkPlace,
+                    s.ColleagueReferring,
+                    s.InsuranceExpiryDate,
+                    s.ActiveCollaborationId,
+                    ActiveCollaboration = (collaborations.FirstOrDefault(f => f.Id == s.ActiveCollaborationId) ?? new FilterModel()).Value,
+                    s.ClinicAgreement,
+                    s.ApplicationMeansId,
+                    ApplicationMeans = (applicationMeans.FirstOrDefault(f => f.Id == s.ApplicationMeansId) ?? new FilterModel()).Value,
+                    s.ApplicationMethodId,
+                    ApplicationMethod = (applicationMethods.FirstOrDefault(f => f.Id == s.ApplicationMethodId) ?? new FilterModel()).Value,
+                    s.FirstContactDate,
+                    s.LastContactDate,
+                    s.ContractStatusId,
+                    ContractStatus = (contractStatus.FirstOrDefault(f => f.Id == s.ContractStatusId) ?? new FilterModel()).Value,
+                    s.DocumentListSentId,
+                    DocumentListSent = (documnetList.FirstOrDefault(f => f.Id == s.DocumentListSentId) ?? new FilterModel()).Value,
+                    CalendarActivation = s.CalendarActivation == 1 ? "Yes" : "No",
+                    s.ProOnlineCV,
+                    s.ProtaxCodeId,
+                    ProTaxCode = (proTaxCodes.FirstOrDefault(f => f.Id == s.ProtaxCodeId) ?? new FilterModel()).Value,
+
+                    Field = string.Join("<br/>", s.ProfessionalFields.Select(x => x.Field.Field).Distinct().ToList()),
+                    SubCategory = string.Join("<br/>", s.ProfessionalSubCategories.Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
+                    Services = string.Join("<br/>", s.ServiceProfessionalFees.Select(x => x.Service.Name).Distinct().ToList()),
+                    assignedTo = GetAssignedUser(s.AssignedToId)
+                });
+
+                if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.CurrentProfessionals)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active);
+                }
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.ClosedProfessionals)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Closed);
+                }
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.ClosedProfessionals)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Closed);
+                }
+                // 4- Doctors
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Doctors)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("MEDICAL", StringComparison.CurrentCultureIgnoreCase));
+                }
+
+                // 5- PHYSIOTHERAPISTS 
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Physiotherapists)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("PHYSIOTHERAPY", StringComparison.CurrentCultureIgnoreCase));
+                }
+
+                //6- NURSES (FIELD “M” = NURSING” + CONTRACT STATUS “AW” = ACTIVE)
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Nurses)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("NURSING", StringComparison.CurrentCultureIgnoreCase));
+                }
+                //7- SPEECH & LANGUAGE(FIELD “M” = SPEECH & LANGUAGE + CONTRACT STATUS “AW” = ACTIVE)
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.SpeechAndLanguage)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("SPEECH & LANGUAGE", StringComparison.CurrentCultureIgnoreCase));
+                }
+                //8- PSYCHOLOGISTS(FIELD “M” = PSYCHOLOGY + CONTRACT STATUS “AW” = ACTIVE)
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Psychologists)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("PSYCHOLOGY", StringComparison.CurrentCultureIgnoreCase));
+                }
+                //9- PODIATRISTS (FIELD “M” = PODIATRY + CONTRACT STATUS “AW” = ACTIVE)
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Podiatrists)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("PODIATRY", StringComparison.CurrentCultureIgnoreCase));
+                }
+                //10- ALTERNATIVE MEDICINE (FIELD “M” = ALTERNATIVE MEDICINE + CONTRACT STATUS “AW” = ACTIVE)
+                else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Alternativemedicine)
+                {
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("ALTERNATIVE MEDICINE", StringComparison.CurrentCultureIgnoreCase));
+                }
+
+                if (!string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    viewModel.Filter.Search = viewModel.Filter.Search.Trim();
+                    query = query.Where(x =>
+                    (
+                        (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Code) && x.Code.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Title) && x.Title.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Telephone) && x.Telephone.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.AccountingCode) && x.AccountingCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Website) && x.Website.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.MobilePhone) && x.MobilePhone.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.HomePhone) && x.HomePhone.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Email2) && x.Email2.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Fax) && x.Fax.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.CoverMap) && x.CoverMap.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.StreetName) && x.StreetName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.City) && x.City.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.PostCode) && x.PostCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Country) && x.Country.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Description) && x.Description.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ClinicStreetName) && x.ClinicStreetName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ClinicPostCode) && x.ClinicPostCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ClinicCity) && x.ClinicCity.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ClinicPhoneNumber) && x.ClinicPhoneNumber.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.DateOfBirth.ToString("dd/MM/YYYY").Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.CompanyName) && x.CompanyName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.CompanyNumber) && x.CompanyNumber.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoicingNotes) && x.InvoicingNotes.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Bank) && x.Bank.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Branch) && x.Branch.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.AccountName) && x.AccountName.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.AccountNumber) && x.AccountNumber.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.SortCode) && x.SortCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.ContractDate.HasValue) && x.ContractDate.Value.ToString("dd/MM/YYYY").Contains(viewModel.Filter.Search.CLower()))
+                    || (x.ContractEndDate.HasValue) && x.ContractEndDate.Value.ToString("dd/MM/YYYY").Contains(viewModel.Filter.Search.CLower())
+                    || (!string.IsNullOrEmpty(x.WorkPlace) && x.WorkPlace.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ColleagueReferring) && x.ColleagueReferring.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.InsuranceExpiryDate.HasValue) && x.InsuranceExpiryDate.Value.ToString("dd/MM/YYYY").Contains(viewModel.Filter.Search.CLower())
+                    || (!string.IsNullOrEmpty(x.ActiveCollaboration) && x.ActiveCollaboration.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ApplicationMethod) && x.ApplicationMethod.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ApplicationMeans) && x.ApplicationMeans.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.FirstContactDate.HasValue) && x.FirstContactDate.Value.ToString("dd/MM/YYYY").Contains(viewModel.Filter.Search.CLower())
+                    || (x.LastContactDate.HasValue) && x.LastContactDate.Value.ToString("dd/MM/YYYY").Contains(viewModel.Filter.Search.CLower())
+                    || (!string.IsNullOrEmpty(x.ContractStatus) && x.ContractStatus.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.DocumentListSent) && x.DocumentListSent.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.CalendarActivation) && x.CalendarActivation.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ProOnlineCV) && x.ProOnlineCV.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ProTaxCode) && x.ProTaxCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+
+                    || (!string.IsNullOrEmpty(x.Field) && x.Field.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.SubCategory) && x.SubCategory.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Services) && x.Services.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    );
+                }
+
+                switch (viewModel.SortField.ToLower())
+                {
+                    case "name":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Name);
+                        else
+                            query = query.OrderByDescending(x => x.Name);
+                        break;
+
+                    case "email":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Email);
+                        else
+                            query = query.OrderByDescending(x => x.Email);
+                        break;
+
+                    case "fields":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Field);
+                        else
+                            query = query.OrderByDescending(x => x.Field);
+                        break;
+                    case "subcategories":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.SubCategory);
+                        else
+                            query = query.OrderByDescending(x => x.SubCategory);
+                        break;
+                    case "services":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Services);
+                        else
+                            query = query.OrderByDescending(x => x.Services);
+                        break;
+                    case "city":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.City);
+                        else
+                            query = query.OrderByDescending(x => x.City);
+                        break;
+                    case "contractDate":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.ContractDate);
+                        else
+                            query = query.OrderByDescending(x => x.ContractDate);
+                        break;
+                    case "contractEndDate":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.ContractEndDate);
+                        else
+                            query = query.OrderByDescending(x => x.ContractEndDate);
+                        break;
+
+                    default:
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Id);
+                        else
+                            query = query.OrderByDescending(x => x.Id);
+
+                        break;
+                }
+
+                var totalCount = query.LongCount();
+                var result = new
+                {
+                    items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
+                    totalCount
+                };
+
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+        }
+
 
         public IEnumerable<ServiceProfessionalFees> GetProfessionalServices(long id)
         {
@@ -485,6 +768,14 @@ namespace Medelit.Infra.Data.Repository
             {
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
             }
+        }
+
+        public string GetAssignedUser(string assignedToId)
+        {
+            if (string.IsNullOrEmpty(assignedToId))
+                return assignedToId;
+
+            return _appContext.Users.Find(assignedToId).FullName;
         }
 
     }

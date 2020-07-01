@@ -107,8 +107,7 @@ namespace Medelit.Domain.CommandHandlers
                     customerModel.SortCode = request.Customer.SortCode;
                     customerModel.BlacklistId = request.Customer.BlacklistId;
 
-
-                    customerModel.UpdateDate = DateTime.UtcNow;
+                    customerModel.UpdateDate = request.Customer.UpdateDate;
                     customerModel.UpdatedById = CurrentUser.Id;
                     _customerRepository.Update(customerModel);
                     commmitResult = Commit();
@@ -117,6 +116,7 @@ namespace Medelit.Domain.CommandHandlers
                 else
                 {
                     var feeModel = request.Customer;
+                    feeModel.CreateDate = request.Customer.CreateDate;
                     feeModel.CreatedById = CurrentUser.Id;
                     _customerRepository.Add(feeModel);
                     commmitResult = Commit();
@@ -268,7 +268,8 @@ namespace Medelit.Domain.CommandHandlers
                     booking.GrossTotal = booking.SubTotal + booking.TaxAmount;
 
                     booking.Id = 0;
-                    booking.BookingDate = DateTime.UtcNow;
+                    booking.BookingDate = lead.CreateDate;
+                    booking.CreateDate = lead.CreateDate;
                     booking.CreatedById = CurrentUser.Id;
                     _bookingRepository.Add(booking);
                     if (Commit() && firstBookingId == 0)

@@ -63,7 +63,7 @@ namespace Medelit.Domain.CommandHandlers
                 if (request.Booking.Id > 0)
                 {
                     var bookingModel = _bookingRepository.GetById(request.Booking.Id);
-                    //bookingModel.InvoiceEntityId = request.Booking.InvoiceEntityId;
+                    bookingModel.InvoiceEntityId = request.Booking.InvoiceEntityId;
 
                     //bookingModel.Name = request.Booking.Name;
                     bookingModel.BookingDate = request.Booking.BookingDate;
@@ -165,7 +165,7 @@ namespace Medelit.Domain.CommandHandlers
                     bookingModel.TaxType = request.Booking.TaxType;
                     bookingModel.IsValidated = true;
 
-                    bookingModel.UpdateDate = DateTime.UtcNow;
+                    bookingModel.UpdateDate = request.Booking.UpdateDate;
                     bookingModel.UpdatedById = CurrentUser.Id;
                     _bookingRepository.Update(bookingModel);
                     commmitResult = Commit();
@@ -188,7 +188,7 @@ namespace Medelit.Domain.CommandHandlers
             return Task.FromResult(false);
         }
 
-      
+
         public Task<bool> Handle(UpdateBookingsStatusCommand request, CancellationToken cancellationToken)
         {
             try
@@ -224,11 +224,11 @@ namespace Medelit.Domain.CommandHandlers
             {
                 foreach (var bookingId in request.BookingIds)
                 {
-                    var bookingModel = _bookingRepository.GetById(bookingId);
-                    bookingModel.Status = eRecordStatus.Deleted;
-                    bookingModel.DeletedAt = DateTime.UtcNow;
-                    bookingModel.DeletedById = CurrentUser.Id;
-                    _bookingRepository.Update(bookingModel);
+                    var booking = _bookingRepository.GetById(bookingId);
+                    _bookingRepository.Remove(bookingId);
+
+                    if (booking != null && booking.InvoiceId.HasValue)
+                        _invoiceRepository.UpdateInvoiceTotal(booking.InvoiceId.Value);
                 }
                 if (Commit())
                 {
@@ -251,7 +251,6 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-
                 _bus.RaiseEvent(new DomainNotification(request.MessageType, MessageCodes.ERROR_OCCURED));
                 return Task.FromResult(false);
 
@@ -280,12 +279,13 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.SrNo = _bookingRepository.GetSrNo(booking.CustomerId.Value);
                         newBooking.VisitStartDate = null;
                         newBooking.VisitEndDate = null;
-                        newBooking.QuantityHours = null;
+                        newBooking.QuantityHours = booking.QuantityHours.HasValue ? booking.QuantityHours.Value : (short)1;
                         newBooking.CreatedById = CurrentUser.Id;
                         newBooking.AssignedToId = CurrentUser.Id;
                         newBooking.PaymentMethodId = booking.PaymentMethodId;
                         newBooking.PaymentStatusId = booking.PaymentStatusId;
                         newBooking.PaymentConcludedId = booking.PaymentConcludedId;
+                        newBooking.IsValidated = true;
 
                         _bookingRepository.Add(newBooking);
                         Commit();
@@ -327,7 +327,7 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.SrNo = _bookingRepository.GetSrNo(booking.CustomerId.Value);
                         newBooking.VisitStartDate = null;
                         newBooking.VisitEndDate = null;
-                        newBooking.QuantityHours = null;
+                        newBooking.QuantityHours = 1;
                         newBooking.BookingStatusId = (short)eBookingStatus.Created;
                         newBooking.CycleBookingId = booking.Id;
                         newBooking.CreatedById = CurrentUser.Id;
@@ -335,7 +335,7 @@ namespace Medelit.Domain.CommandHandlers
                         newBooking.PaymentMethodId = booking.PaymentMethodId;
                         newBooking.PaymentStatusId = booking.PaymentStatusId;
                         newBooking.PaymentConcludedId = booking.PaymentConcludedId;
-
+                        newBooking.IsValidated = true;
                         _bookingRepository.Add(newBooking);
                         Commit();
                         if (lastCycleId == 0)
@@ -344,6 +344,7 @@ namespace Medelit.Domain.CommandHandlers
                     }
                     booking.CycleNumber = 1;
                     booking.Cycle = request.NumberOfCycles;
+                    booking.CycleBookingId = booking.Id;
                     _bookingRepository.Update(booking);
                     Commit();
                     _invoiceRepository.UpdateBookingStats(new List<long> { booking.Id });

@@ -24,6 +24,7 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Medelit.Application;
 using Wkhtmltopdf.NetCore;
+using Medelit.Common.Models;
 
 namespace Medelit.Api
 {
@@ -101,6 +102,7 @@ namespace Medelit.Api
            .AddJsonOptions(options =>
            {
                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+               options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
            });
 
 

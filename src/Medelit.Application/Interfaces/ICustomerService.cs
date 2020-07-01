@@ -8,7 +8,7 @@ namespace Medelit.Application
     public interface ICustomerService : IDisposable
     {
         dynamic GetCustomers();
-        dynamic FindCustomers(SearchViewModel model);
+        void FindCustomers(SearchViewModel model);
         CustomerViewModel GetCustomerById(long leadId);
         void SaveCustomer(CustomerViewModel model);
         void UpdateStatus(IEnumerable<CustomerViewModel> leads, eRecordStatus status);

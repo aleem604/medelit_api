@@ -26,24 +26,35 @@ namespace Medelit.Infra.Data.Repository
             try
             {
                 viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+                if (viewModel.SearchOnly && string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    var res = new
+                    {
+                        items = new List<dynamic>(),
+                        totalCount = 0
+                    };
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, res));
+                    return;
+                }
+
                 var services = Db.Service;
                 var serviceProFees = Db.ServiceProfessionalFees.Select(s => new { s.PtFeeId, s.ProFeeId, s.Service, s.Professional });
 
                 var query = Db.VFees.Where(x => x.Status != eRecordStatus.Deleted).Select((x) => new
                 {
                     x.Id,
+                    x.FeeCode,
                     x.FeeName,
                     x.FeeTypeId,
                     FeeType = x.FeeTypeId.GetDescription(),
+                    x.Tags,
+                    x.A1,
+                    x.A2,
                     services = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Service.Name).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Service.Name).Distinct().ToList()),
                     field = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Service.Field.Field).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Service.Field.Field).Distinct().ToList()),
                     subCategory = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Service.SubCategory.SubCategory).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Service.SubCategory.SubCategory).Distinct().ToList()),
                     professionals = string.Join("<br/>", x.FeeTypeId == eFeeType.PTFee ? serviceProFees.Where(w => w.PtFeeId == x.Id).Select(s => s.Professional.Name).Distinct().ToList() : serviceProFees.Where(w => w.ProFeeId == x.Id).Select(s => s.Professional.Name).Distinct().ToList()),
 
-                    x.FeeCode,
-                    x.Tags,
-                    x.A1,
-                    x.A2,
                     x.CreateDate,
                     x.UpdateDate
                 }); ;
@@ -57,12 +68,12 @@ namespace Medelit.Infra.Data.Repository
                     || (!string.IsNullOrEmpty(x.FeeCode) && x.FeeCode.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.FeeType) && x.FeeType.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.A1.ToString()) && x.A1.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.services) && x.services.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.field) && x.field.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.professionals) && x.professionals.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.Tags) && x.Tags.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                     ));
@@ -145,7 +156,6 @@ namespace Medelit.Infra.Data.Repository
                             query = query.OrderBy(x => x.FeeCode);
                         else
                             query = query.OrderByDescending(x => x.FeeCode);
-
                         break;
                 }
 

@@ -70,6 +70,7 @@ namespace Medelit.Domain.CommandHandlers
                     invoiceModel.InvoiceNumber = request.Invoice.InvoiceNumber;
                     invoiceModel.CustomerId = request.Invoice.CustomerId;
                     invoiceModel.InvoiceEntityId = request.Invoice.InvoiceEntityId;
+                    invoiceModel.DateOfVisit = request.Invoice.DateOfVisit;
                     invoiceModel.PatientDateOfBirth = request.Invoice.PatientDateOfBirth;
                     invoiceModel.StatusId = request.Invoice.StatusId;
                     invoiceModel.DueDate = request.Invoice.DueDate;
@@ -98,6 +99,7 @@ namespace Medelit.Domain.CommandHandlers
                     invoiceModel.InvoiceDescription = request.Invoice.InvoiceDescription;
                     invoiceModel.TermsAndConditions = request.Invoice.TermsAndConditions;
                     invoiceModel.ItemNameOnInvoice = request.Invoice.ItemNameOnInvoice;
+                    invoiceModel.UpdateDate = request.Invoice.UpdateDate;
 
                     _invoiceRepository.Update(invoiceModel);
 
@@ -298,7 +300,7 @@ namespace Medelit.Domain.CommandHandlers
                 invoice.InvoiceDeliveryDate = DateTime.Now;
                 invoice.StatusId = (short)eInvoiceStatus.Proforma;
 
-                invoice.CreateDate = DateTime.UtcNow;
+                invoice.CreateDate = booking.UpdateDate ?? DateTime.UtcNow;
                 invoice.CreatedById = CurrentUser.Id;
                 invoice.AssignedToId = CurrentUser.Id;
 

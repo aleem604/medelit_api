@@ -52,6 +52,10 @@ namespace Medelit.Domain.Models
         public DateTime? DateOfBirth { get; set; }
         [Column("country_of_birth_id")]
         public short? CountryOfBirthId { get; set; }
+        [ForeignKey("CountryOfBirthId")]
+        public Country CountryOfBirth { get; set; }
+
+
         [Column("preferred_payment_method_id")]
         public short? PreferredPaymentMethodId { get; set; }
         [Column("invoicing_notes")]

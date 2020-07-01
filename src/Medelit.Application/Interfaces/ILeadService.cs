@@ -9,6 +9,7 @@ namespace Medelit.Application
     {
         dynamic GetLeads();
         dynamic FindLeads(SearchViewModel model);
+        void SearchLeads(SearchViewModel model);
         LeadViewModel GetLeadById(long leadId, long? fromCustomerId);
         void SaveLead(LeadViewModel model);
         void UpdateStatus(IEnumerable<LeadViewModel> leads, eRecordStatus status);

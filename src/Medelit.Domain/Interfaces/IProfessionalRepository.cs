@@ -1,4 +1,5 @@
-﻿using Medelit.Common.Models;
+﻿using Medelit.Common;
+using Medelit.Common.Models;
 using Medelit.Domain.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ namespace Medelit.Domain.Interfaces
 {
     public interface IProfessionalRepository : IRepository<Professional>
     {
+        void FindProfessionals(SearchViewModel viewModel);
         IQueryable<ProfessionalLanguages> GetAllLangs();
         IQueryable<Professional> GetByIdWithIncludes(long professionalId);
         void DeleteProfessionalRelations(long id);

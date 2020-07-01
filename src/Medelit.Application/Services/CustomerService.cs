@@ -41,90 +41,9 @@ namespace Medelit.Application
             return _customerRepository.GetAll().Select(x => new { x.Id, x.TitleId, x.SurName }).ToList();
         }
 
-        public dynamic FindCustomers(SearchViewModel viewModel)
+        public void FindCustomers(SearchViewModel viewModel)
         {
-            viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
-
-            var query = (from customer in _customerRepository.GetAll()
-                         where customer.Status != eRecordStatus.Deleted
-                         select customer)
-                        .Select((x) => new
-                        {
-                            x.Id,
-                            x.SurName,
-                            x.Name,
-                            x.InvoiceEntityId,
-                            InvoiceEntity = x.InvoiceEntityId.HasValue ? x.InvoiceEntity.Name : string.Empty,
-                            x.MainPhone,
-                            x.Email,
-                            City = x.HomeCity,
-                            Country = x.HomeCountryId.HasValue ? x.HomeCountry.Value : string.Empty,
-                            x.UpdateDate,
-                            Age = x.DateOfBirth.HasValue ? $"{Utils.GetAge(x.DateOfBirth).Item1} years" : string.Empty,
-                            Address = x.HomeStreetName,
-                            AssignedTo = GetAssignedUser(x.AssignedToId)
-                        });
-
-
-            //if (!string.IsNullOrEmpty(viewModel.Filter.Search))
-            //{
-            //    viewModel.Filter.Search = viewModel.Filter.Search.Trim();
-            //    query = query.Where(x =>
-            //    (
-            //        (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-            //    || (x.SurName.Equals(viewModel.Filter.Search))
-            //    || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
-            //    || (x.Id.ToString().Contains(viewModel.Filter.Search))
-
-            //    ));
-            //}
-
-            switch (viewModel.SortField)
-            {
-                //case "name":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.Name);
-                //    else
-                //        query = query.OrderByDescending(x => x.Name);
-                //    break;
-
-                //case "surname":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.SurName);
-                //    else
-                //        query = query.OrderByDescending(x => x.SurName);
-                //    break;
-
-                //case "email":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.Email);
-                //    else
-                //        query = query.OrderByDescending(x => x.Email);
-                //    break;
-
-                //case "age":
-                //    if (viewModel.SortOrder.Equals("asc"))
-                //        query = query.OrderBy(x => x.Age);
-                //    else
-                //        query = query.OrderByDescending(x => x.Age);
-                //    break;
-
-                default:
-                    if (viewModel.SortOrder.Equals("asc"))
-                        query = query.OrderBy(x => x.Id);
-                    else
-                        query = query.OrderByDescending(x => x.Id);
-
-                    break;
-            }
-
-            var totalCount = query.LongCount();
-
-            return new
-            {
-                items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
-                totalCount
-            };
+            _customerRepository.FindCustomer(viewModel);
         }
 
         public CustomerViewModel GetCustomerById(long customerId)

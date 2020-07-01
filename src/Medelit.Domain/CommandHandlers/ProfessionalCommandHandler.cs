@@ -103,7 +103,7 @@ namespace Medelit.Domain.CommandHandlers
                     proModel.ProfessionalLanguages = req.ProfessionalLanguages;
                     proModel.ProfessionalFields = req.ProfessionalFields;
                     proModel.ProfessionalSubCategories = req.ProfessionalSubCategories;
-                    proModel.UpdateDate = DateTime.UtcNow;
+                    proModel.UpdateDate = req.UpdateDate;
                     proModel.UpdatedById = CurrentUser.Id;
                     if (string.IsNullOrEmpty(proModel.AssignedToId))
                         proModel.AssignedToId = CurrentUser.Id;
@@ -116,7 +116,7 @@ namespace Medelit.Domain.CommandHandlers
                 else
                 {
                     var proModel = request.Model;
-                    proModel.CreateDate = DateTime.UtcNow;
+                    proModel.CreateDate = request.Model.CreateDate;
                     proModel.CreatedById = CurrentUser.Id;
                     proModel.AssignedToId = CurrentUser.Id;
 

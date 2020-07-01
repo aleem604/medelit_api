@@ -5,6 +5,7 @@ using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Infra.Data.Context;
 using Medelit.Infra.Data.Repository;
 using Microsoft.AspNetCore.Http;
@@ -12,42 +13,88 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Medelit.Infra.Data.Repository
 {
     public class ServiceRepository : Repository<Service>, IServiceRepository
     {
-        public ServiceRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus)
+        private readonly ApplicationDbContext _appContext;
+        private readonly IStaticDataRepository _static;
+        public ServiceRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus, ApplicationDbContext appContext, IStaticDataRepository @static)
             : base(context, contextAccessor, bus)
         {
+            _appContext = appContext;
+            _static = @static;
         }
 
         public void FindServices(SearchViewModel viewModel)
         {
             try
             {
-
                 viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+                if (viewModel.SearchOnly && string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    var res = new
+                    {
+                        items = new List<dynamic>(),
+                        totalCount = 0
+                    };
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, res));
+                    return;
+                }
+
+                var durations = _static.GetDurations();
+                var vats = _static.GetVats();
+                var fieldSubcats = Db.FieldSubCategory.ToList();
+                var serviceProFees = Db.ServiceProfessionalFees.ToList();
+                var professionals = Db.Professional.ToList();
+                var ptFees = Db.PtFee.ToList();
+                var proFees = Db.ProFee.ToList();
+
                 var query = from s in Db.Service
 
                             where s.Status != eRecordStatus.Deleted
                             select new
                             {
                                 s.Id,
+                                s.ServiceCode,
                                 s.Name,
-                                field = s.Field.Field,
-                                subCategory = s.SubCategory.SubCategory,
-                                PtFees = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.PtFee.FeeName).Distinct().ToList()),
-                                PtFeesA1 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.PtFee.A1)).Distinct().ToList()),
-                                PtFeesA2 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.PtFee.A2)).Distinct().ToList()),
-                                ProFees = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.ProFee.FeeName).Distinct().ToList()),
-                                ProFeesA1 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.ProFee.A1)).Distinct().ToList()),
-                                ProFeesA2 = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.ProFee.A2)).Distinct().ToList()),
-                                Professionals = string.Join(", ", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.Professional.Name).Distinct().ToList()),
+                                s.CycleId,
+                                Cycle = s.CycleId.HasValue && s.CycleId.Value == 1 ? "Yes" : "No",
+                                s.ActiveServiceId,
+                                ActiveService = s.ActiveServiceId.HasValue && s.ActiveServiceId.Value == 1 ? "Yes" : "No",
+                                s.FieldId,
+                                field = (fieldSubcats.FirstOrDefault(f => f.Id == s.FieldId) ?? new FieldSubCategory()).Field,
+                                s.SubcategoryId,
+                                subCategory = (fieldSubcats.FirstOrDefault(f => f.Id == s.SubcategoryId) ?? new FieldSubCategory()).SubCategory,
+                                s.DurationId,
+                                Duration = (durations.FirstOrDefault(f => f.Id == s.DurationId) ?? new FilterModel()).Value,
+                                s.TimedServiceId,
+                                TimedService = s.TimedServiceId == 1 ? "Yes" : "No",
+                                s.VatId,
+                                Vat = (vats.FirstOrDefault(f => f.Id == s.VatId) ?? new FilterModel()).Value,
+                                s.Description,
                                 s.Covermap,
-                                s.Status,
+                                s.InvoicingNotes,
+                                s.ContractedServiceId,
+                                ContractedService = s.ContractedServiceId == 1 ? "Yes" : "No",
+                                s.RefundNotes,
+                                s.InformedConsentId,
+                                InformedConsent = s.InformedConsentId == 1 ? "Yes" : "No",
+                                Tags = s.Tags != null && s.Tags.Length > 0 ? s.Tags.Replace(",", "<br/>") : s.Tags,
+
+                                PtFees = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.PtFee.FeeName).Distinct().ToList()),
+                                PtFeesA1 = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.PtFee.A1)).Distinct().ToList()),
+                                PtFeesA2 = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.PtFee.A2)).Distinct().ToList()),
+                                ProFees = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.ProFee.FeeName).Distinct().ToList()),
+                                ProFeesA1 = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.ProFee.A1)).Distinct().ToList()),
+                                ProFeesA2 = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => string.Format("{0:F2}", x.ProFee.A2)).Distinct().ToList()),
+                                Professionals = string.Join("<br/>", s.ServiceProfessionalFees.Where(x => x.ServiceId == s.Id).Select(x => x.Professional.Name).Distinct().ToList()),
+                                Pros = GetProfessions(s, serviceProFees.Where(sf => sf.ServiceId == s.Id).ToList(), professionals, ptFees, proFees),
+
                                 s.CreateDate,
-                                s.CreatedById
+                                AssignedTo = GetAssignedUser(s.AssignedToId),
                             };
 
                 if (!string.IsNullOrEmpty(viewModel.Filter.Search))
@@ -56,30 +103,37 @@ namespace Medelit.Infra.Data.Repository
                     query = query.Where(x =>
                     (
                         (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
-
-                    || (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ServiceCode) && x.ServiceCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Cycle) && x.Cycle.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ActiveService) && x.ActiveService.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.field) && x.field.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.subCategory) && x.subCategory.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Duration) && x.Duration.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.TimedService) && x.TimedService.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Vat) && x.Vat.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Description) && x.Description.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Covermap) && x.Covermap.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoicingNotes) && x.InvoicingNotes.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ContractedService) && x.ContractedService.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.RefundNotes) && x.RefundNotes.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InformedConsent) && x.InformedConsent.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Tags) && x.Tags.CLower().Contains(viewModel.Filter.Search.CLower()))
+
+                    || (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
 
                     || (!string.IsNullOrEmpty(x.PtFees) && x.PtFees.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.PtFeesA1) && x.PtFeesA1.CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.PtFeesA2) && x.ProFeesA2.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.PtFeesA2) && x.PtFeesA2.CLower().Contains(viewModel.Filter.Search.CLower()))
 
                     || (!string.IsNullOrEmpty(x.ProFees) && x.ProFees.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.ProFeesA1) && x.ProFeesA1.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.ProFeesA2) && x.ProFeesA2.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Pros) && x.Pros.CLower().Contains(viewModel.Filter.Search.CLower()))
 
-                    || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.Covermap) && x.Covermap.CLower().Contains(viewModel.Filter.Search.CLower()))
-                    || (!string.IsNullOrEmpty(x.CreateDate.ToString("dd/MM/yyyy")) && x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.CreateDate.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (x.Id.ToString().Contains(viewModel.Filter.Search))
 
                     ));
-                }
-
-                if (viewModel.Filter.Status != eRecordStatus.All)
-                {
-                    query = query.Where(x => x.Status == viewModel.Filter.Status);
                 }
 
                 switch (viewModel.SortField)
@@ -114,7 +168,7 @@ namespace Medelit.Infra.Data.Repository
                             query = query.OrderByDescending(x => x.Name);
                         break;
 
-                    case "ptfees":
+                    case "ptFees":
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.PtFees);
                         else
@@ -133,7 +187,6 @@ namespace Medelit.Infra.Data.Repository
                             query = query.OrderByDescending(x => x.PtFeesA2);
                         break;
 
-
                     case "proFees":
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.ProFees);
@@ -146,12 +199,6 @@ namespace Medelit.Infra.Data.Repository
                         else
                             query = query.OrderByDescending(x => x.ProFeesA2);
                         break;
-                    case "status":
-                        if (viewModel.SortOrder.Equals("asc"))
-                            query = query.OrderBy(x => x.Status);
-                        else
-                            query = query.OrderByDescending(x => x.Status);
-                        break;
 
 
                     case "covermap":
@@ -161,12 +208,18 @@ namespace Medelit.Infra.Data.Repository
                             query = query.OrderByDescending(x => x.Covermap);
                         break;
 
+                    case "pros":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Pros);
+                        else
+                            query = query.OrderByDescending(x => x.Pros);
+                        break;
+
                     default:
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.Id);
                         else
                             query = query.OrderByDescending(x => x.Id);
-
                         break;
                 }
 
@@ -185,6 +238,28 @@ namespace Medelit.Infra.Data.Repository
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
             }
         }
+
+
+        private string GetProfessions(Service service, List<ServiceProfessionalFees> fees, List<Professional> professionals, List<PtFee> ptFees, List<ProFee> proFees)
+        {
+            var result = new StringBuilder($"<table class='table table-bordered table-sm table-striped custom-table mt-3'>");
+            fees.ForEach(f => {
+                var professional = (professionals.FirstOrDefault(p => p.Id == f.ProfessionalId) ?? new Professional()).Name;
+                var ptFee = (ptFees.FirstOrDefault(p => p.Id == f.PtFeeId) ?? new PtFee());
+                var proFee = (proFees.FirstOrDefault(p => p.Id == f.ProFeeId) ?? new ProFee());
+
+                result.Append($"<thead><tr>");
+                result.Append($"<td> {professional}</td>");
+                result.Append($"<td> {string.Format("{0:F2}", ptFee.A1)}</td>");
+                result.Append($"<td> {string.Format("{0:F2}", ptFee.A2)}</td>");
+                result.Append($"<td> {string.Format("{0:F2}", proFee.A1)}</td>");
+                result.Append($"<td> {string.Format("{0:F2}", proFee.A2)} </td>");
+                result.Append($"</tr></thead>");
+            });
+            
+            return result.ToString();
+        }
+
 
         public void AddUpdateFeeForService(AddUpdateFeeToService model)
         {
@@ -524,10 +599,8 @@ namespace Medelit.Infra.Data.Repository
             _bus.RaiseEvent(new DomainNotification(GetType().Name, "Invalid data"));
         }
 
-
-
-
         #region service connect fees
+
         public void GetServiceConnectedFees(long serviceId, eFeeType feeType)
         {
             try
@@ -673,6 +746,7 @@ namespace Medelit.Infra.Data.Repository
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
             }
         }
+
         public void DetachFeeFromService(IEnumerable<long> feeIds, long serviceId, eFeeType feeType)
         {
             try
@@ -727,9 +801,11 @@ namespace Medelit.Infra.Data.Repository
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
             }
         }
+
         #endregion service connect pt fees
 
         #region service connect pro fees
+
         public void GetServiceConnectedProFees(long serviceId)
         {
             try
@@ -859,7 +935,6 @@ namespace Medelit.Infra.Data.Repository
 
         #endregion service connect pro fees
 
-
         #region Tabs Data
         public dynamic GetProfessionalServicesWithInclude(long professionalId)
         {
@@ -871,17 +946,16 @@ namespace Medelit.Infra.Data.Repository
 
         public dynamic GetConnectedCustomersInvoicingEntities(long serviceId)
         {
-            return (from c in Db.Customer
-                    join
-                    cs in Db.CustomerServiceRelation on c.Id equals cs.CustomerId
+            return (from cs in Db.CustomerServiceRelation
                     where cs.ServiceId == serviceId
                     select new
                     {
-                        Customer = c.Name,
-                        InvoiceEntity = c.InvoiceEntityId.HasValue ? c.InvoiceEntity.Name : string.Empty,
-                        Phone = c.MainPhone,
-                        c.Email
-                    }).DistinctBy(x => x.Customer).ToList();
+                        cs.CustomerId,
+                        Customer = cs.Customer.Name,
+                        InvoiceEntity = cs.Customer.InvoiceEntityId.HasValue ? cs.Customer.InvoiceEntity.Name : string.Empty,
+                        Phone = cs.Customer.MainPhone,
+                        cs.Customer.Email
+                    }).DistinctBy(x => x.CustomerId).ToList();
         }
 
         public dynamic GetConnectedBookings(long serviceId)
@@ -892,20 +966,21 @@ namespace Medelit.Infra.Data.Repository
                     where ps.ServiceId == serviceId
                     select new
                     {
+                        b.Id,
                         bookingName = b.Name,
                         ServiceName = ps.Service.Name,
-                        //PtFee = ps.Service.PtFee.FeeName,
-                        //PtFeeA1 = ps.Service.PtFee.A1,
-                        //ptFeeA2 = ps.Service.PtFee.A2,
+                        PtFee = ps.PtFee.FeeName,
+                        PtFeeA1 = string.Format("{0:F2}", ps.PtFee.A1),
+                        ptFeeA2 = string.Format("{0:F2}", ps.PtFee.A2),
 
-                        //ProFeeName = ps.Service.ProFee.FeeName,
-                        //ProFeeA1 = ps.Service.ProFee.A1,
-                        //proFeeA2 = ps.Service.ProFee.A2,
+                        ProFeeName = ps.ProFee.FeeName,
+                        ProFeeA1 = string.Format("{0:F2}", ps.ProFee.A1),
+                        proFeeA2 = string.Format("{0:F2}", ps.ProFee.A2),
 
                         CustomerName = b.Customer.Name,
                         InvoiceEntity = b.InvoiceEntityId.HasValue ? b.InvoiceEntity.Name : string.Empty,
                         VisitDate = b.VisitStartDate
-                    }).ToList();
+                    }).DistinctBy(x => x.Id).ToList();
         }
 
         public dynamic GetConnectedCustomerInvoices(long serviceId)
@@ -946,6 +1021,14 @@ namespace Medelit.Infra.Data.Repository
                 ).ToList();
         }
         #endregion Tabs Data
+
+        public string GetAssignedUser(string assignedToId)
+        {
+            if (string.IsNullOrEmpty(assignedToId))
+                return assignedToId;
+
+            return _appContext.Users.Find(assignedToId).FullName;
+        }
 
     }
 }

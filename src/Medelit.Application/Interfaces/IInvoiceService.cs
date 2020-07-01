@@ -8,7 +8,7 @@ namespace Medelit.Application
     public interface IInvoiceService : IDisposable
     {
         dynamic GetInvoices();
-        dynamic FindInvoices(SearchViewModel model);
+        void FindInvoices(SearchViewModel model);
         void GetInvoiceById(long invoiceId);
         void InvocieBookingsForCrud(long invoiceId);
         void SaveInvocieBookingsForCrud(IEnumerable<FilterModel> model, long invoiceId);

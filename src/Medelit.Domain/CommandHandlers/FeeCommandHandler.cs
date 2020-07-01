@@ -56,7 +56,7 @@ namespace Medelit.Domain.CommandHandlers
                         ptFeeModel.A1 = request.Fee.A1;
                         ptFeeModel.A2 = request.Fee.A2;
                         ptFeeModel.Tags = request.Fee.Tags;
-                        ptFeeModel.UpdateDate = DateTime.UtcNow;
+                        ptFeeModel.UpdateDate = request.Fee.UpdateDate;
                         ptFeeModel.UpdatedById = CurrentUser.Id;
                         if (string.IsNullOrEmpty(ptFeeModel.AssignedToId))
                             ptFeeModel.AssignedToId = CurrentUser.Id;
@@ -72,7 +72,7 @@ namespace Medelit.Domain.CommandHandlers
                         proFeeModel.A1 = request.Fee.A1;
                         proFeeModel.A2 = request.Fee.A2;
                         proFeeModel.Tags = request.Fee.Tags;
-                        proFeeModel.UpdateDate = DateTime.UtcNow;
+                        proFeeModel.UpdateDate = request.Fee.UpdateDate;
                         proFeeModel.UpdatedById = CurrentUser.Id;
                         if (string.IsNullOrEmpty(proFeeModel.AssignedToId))
                             proFeeModel.AssignedToId = CurrentUser.Id;
@@ -92,7 +92,7 @@ namespace Medelit.Domain.CommandHandlers
                             A1 = request.Fee.A1,
                             A2 = request.Fee.A2,
                             Tags = request.Fee.Tags,
-                            CreateDate = DateTime.UtcNow,
+                            CreateDate = request.Fee.CreateDate,
                             CreatedById = CurrentUser.Id,
                             AssignedToId = CurrentUser.Id
                         };
@@ -114,7 +114,7 @@ namespace Medelit.Domain.CommandHandlers
                             A1 = request.Fee.A1,
                             A2 = request.Fee.A2,
                             Tags = request.Fee.Tags,
-                            CreateDate = DateTime.UtcNow,
+                            CreateDate = request.Fee.CreateDate,
                             CreatedById = CurrentUser.Id,
                             AssignedToId = CurrentUser.Id
                         };

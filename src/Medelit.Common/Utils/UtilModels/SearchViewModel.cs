@@ -11,6 +11,7 @@ namespace Medelit.Common
         public string SortField { get; set; } = "id";
         public int PageNumber { get; set; } = 0;
         public int PageSize { get; set; } = 10;
+        public bool SearchOnly { get; set; } = false;
     }
 
     public class SearchFilterViewModel

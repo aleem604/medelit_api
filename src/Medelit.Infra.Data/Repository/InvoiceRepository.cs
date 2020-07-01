@@ -9,6 +9,7 @@ using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
 using Medelit.Domain.Interfaces;
 using Medelit.Domain.Models;
+using Medelit.Infra.CrossCutting.Identity.Data;
 using Medelit.Infra.Data.Context;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,19 +20,268 @@ namespace Medelit.Infra.Data.Repository
     public class InvoiceRepository : Repository<Invoice>, IInvoiceRepository
     {
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IStaticDataRepository _static;
+        private readonly ApplicationDbContext _appContext;
 
-        public InvoiceRepository(MedelitContext context, IHttpContextAccessor contextAccessor, IMediatorHandler bus, IHostingEnvironment hostingEnvironment)
+        public InvoiceRepository(MedelitContext context,
+            IHttpContextAccessor contextAccessor,
+            IMediatorHandler bus,
+            IHostingEnvironment hostingEnvironment,
+            IStaticDataRepository @static,
+            ApplicationDbContext appContext)
             : base(context, contextAccessor, bus)
         {
             _hostingEnvironment = hostingEnvironment;
+            _static = @static;
+            _appContext = appContext;
         }
+
+
+        public void FindInvoices(SearchViewModel viewModel)
+        {
+            try
+            {
+                viewModel.Filter = viewModel.Filter ?? new SearchFilterViewModel();
+                if (viewModel.SearchOnly && string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    var res = new
+                    {
+                        items = new List<dynamic>(),
+                        totalCount = 0
+                    };
+                    _bus.RaiseEvent(new DomainNotification(GetType().Name, null, res));
+                    return;
+                }
+
+                var langs = Db.Languages.ToList();
+                var invoicingEntities = Db.InvoiceEntity.ToList();
+                var services = Db.Service.ToList();
+                var professionals = Db.Professional.ToList();
+                var paymentMethods = _static.GetPaymentMethods().ToList();
+                var bookingStatus = _static.GetBookingStatus().ToList();
+                var bookingType = _static.GetBookingTypes().ToList();
+                var visitVenues = _static.GetVisitVenues().ToList();
+                var relations = _static.GetRelationships().ToList();
+                var buildingTypes = _static.GetBuildingTypes().ToList();
+                var paymentStatus = _static.GetPaymentStatuses().ToList();
+                var invoiceStatus = _static.GetInvoiceStatuses().ToList();
+
+
+                var query = (from b in Db.Invoice
+
+                             select new
+                             {
+                                 b.Id,
+                                 b.Subject,
+                                 b.CustomerId,
+                                 Customer = $"{b.Customer.SurName} {b.Customer.Name}",
+                                 b.InvoiceEntityId,
+                                 InvoiceEntity = b.InvoiceEntityId.HasValue ? (invoicingEntities.FirstOrDefault(x => x.Id == b.InvoiceEntityId) ?? new InvoiceEntity()).Name : "",
+                                 b.InvoiceNumber,
+                                 b.DueDate,
+                                 b.InvoiceDate,
+                                 b.StatusId,
+                                 invoiceStatus =(paymentMethods.FirstOrDefault(f => f.Id == b.StatusId) ?? new FilterModel()).Value,
+                                 Status = b.IsProforma ? "Proforma" : "Emitted",
+                                 
+
+                                
+
+                                 b.PaymentDueDate,
+                                 b.InvoiceDeliveryDate,
+                                 b.InvoiceSentByEmailId,
+                                 InvoiceSentByEmail = b.InvoiceSentByEmailId.HasValue && b.InvoiceSentByEmailId == 1 ? "Yes" : "No",
+                                 b.InvoiceSentByMailId,
+                                 InvoiceSentByMail = b.InvoiceSentByMailId.HasValue && b.InvoiceSentByMailId == 1 ? "Yes" : "No",
+                                 b.PaymentMethodId,
+                                 PaymentMethod = b.PaymentMethodId.HasValue ? (paymentMethods.FirstOrDefault(f => f.Id == b.PaymentMethodId) ?? new FilterModel()).Value : string.Empty,
+
+                                 b.PatientDateOfBirth,
+                                 b.IEBillingAddress,
+                                 b.MailingAddress,
+                                 b.IEBillingPostCode,
+                                 b.MailingPostCode,
+                                 b.IEBillingCity,
+                                 b.MailingCity,
+                                 b.IEBillingCountryId,
+                                 BillingCountry = b.IEBillingCountryId.HasValue ? b.BillingCountry.Value : string.Empty,
+                                 b.MailingCountryId,
+                                 MailingCountry = b.MailingCountryId.HasValue ? b.MailingCountry.Value : string.Empty,
+                                 b.InvoiceNotes,
+                                 b.InsuranceCoverId,
+                                 InsuranceCover = b.InsuranceCoverId.HasValue && b.InsuranceCoverId.Value == 1 ? "Yes" : "No",
+                                 b.InvoiceDiagnosis,
+                                 b.DateOfVisit,
+                                 b.TermsAndConditions,
+                                 b.InvoiceDescription,
+                                 b.ItemNameOnInvoice,
+                                 b.PaymentArrivalDate,
+
+                                 b.ProInvoiceDate,
+                                 b.SubTotal,
+                                 b.TaxCodeId,
+                                 b.TaxAmount,
+                                 b.Discount,
+                                 b.TotalInvoice,
+                                 b.IsProforma,
+                                 b.CreateDate,
+                                 b.UpdateDate,
+                                 AssignedTo = GetAssignedUser(b.AssignedToId)
+                             });
+
+
+                if (!string.IsNullOrEmpty(viewModel.Filter.Search))
+                {
+                    viewModel.Filter.Search = viewModel.Filter.Search.Trim();
+                    query = query.Where(x =>
+                    (
+                        (!string.IsNullOrEmpty(x.InvoiceNumber) && x.InvoiceNumber.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.InvoiceNumber.Equals(viewModel.Filter.Search))
+                    || (!string.IsNullOrEmpty(x.Subject) && x.Subject.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.InvoiceDate.HasValue && x.InvoiceDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.DueDate.HasValue && x.DueDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Customer) && x.Customer.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoiceEntity) && x.InvoiceEntity.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoiceSentByEmail) && x.InvoiceSentByEmail.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoiceSentByMail) && x.InvoiceSentByMail.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.PatientDateOfBirth.HasValue && x.PatientDateOfBirth.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.IEBillingAddress) && x.IEBillingAddress.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.MailingAddress) && x.MailingAddress.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.IEBillingPostCode) && x.IEBillingPostCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.MailingPostCode) && x.MailingPostCode.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.IEBillingCity) && x.IEBillingCity.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.MailingCity) && x.MailingCity.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.BillingCountry) && x.BillingCountry.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.MailingCountry) && x.MailingCountry.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoiceNotes) && x.MailingCountry.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InsuranceCover) && x.InsuranceCover.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoiceDiagnosis) && x.InvoiceDiagnosis.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.DateOfVisit.HasValue && x.DateOfVisit.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.TermsAndConditions) && x.TermsAndConditions.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.InvoiceDescription) && x.InvoiceDescription.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.ItemNameOnInvoice) && x.ItemNameOnInvoice.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.PaymentArrivalDate.HasValue && x.PaymentArrivalDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.ProInvoiceDate.HasValue && x.ProInvoiceDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.SubTotal.HasValue && x.SubTotal.Value.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.TaxAmount.HasValue && x.TaxAmount.Value.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.Discount.HasValue && x.Discount.Value.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.TotalInvoice.HasValue && x.TotalInvoice.Value.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.StatusId.HasValue && x.StatusId.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Status) && x.Status.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.CLower().Contains(viewModel.Filter.Search.CLower()))
+
+                    || (x.DateOfVisit.HasValue && x.DateOfVisit.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+
+                    || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.AssignedTo) && x.AssignedTo.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (x.Id.ToString().Contains(viewModel.Filter.Search))
+                    ));
+                }
+
+                if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.ToBeSent)
+                {
+                    query = query.Where(x => x.StatusId != (short?)eInvoiceStatus.Sent);
+                }
+                else if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.InsurancePending)
+                {
+                    query = query.Where(x => x.StatusId != (short?)eInvoiceStatus.Pending && x.PaymentMethodId == (short)ePaymentMethods.Insurance);
+                }
+                //else if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.Refunded)
+                //{
+                //    query = query.Where(x => x.);
+                //}
+
+                switch (viewModel.SortField)
+                {
+                    case "subject":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.InvoiceNumber);
+                        else
+                            query = query.OrderByDescending(x => x.Subject);
+                        break;
+
+                    case "invoiceNumber":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.InvoiceNumber);
+                        else
+                            query = query.OrderByDescending(x => x.InvoiceNumber);
+                        break;
+
+                    case "createDate":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.CreateDate);
+                        else
+                            query = query.OrderByDescending(x => x.CreateDate);
+                        break;
+
+                    case "customerName":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Customer);
+                        else
+                            query = query.OrderByDescending(x => x.Customer);
+                        break;
+                    case "invoiceEntity":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.InvoiceEntity);
+                        else
+                            query = query.OrderByDescending(x => x.InvoiceEntity);
+                        break;
+                    case "status":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Status);
+                        else
+                            query = query.OrderByDescending(x => x.Status);
+                        break;
+                    case "paymentMethod":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.PaymentMethod);
+                        else
+                            query = query.OrderByDescending(x => x.PaymentMethod);
+                        break;
+                    case "dateOfVisit":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.DateOfVisit);
+                        else
+                            query = query.OrderByDescending(x => x.PaymentMethod);
+                        break;
+                    case "totalInvoice":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.TotalInvoice);
+                        else
+                            query = query.OrderByDescending(x => x.TotalInvoice);
+                        break;
+
+                    default:
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Id);
+                        else
+                            query = query.OrderByDescending(x => x.Id);
+                        break;
+                }
+
+                var totalCount = query.LongCount();
+                var result = new
+                {
+                    items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
+                    totalCount
+                };
+
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, null, result));
+            }
+            catch (Exception ex)
+            {
+                _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
+            }
+        }
+
 
         public IQueryable<InvoiceBookings> GetInvoiceBookings()
         {
             return Db.InvoiceBookings;
         }
 
-       
+
         public InvoiceBookings AddBookingToInvoice(long bookingId, long invoiceId)
         {
             var invioceBooking = new InvoiceBookings { BookingId = bookingId, InvoiceId = invoiceId };
@@ -123,7 +373,7 @@ namespace Medelit.Infra.Data.Repository
                               select new
                               {
                                   b.Id,
-                                  bookingName = b.Name,
+                                  bookingName = $"{b.Name} {b.SrNo}",
                                   serviceName = b.Service.Name,
                                   customerId = b.CustomerId,
                                   customerName = b.Customer.Name,
@@ -264,14 +514,13 @@ namespace Medelit.Infra.Data.Repository
 
                 dynamic obj = new ExpandoObject();
 
-
-
                 obj.id = invoiceInfo.Id;
                 obj.subject = invoiceInfo.Subject;
                 obj.paymentMethodId = invoiceInfo.PaymentMethodId;
                 obj.invoiceNumber = invoiceInfo.InvoiceNumber;
                 obj.paymentMethod = paymentMethods.FirstOrDefault(x => x.Id == invoiceInfo.PaymentMethodId)?.Value;
                 obj.invoiceDate = invoiceInfo.InvoiceDate;
+                obj.dateOfVisit = invoiceInfo.DateOfVisit;
                 obj.itemNameOnInvoice = invoiceInfo.ItemNameOnInvoice;
 
                 obj.statusId = invoiceInfo.StatusId;
@@ -449,9 +698,7 @@ namespace Medelit.Infra.Data.Repository
                     }
                 }
             }
-            catch
-            {
-            }
+            catch {}
         }
 
         public void ProcessInvoiceEmission(long invoiceId)
@@ -606,15 +853,15 @@ namespace Medelit.Infra.Data.Repository
             // left side
             builder.Append($"<td style='width:50%; padding: 10px; text-align:left; vertical-align:top; border-left: {borderStyle}; border-top:{borderStyle}; border-bottom: {borderStyle};'>");
             builder.Append($"<p><span style='font-weight: 500'>Date of Birth: </span>{string.Format("{0}", dateOfBirth.HasValue ? dateOfBirth.Value.ToString("dd/MM/yyyy") : "")}</p>");
-            if(!string.IsNullOrEmpty(vatNumber))
-            builder.Append($"<p><span style='font-weight: 500'>VAT Number: </span>{string.Format("{0}", vatNumber)}</p>");
+            if (!string.IsNullOrEmpty(vatNumber))
+                builder.Append($"<p><span style='font-weight: 500'>VAT Number: </span>{string.Format("{0}", vatNumber)}</p>");
             builder.Append($"</td>");
             // end left side
 
             // right side
             builder.Append($"<td style='width:50%; padding: 10px; text-align:left; vertical-align:top; border-left:{borderStyle}; border-right: {borderStyle}; border-top:{borderStyle}; border-bottom: {borderStyle};'>");
             builder.Append($"<p><span style='font-weight: 500'>Invoice N°: </span>{string.Format("{0}", invoiceNumber)}</p>");
-            builder.Append($"<p><span style='font-weight: 500'>Date: </span>{string.Format("{0}", invoiceDate.HasValue ? invoiceDate.Value.ToString("dd/MM/yyyy") : "")}</p>");
+            builder.Append($"<p><span style='font-weight: 500'>Date: </span>{string.Format("{0}", dueDate.HasValue ? dueDate.Value.ToString("dd/MM/yyyy") : "")}</p>");
             builder.Append($"<p><span style='font-weight: 500'>Method of Payment: </span>{string.Format("{0}", paymentMethod)}</p>");
             builder.Append($"</td>");
             //end right side
@@ -654,7 +901,7 @@ namespace Medelit.Infra.Data.Repository
                 builder.Append($"</tr>");
             }
 
-            foreach (var b in Enumerable.Range(0, 7-bookings.Count))
+            foreach (var b in Enumerable.Range(0, 7 - bookings.Count))
             {
                 builder.Append($"<tr style='margin-top: 0px; font-weight: normal;'>");
                 builder.Append($"<td style='{emptyStyle}; border-left: solid 1px #ddd;'>&nbsp;</td>");
@@ -667,7 +914,7 @@ namespace Medelit.Infra.Data.Repository
             }
 
             builder.Append($"<tr style='margin-top: 0px; font-weight: normal;'>");
-            builder.Append($"<td colSpan='5' style='border: solid 1px #ddd; text-align: right'>Total (£) </td>");         
+            builder.Append($"<td colSpan='5' style='border: solid 1px #ddd; text-align: right'>Total (£) </td>");
             builder.Append($"<td style='{cellStlpe} border: solid 1px #ddd;'>{totalInvoice}</td>");
             builder.Append($"</tr>");
 
@@ -683,7 +930,7 @@ namespace Medelit.Infra.Data.Repository
 
             builder.Append($"<tr>");
             builder.Append($"<td style='text-align:left; border:solid 1px #ccc; line-height: 20px; padding: 13px;'>");
-            builder.Append($"<div><strong>Terms and Conditions</strong></div>");           
+            builder.Append($"<div><strong>Terms and Conditions</strong></div>");
             builder.Append($"</td>");
             builder.Append($"</tr>");
 
@@ -706,9 +953,10 @@ namespace Medelit.Infra.Data.Repository
             builder.Append($"</td>");
             builder.Append($"</tr>");
 
-            builder.Append($"<tr><td style='text-align:left; padding: 10px;'>");
-            if(!string.IsNullOrEmpty(accountInfo.BankName))
-            builder.Append($"<div>{accountInfo.BankName}</div>");
+            builder.Append($"<tr><td style='text-align:left; padding: 10px; line-height: 28px;'>");
+            builder.Append($"<div  style='font-weight:light;'><strong  style='font-weight:500;'>SORT CODE :</strong> MEDELIT LTD</div>");
+            if (!string.IsNullOrEmpty(accountInfo.BankName))
+                builder.Append($"<div>{accountInfo.BankName}</div>");
 
             builder.Append($"<div  style='font-weight:light;'><strong  style='font-weight:500;'>SORT CODE :</strong> {accountInfo.SortCode}</div>");
             builder.Append($"<div  style='font-weight:light;'><strong  style='font-weight:500;'>ACCOUNT N° :</strong> {accountInfo.AccountNumber}</div>");
@@ -717,11 +965,20 @@ namespace Medelit.Infra.Data.Repository
 
             builder.Append($"</body>");
             builder.Append($"</html>");
-            
+
             return (builder.ToString(), name);
         }
 
         #region private methods
+        public string GetAssignedUser(string assignedToId)
+        {
+            if (string.IsNullOrEmpty(assignedToId))
+                return assignedToId;
+
+            return _appContext.Users.Find(assignedToId).FullName;
+        }
+
+
         private string GetBase64(string path)
         {
             byte[] imageArray = System.IO.File.ReadAllBytes(path);
@@ -746,8 +1003,6 @@ namespace Medelit.Infra.Data.Repository
         }
 
         #endregion private methods
-
-
 
     }
 }

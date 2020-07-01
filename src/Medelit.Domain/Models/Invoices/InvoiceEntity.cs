@@ -34,6 +34,8 @@ namespace Medelit.Domain.Models
 
         [Column("country_of_birth_id")]
         public short? CountryOfBirthId { get; set; }
+        [ForeignKey("CountryOfBirthId")]
+        public Country CountryOfBirth { get; set; }
 
         [Column("billing_address")]
         public string BillingAddress { get; set; }

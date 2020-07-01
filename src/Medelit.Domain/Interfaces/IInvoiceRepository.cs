@@ -9,6 +9,7 @@ namespace Medelit.Domain.Interfaces
 {
     public interface IInvoiceRepository : IRepository<Invoice>
     {
+        void FindInvoices(SearchViewModel viewModel);
         void InvocieBookingsForCrud(long invoiceId);
         InvoiceBookings AddBookingToInvoice(long bookingId, long invoiceId);
         void SaveInvocieBookingsForCrud(IEnumerable<FilterModel> model, long invoiceId);

@@ -52,6 +52,7 @@ namespace Medelit.Domain.CommandHandlers
                 {
                     var ieModel = _invoiceEntityRepository.GetById(request.Entity.Id);
 
+                   
                     ieModel.Name = request.Entity.Name;
                     ieModel.MainPhoneNumber = request.Entity.MainPhoneNumber;
                     ieModel.MainPhoneNumberOwner = request.Entity.MainPhoneNumberOwner;
@@ -92,7 +93,7 @@ namespace Medelit.Domain.CommandHandlers
                     ieModel.PersonOfReferencePhone = request.Entity.PersonOfReferencePhone;
                     ieModel.BlackListId = request.Entity.BlackListId;
                     ieModel.ContractedId = request.Entity.ContractedId;
-                    ieModel.UpdateDate = DateTime.UtcNow;
+                    ieModel.UpdateDate = request.Entity.UpdateDate;
                     ieModel.UpdatedById = CurrentUser.Id;
                     ieModel.AssignedToId = CurrentUser.Id;
 
@@ -103,6 +104,7 @@ namespace Medelit.Domain.CommandHandlers
                 else
                 {
                     var ieModel = request.Entity;
+                    ieModel.CreateDate = request.Entity.CreateDate;
                     ieModel.CreatedById = CurrentUser.Id;
                     ieModel.AssignedToId = CurrentUser.Id;
                     _invoiceEntityRepository.Add(ieModel);

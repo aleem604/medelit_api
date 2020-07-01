@@ -30,14 +30,13 @@ namespace Medelit.Api.Controllers
         [HttpPost("bookings/find")]
         public IActionResult FindBookings([FromBody] SearchViewModel model)
         {
-
-            return Response(_bookingService.FindBookings(model));
+            _bookingService.FindBookings(model);
+            return Response();
         }
 
         [HttpGet("bookings")]
         public IActionResult GetBookings()
         {
-
             return Response(_bookingService.GetBookings());
         }
 
@@ -117,8 +116,5 @@ namespace Medelit.Api.Controllers
         {
             return Response(_bookingService.BookingConnectedInvoices(bookingId));
         }
-
-
-
     }
 }

@@ -33,7 +33,15 @@ namespace Medelit.Api.Controllers
         [HttpPost("leads/find")]
         public IActionResult FindLeads([FromBody] SearchViewModel model)
         {
-            return Response(_leadService.FindLeads(model));
+            _leadService.SearchLeads(model);
+            return Response();
+        }
+
+        [HttpPost("leads/search")]
+        public IActionResult SearchLeads([FromBody] SearchViewModel model)
+        {
+            _leadService.SearchLeads(model);
+            return Response();
         }
 
         [Authorize]

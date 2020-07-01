@@ -36,7 +36,8 @@ namespace Medelit.Api.Controllers
         [HttpPost("invoices/find")]
         public IActionResult FindInvoices([FromBody] SearchViewModel model)
         {
-            return Response(_invoiceService.FindInvoices(model));
+            _invoiceService.FindInvoices(model);
+            return Response();
         }
 
         [HttpGet("invoices/{invoiceId}")]

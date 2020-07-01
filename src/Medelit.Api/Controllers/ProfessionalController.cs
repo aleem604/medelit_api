@@ -31,7 +31,8 @@ namespace Medelit.Api.Controllers
         [HttpPost("professionals/find")]
         public IActionResult FindProfessionals([FromBody] SearchViewModel model)
         {
-            return Response(_professionalService.FindProfessionals(model));
+            _professionalService.FindProfessionals(model);
+            return Response();
         }
 
         [HttpPost("professionals")]

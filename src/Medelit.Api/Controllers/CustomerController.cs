@@ -30,7 +30,8 @@ namespace Medelit.Api.Controllers
         [HttpPost("customers/find")]
         public IActionResult FindCustomers([FromBody] SearchViewModel model)
         {
-            return Response(_customerService.FindCustomers(model));
+            _customerService.FindCustomers(model);
+            return Response();
         }
 
         [HttpGet("customers")]

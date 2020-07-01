@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Medelit.Domain\Medelit.Domain.csproj" />
+    <ProjectReference Include="..\Medelit.Infra.CrossCutting.Identity\Medelit.Infra.CrossCutting.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

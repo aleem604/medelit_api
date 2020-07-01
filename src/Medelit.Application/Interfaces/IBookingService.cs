@@ -8,7 +8,7 @@ namespace Medelit.Application
     public interface IBookingService : IDisposable
     {
         dynamic GetBookings();
-        dynamic FindBookings(SearchViewModel model);
+        void FindBookings(SearchViewModel model);
         BookingViewModel GetBookingById(long leadId);
         void SaveBooking(BookingViewModel model);
         void UpdateStatus(IEnumerable<BookingViewModel> leads, eRecordStatus status);

@@ -79,31 +79,20 @@ namespace Medelit.Domain.CommandHandlers
 
                     //serviceModel.ServiceProfessionals = vm.ServiceProfessionals;
 
-                    serviceModel.UpdateDate = DateTime.UtcNow;
+                    serviceModel.UpdateDate = request.Service.UpdateDate;
                     serviceModel.UpdatedById = CurrentUser.Id;
 
                     _serviceRepository.Update(serviceModel);
                     commmitResult = Commit();
-                    request.Service = serviceModel;
-
-                    //var allServices = _serviceRepository.GetAll();
-                    //foreach (var service in allServices)
-                    //{
-
-                    //        service.ServiceCode = service.ServiceTypeId == eServiceType.PTService ? $"FP{service.Id.ToString().PadLeft(6, '0')}" : $"FS{service.Id.ToString().PadLeft(6, '0')}";
-                    //        service.UpdateDate = DateTime.UtcNow;
-                    //        _serviceRepository.Update(service);
-
-                    //}
-                    //Commit();
+                    request.Service = serviceModel;                   
                 }
                 else
                 {
                     var serviceModel = request.Service;
-                    serviceModel.CreateDate = DateTime.UtcNow;
+                    serviceModel.CreateDate = request.Service.CreateDate;
                     serviceModel.Status = eRecordStatus.Pending;
 
-                    serviceModel.CreateDate = DateTime.UtcNow;
+                    serviceModel.CreateDate = request.Service.CreateDate;
                     serviceModel.CreatedById = CurrentUser.Id;
 
                     _serviceRepository.Add(serviceModel);
@@ -114,7 +103,7 @@ namespace Medelit.Domain.CommandHandlers
                         var fieldCode = _fieldSubcategoryRepository.GetAll().Where(x => x.Id == serviceModel.FieldId).FirstOrDefault().Code;
                         serviceModel.ServiceCode = $"{fieldCode}{id.ToString().PadLeft(6, '0')}";
 
-                        serviceModel.UpdateDate = DateTime.UtcNow;
+                        serviceModel.UpdateDate = request.Service.UpdateDate;
                         serviceModel.UpdatedById = CurrentUser.Id;
 
                         _serviceRepository.Update(serviceModel);

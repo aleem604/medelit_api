@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using Medelit.Common;
 using Medelit.Domain.Core.Models;
 
 namespace Medelit.Domain.Models
@@ -63,11 +64,20 @@ namespace Medelit.Domain.Models
         public DateTime? DateOfBirth { get; set; }
         [Column("country_of_birth_id")]
         public short? CountryOfBirthId { get; set; }
+        [ForeignKey("CountryOfBirthId")]
+        public Country CountryOfBirth { get; set; }
 
         [Column("home_country_id")]
         public short? HomeCountryId { get; set; }
+        [ForeignKey("HomeCountryId")]
+        public Country HomeCountry { get; set; }
+
         [Column("visit_country_id")]
         public short? VisitCountryId { get; set; }
+        [ForeignKey("VisitCountryId")]
+        public Country VisitCountry { get; set; }
+
+
         public string Details { get; set; }
         public string Diagnosis { get; set; }
         [Column("reason_for_visit")]
@@ -358,7 +368,10 @@ namespace Medelit.Domain.Models
 
         public bool IsValid()
         {
-            if ((InvoiceNumber == null && PaymentStatusId == 3 && PaymentConcludedId == 1 && PaymentMethodId != 4) || (InvoiceNumber == null && PaymentStatusId == 2 && (BookingStatusId == 4 || BookingStatusId == 6)))
+            //if ((InvoiceNumber == null && PaymentStatusId == 3 && PaymentConcludedId == 1 && PaymentMethodId != 4) || (InvoiceNumber == null && PaymentStatusId == 2 && (BookingStatusId == 4 || BookingStatusId == 6)))
+            //                                                                              // payment concluded yes option, 
+            if ((InvoiceNumber == null && PaymentStatusId == (short)ePaymentStatus.Paid && PaymentConcludedId == 1 && PaymentMethodId != (short)ePaymentMethods.Insurance) 
+                || (InvoiceNumber == null && PaymentStatusId == (short)ePaymentStatus.Pending && (BookingStatusId == (short)eBookingStatus.Delivered || BookingStatusId == (short)eBookingStatus.CancelledAfterAcceptance)))
             {
                 return true;
             }

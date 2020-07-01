@@ -111,7 +111,7 @@ namespace Medelit.Domain.CommandHandlers
                     if (request.FromCustomerId.HasValue && request.FromCustomerId.Value > 0)
                         leadModel.CustomerId = request.FromCustomerId.Value;
 
-                    leadModel.UpdateDate = DateTime.UtcNow;
+                    leadModel.UpdateDate = request.Lead.UpdateDate;
                     leadModel.UpdatedById = CurrentUser.Id;
                     leadModel.Services = request.Lead.Services;
                     _leadRepository.RemoveLeadServices(leadModel.Id);
@@ -124,6 +124,8 @@ namespace Medelit.Domain.CommandHandlers
                 else
                 {
                     var leadModel = request.Lead;
+                    leadModel.CreateDate = request.Lead.CreateDate;
+                    leadModel.UpdateDate = null;
                     leadModel.CustomerId = request.FromCustomerId;
                     leadModel.AssignedToId = CurrentUser.Id;
                     leadModel.CreatedById = CurrentUser.Id;

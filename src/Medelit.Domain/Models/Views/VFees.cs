@@ -20,7 +20,7 @@ namespace Medelit.Domain.Models
         public decimal? A1 { get; set; }
         public decimal? A2 { get; set; }
 
-        public ICollection<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
+        //public ICollection<ServiceProfessionalFees> ServiceProfessionalFees { get; set; }
         public PtFee GetPtFee()
         {
             return new PtFee

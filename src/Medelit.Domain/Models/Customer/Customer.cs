@@ -39,6 +39,9 @@ namespace Medelit.Domain.Models
         public DateTime? DateOfBirth { get; set; }
         [Column("country_of_birth_id")]
         public short? CountryOfBirthId { get; set; }
+        [ForeignKey("CountryOfBirthId")]
+        public Country CountryOfBirth { get; set; }
+
         [Column("visit_requestig_person_relation_id")]
         public short? VisitRequestingPersonRelationId { get; set; }
         [Column("visit_requesting_person")]

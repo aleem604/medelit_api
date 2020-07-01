@@ -65,6 +65,7 @@ namespace Medelit.Application
                             x.Name,
                             x.Email,
                             x.City,
+                            Services = string.Join(", ", x.Services.Select(s =>s.Service.Name)),
                             Country = x.CountryId > 0 ? x.Country.Value : string.Empty,
                             x.MainPhone,
                             x.CreateDate,
@@ -81,6 +82,7 @@ namespace Medelit.Application
                 || (!string.IsNullOrEmpty(x.SurName) && x.SurName.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.Email) && x.Email.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.City) && x.City.CLower().Contains(viewModel.Filter.Search.CLower()))
+                || (!string.IsNullOrEmpty(x.Services) && x.Services.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.Country) && x.Country.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (!string.IsNullOrEmpty(x.MainPhone) && x.MainPhone.CLower().Contains(viewModel.Filter.Search.CLower()))
                 || (x.CreateDate.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
@@ -166,6 +168,11 @@ namespace Medelit.Application
                 items = query.Skip(viewModel.PageNumber * viewModel.PageSize).Take(viewModel.PageSize).ToList(),
                 totalCount
             };
+        }
+
+        public void SearchLeads(SearchViewModel viewModel)
+        {
+            _leadRepository.SearchLeads(viewModel);
         }
 
         private string PopulateServices(ICollection<LeadServices> services, List<FilterModel> oservices)

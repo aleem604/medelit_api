@@ -288,6 +288,11 @@ namespace Medelit.Infra.Data.Repository
             //return Db.VisitVenues;
             return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.VisitVenues }).Where(x => x.Value != null);
         }
+        public IQueryable<FilterModel>  GetProTaxCodes()
+        {
+            //return Db.VisitVenues;
+            return Db.StaticData.Select((s) => new FilterModel { Id = s.Id, Value = s.ProTaxCodes }).Where(x => x.Value != null);
+        }
 
         public IQueryable<FilterModel> GetReportDeliveryOptions()
         {

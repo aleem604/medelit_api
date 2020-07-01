@@ -8,7 +8,7 @@ namespace Medelit.Application
 {
     public interface IProfessionalService : IDisposable
     {
-        dynamic FindProfessionals(SearchViewModel model);
+        void FindProfessionals(SearchViewModel model);
         dynamic GetProfessionals();
         void GetProfessionalById(long professionalId);
         void SaveProvessional(ProfessionalViewModel model);
