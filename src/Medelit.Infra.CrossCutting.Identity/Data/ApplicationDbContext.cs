@@ -1,14 +1,16 @@
-﻿using Medelit.Domain.Models;
+﻿using Medelit.Common.Models;
+using Medelit.Domain.Models;
 using Medelit.Infra.CrossCutting.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace Medelit.Infra.CrossCutting.Identity.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<MedelitUser>
+    public class ApplicationDbContext : IdentityDbContext<MedelitUser, MedelitRole, string>
     {
         private readonly IHostingEnvironment _env;
 
@@ -36,10 +38,10 @@ namespace Medelit.Infra.CrossCutting.Identity.Data
             base.OnModelCreating(builder);
 
             // any guid
-            const string ADMIN_ID = "a18be9c0-aa65-4af8-bd17-00bd9344e575";
+            string ADMIN_ID = Guid.NewGuid().ToString();
             // any guid, but nothing is against to use the same one
-            const string ROLE_ID = ADMIN_ID;
-            builder.Entity<IdentityRole>().HasData(new IdentityRole
+            string ROLE_ID = ADMIN_ID;
+            builder.Entity<MedelitRole>().HasData(new MedelitRole
             {
                 Id = ROLE_ID,
                 Name = "admin",

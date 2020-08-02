@@ -58,8 +58,8 @@ namespace Medelit.Auth
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Id, user.Id),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Id, user.Id.ToString()),
                 new Claim("user_info", JsonConvert.SerializeObject(userInfo)),
                
             };

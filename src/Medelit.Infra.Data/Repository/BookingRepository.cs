@@ -309,11 +309,11 @@ namespace Medelit.Infra.Data.Repository
                 }
                 else if (viewModel.Filter.BookingFilter == eBookingFilter.AwaitingPayment)
                 {
-                    query = query.Where(x => x.BookingStatusId.Value == (short?)eBookingStatus.Confirmed && x.PaymentStatusId == (short?)ePaymentStatus.Pending);
+                    query = query.Where(x => x.BookingStatusId.Value == (short?)eBookingStatus.Confirmed && (x.PaymentStatusId == (short?)ePaymentStatus.Pending || x.PaymentStatusId == (short?)ePaymentStatus.Incomplete));
                 }
                 else if (viewModel.Filter.BookingFilter == eBookingFilter.TodayVisits)
                 {
-                    query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value.ToString("YYYYMMDD").Equals(DateTime.UtcNow.ToString("YYYYMMDD"), StringComparison.InvariantCultureIgnoreCase));
+                    query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value.Date == DateTime.Today.Date);
                 }
                 else if (viewModel.Filter.BookingFilter == eBookingFilter.FutureVisits)
                 {
@@ -321,15 +321,15 @@ namespace Medelit.Infra.Data.Repository
                 }
                 else if (viewModel.Filter.BookingFilter == eBookingFilter.Delivered)
                 {
-                    query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value < DateTime.UtcNow);
+                    query = query.Where(x => x.VisitDate.HasValue && x.VisitDate.Value < DateTime.UtcNow && x.BookingStatusId == (short?)eBookingStatus.Delivered);
                 }
                 else if (viewModel.Filter.BookingFilter == eBookingFilter.ToBeInvoicesPaid)
                 {
-                    query = query.Where(x => x.PaymentStatusId == (short)ePaymentStatus.Paid && x.PaymentMethodId != (short)ePaymentMethods.Insurance && string.IsNullOrEmpty(x.InvoiceNumber));
+                    query = query.Where(x => x.PaymentStatusId == (short)ePaymentStatus.Paid && x.PaymentMethodId != (short)ePaymentMethods.Insurance && string.IsNullOrEmpty($"{x.InvoiceId}"));
                 }
                 else if (viewModel.Filter.BookingFilter == eBookingFilter.ToBeInvoicedNotPaid)
                 {
-                    query = query.Where(x => x.PaymentStatusId != (short)ePaymentStatus.Paid && x.PaymentMethodId == (short)ePaymentMethods.Insurance && string.IsNullOrEmpty(x.InvoiceNumber));
+                    query = query.Where(x => x.PaymentStatusId != (short)ePaymentStatus.Paid && x.PaymentMethodId == (short)ePaymentMethods.Insurance && string.IsNullOrEmpty($"{x.InvoiceId}"));
                 }
 
                 switch (viewModel.SortField)
@@ -443,22 +443,22 @@ namespace Medelit.Infra.Data.Repository
         public dynamic GetBookingCycleConnectedBookings(long bookingId)
         {
             var cycleBooking = Db.Booking.FirstOrDefault(x => x.Id == bookingId).CycleBookingId;
-            var bookingIds = Db.Booking.Where(x => x.CycleBookingId == bookingId).Select(s => s.Id).ToList();
+            var bookingIds = Db.Booking.Where(x => x.CycleBookingId == cycleBooking).Select(s => s.Id).ToList();
             UpdateBookingStats(bookingIds);
 
             var result = (from b in Db.Booking
-                          where b.CycleBookingId == bookingId && b.Cycle.HasValue
+                          where b.CycleBookingId == cycleBooking
                           select new
                           {
                               b.Id,
-                              bookingName = b.Name,
+                              bookingName = $"{b.Name} {b.SrNo}",
                               serviceName = b.Service.Name,
                               professional = b.Professional.Name,
                               cycleNumber = b.CycleNumber,
                               ptFee = b.PtFee,
                               proFee = b.ProFee,
                               b.SubTotal
-                          }).ToList();
+                          }).OrderBy(c => c.cycleNumber).ToList();
 
 
             return result;

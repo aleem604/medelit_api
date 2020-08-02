@@ -16,7 +16,6 @@ using Medelit.Infra.CrossCutting.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Medelit.Infra.CrossCutting.Identity.Models;
 using Microsoft.AspNetCore.Identity;
-using Medelit.Infra.CrossCutting.Identity.Authorization;
 using System;
 using Medelit.Auth;
 using Medelit.Api.Configurations.Auth;
@@ -24,7 +23,8 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Medelit.Application;
 using Wkhtmltopdf.NetCore;
-using Medelit.Common.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Medelit.Api
 {
@@ -81,7 +81,7 @@ namespace Medelit.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<MedelitUser, IdentityRole>(
+            services.AddIdentity<MedelitUser, MedelitRole>(
                 opts =>
                 {
                     opts.Password.RequireDigit = false;
@@ -90,7 +90,7 @@ namespace Medelit.Api
                     opts.Password.RequireNonAlphanumeric = false;
                     opts.Password.RequiredLength = 5;
                 })
-                .AddRoleManager<RoleManager<IdentityRole>>()
+                .AddRoleManager<RoleManager<MedelitRole>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddMvc(options =>
@@ -117,6 +117,17 @@ namespace Medelit.Api
                     Title = "Medelit",
                     Description = "Medelit API Swagger surface"
                 });
+                s.AddSecurityDefinition("Bearer",
+        new ApiKeyScheme
+        {
+            In = "header",
+            Description = "Please enter into field the word 'Bearer' following by space and JWT",
+            Name = "Authorization",
+            Type = "apiKey"
+        });
+                s.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
+        { "Bearer", Enumerable.Empty<string>() },
+    });
             });
 
 
@@ -133,7 +144,7 @@ namespace Medelit.Api
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, RoleManager<IdentityRole> roleManager, IHangfireJobsService hangfireJobs)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, RoleManager<MedelitRole> roleManager, IHangfireJobsService hangfireJobs)
         {
             app.UseCors("CorsPolicy");
 

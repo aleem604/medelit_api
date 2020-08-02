@@ -183,13 +183,18 @@ namespace Medelit.Domain.CommandHandlers
         {
             try
             {
-                foreach (var feeId in request.InvoiceIds)
+                foreach (var invoiceId in request.InvoiceIds)
                 {
-                    var feeModel = _invoiceRepository.GetById(feeId);
-                    feeModel.Status = eRecordStatus.Deleted;
-                    feeModel.DeletedAt = DateTime.UtcNow;
-                    feeModel.DeletedById = CurrentUser.Id;
-                    _invoiceRepository.Update(feeModel);
+                    var bookings = _invoiceRepository.GetInvoiceBookings().Where(i => i.InvoiceId == invoiceId).Select(b => b.BookingId).ToList();
+                    foreach (var booking in bookings)
+                    {
+                        var b = _bookingRepository.GetById(booking);
+                        b.InvoiceId = null;
+                        b.UpdateDate = DateTime.UtcNow;
+                        b.UpdatedById = CurrentUser.Id;
+                        _bookingRepository.Update(b);
+                    }                   
+                    _invoiceRepository.Remove(invoiceId);
                 }
                 if (Commit())
                 {
@@ -259,7 +264,7 @@ namespace Medelit.Domain.CommandHandlers
                 var invoiceEntity = booking.InvoiceEntityId.HasValue ? _ieRepository.GetById((long)booking.InvoiceEntityId) : new InvoiceEntity();
                 var customer = _customerRepository.GetAll().FirstOrDefault(x => x.Id == booking.CustomerId);
                 var invoice = new Invoice();
-                invoice.Subject = booking.InvoiceNumber ?? customer.Name;
+                invoice.Subject = booking.InvoiceEntityId.HasValue ? invoiceEntity.Name : $"{customer.SurName} {customer.Name}";
                 invoice.InvoiceEntityId = booking.InvoiceEntityId;
                 invoice.CustomerId = booking.CustomerId;
                 invoice.InvoiceNumber = $"{DateTime.Now.ToString("yyyy")} PROFORMA";
@@ -274,17 +279,29 @@ namespace Medelit.Domain.CommandHandlers
                 invoice.PaymentMethodId = booking.PaymentMethodId;
                 invoice.PatientDateOfBirth = booking.InvoiceEntityId.HasValue ? invoiceEntity.DateOfBirth : customer.DateOfBirth;
 
-                invoice.IEBillingAddress = invoiceEntity.BillingAddress ?? customer.HomePostCode;
-                invoice.MailingAddress = invoiceEntity.MailingAddress ?? customer.VisitStreetName;
+                //invoice.IEBillingAddress = invoiceEntity.BillingAddress ?? customer.HomeStreetName;
+                //invoice.MailingAddress = invoiceEntity.MailingAddress ?? customer.HomeStreetName;
 
-                invoice.IEBillingPostCode = invoiceEntity.BillingPostCode ?? customer.HomePostCode;
-                invoice.MailingPostCode = invoiceEntity.MailingPostCode ?? customer.VisitStreetName;
+                invoice.IEBillingAddress = booking.HomeStreetName;
+                invoice.MailingAddress = booking.HomeStreetName;
 
-                invoice.IEBillingCity = invoiceEntity.BillingCity ?? customer.HomeCity;
-                invoice.MailingCity = invoiceEntity.MailingCity ?? customer.VisitCity;
+                //invoice.IEBillingPostCode = invoiceEntity.BillingPostCode ?? customer.HomePostCode;
+                //invoice.MailingPostCode = invoiceEntity.MailingPostCode ?? customer.HomePostCode;
 
-                invoice.IEBillingCountryId = invoiceEntity.BillingCountryId ?? customer.HomeCountryId;
-                invoice.MailingCountryId = invoiceEntity.MailingCountryId ?? customer.VisitCountryId;
+                invoice.IEBillingPostCode = booking.HomePostCode;
+                invoice.MailingPostCode = booking.HomePostCode;
+
+                //invoice.IEBillingCity = invoiceEntity.BillingCity ?? customer.HomeCity;
+                //invoice.MailingCity = invoiceEntity.MailingCity ?? customer.HomeCity; 
+
+                invoice.IEBillingCity = booking.HomeCity;
+                invoice.MailingCity = booking.HomeCity;
+
+                //invoice.IEBillingCountryId = invoiceEntity.BillingCountryId ?? customer.HomeCountryId;
+                //invoice.MailingCountryId = invoiceEntity.MailingCountryId ?? customer.HomeCountryId;
+
+                invoice.IEBillingCountryId = booking.HomeCountryId;
+                invoice.MailingCountryId = booking.HomeCountryId;
 
                 invoice.InvoiceNotes = booking.NotesOnPayment;
                 invoice.InsuranceCoverId = booking.InsuranceCoverId;
@@ -317,7 +334,7 @@ namespace Medelit.Domain.CommandHandlers
                         var invoiceBookingModel = _invoiceRepository.AddBookingToInvoice(booking.Id, invoice.Id);
                         var newInvoice = _invoiceRepository.GetById(invoice.Id);
                         newInvoice.InvoiceNumber = _invoiceRepository.GetProformaInoviceNumber(invoice.Id);
-                        invoice.Subject = _invoiceRepository.GetProformaInoviceNumber(invoice.Id);
+                        //  invoice.Subject = _invoiceRepository.GetProformaInoviceNumber(invoice.Id);
                         newInvoice.IsProforma = true;
 
                         _invoiceRepository.Update(newInvoice);
@@ -345,13 +362,7 @@ namespace Medelit.Domain.CommandHandlers
             try
             {
                 var ib = _invoiceRepository.GetInvoiceBookings().FirstOrDefault(x => x.InvoiceId == request.InvoiceId && x.BookingId == request.BookingId);
-                if (ib is null)
-                {
-
-                }
-
-
-
+               
                 _invoiceRepository.DeleteInvoiceBooking(ib);
                 if (Commit())
                 {
@@ -379,7 +390,7 @@ namespace Medelit.Domain.CommandHandlers
                 if (booking.VisitStartDate.HasValue)
                     invoiceDueDate = booking.VisitStartDate.Value.AddDays(30);
             }
-            
+
             return invoiceDueDate;
         }
 

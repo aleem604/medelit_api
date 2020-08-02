@@ -22,14 +22,14 @@ namespace Medelit.Api.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<MedelitUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<MedelitRole> _roleManager;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
 
         public UserController(
             ApplicationDbContext context,
             UserManager<MedelitUser> userManager,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<MedelitRole> roleManager,
             INotificationHandler<DomainNotification> notifications,
             ILoggerFactory loggerFactory,
             IMapper mapper,
@@ -76,9 +76,9 @@ namespace Medelit.Api.Controllers
         [HttpGet("account/users/{userId}")]
         public async Task<IActionResult> GetUserById(string userId)
         {
-            var user = await Task.FromResult(_context.Users.FirstOrDefault(x => x.Id == userId));
+            var user = await Task.FromResult(_context.Users.FirstOrDefault(x => x.Id.ToString() == userId));
             var userRoles = await _userManager.GetRolesAsync(user);
-            var roleIds = _roleManager.Roles.Where(x => userRoles.Contains(x.Name)).Select(x => x.Id).ToList();
+            var roleIds = _roleManager.Roles.Where(x => userRoles.Contains(x.Name)).Select(x => x.Id.ToString()).ToList();
             var viewModel = _mapper.Map<UserViewModel>(user);
             viewModel.Roles = roleIds;
             return Response(viewModel);
@@ -188,7 +188,7 @@ namespace Medelit.Api.Controllers
         [HttpDelete("account/{userId}")]
         public async Task<IActionResult> DeleteUser(string userid)
         {
-            var user = _context.Users.FirstOrDefault(x => x.Id == userid);
+            var user = _context.Users.FirstOrDefault(x => x.Id.ToString() == userid);
             return Response(await _userManager.DeleteAsync(user));
         }
 
@@ -214,7 +214,7 @@ namespace Medelit.Api.Controllers
         [HttpGet("account/email-taken/{email}/{userId}")]
         public async Task<IActionResult> IsEmailTaken(string email, string userId)
         {
-            return Response(await Task.FromResult(_userManager.Users.Where(x => x.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase) && (x.Id != userId)).Count()));
+            return Response(await Task.FromResult(_userManager.Users.Where(x => x.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase) && (x.Id.ToString() != userId)).Count()));
 
         }
 

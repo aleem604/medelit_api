@@ -60,7 +60,7 @@ namespace Medelit.Domain.Models
         [Column("ie_billing_country_id")]
         public short? IEBillingCountryId { get; set; }
         [ForeignKey("IEBillingCountryId")]
-        public Country BillingCountry { get; set; }
+        public Country IEBillingCountry { get; set; }
 
         [Column("mailing_country_id")]
         public short? MailingCountryId { get; set; }

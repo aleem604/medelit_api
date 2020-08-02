@@ -43,7 +43,7 @@ namespace Medelit.Api.Configurations
 
                 var currentuser = context.Users.Find(id);
 
-                return new AuthClaims { Id = currentuser.Id, FirstName = currentuser.FirstName, LastName = currentuser.LastName };
+                return new AuthClaims { Id = currentuser.Id.ToString(), FirstName = currentuser.FirstName, LastName = currentuser.LastName };
             }
             catch
             {

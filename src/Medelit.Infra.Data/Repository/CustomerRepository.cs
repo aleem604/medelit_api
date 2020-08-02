@@ -74,6 +74,7 @@ namespace Medelit.Infra.Data.Repository
                                 x.Phone2Owner,
                                 x.MainPhoneOwner,
                                 x.Email,
+                                Age = x.DateOfBirth.HasValue ?  CalculateYourAge(x.DateOfBirth.Value) : string.Empty,
                                 x.Phone3,
                                 x.Email2,
                                 x.Phone3Owner,
@@ -129,7 +130,7 @@ namespace Medelit.Infra.Data.Repository
                                 x.UpdateDate,
                                 AssignedTo = GetAssignedUser(x.AssignedToId),
                                 Services = string.Join(", ", x.Services.Select(s => s.Service.Name)),
-                            });
+                            }) ;
 
                 if (!string.IsNullOrEmpty(viewModel.Filter.Search))
                 {
@@ -153,6 +154,8 @@ namespace Medelit.Infra.Data.Repository
                     || (!string.IsNullOrEmpty(x.Language) && x.Language.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.LeadSource) && x.LeadSource.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (x.DateOfBirth.HasValue && x.DateOfBirth.Value.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Age) && x.Age.CLower().Contains(viewModel.Filter.Search.CLower()))
+
                     || (!string.IsNullOrEmpty(x.CountryOfBirth) && x.CountryOfBirth.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.VisitRequestingPersonRelation) && x.VisitRequestingPersonRelation.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.VisitRequestingPerson) && x.VisitRequestingPerson.CLower().Contains(viewModel.Filter.Search.CLower()))
@@ -227,6 +230,12 @@ namespace Medelit.Infra.Data.Repository
                             query = query.OrderByDescending(x => x.Email);
                         break;
 
+                    case "age":
+                        if (viewModel.SortOrder.Equals("asc"))
+                            query = query.OrderBy(x => x.Age);
+                        else
+                            query = query.OrderByDescending(x => x.Age);
+                        break;
                     case "city":
                         if (viewModel.SortOrder.Equals("asc"))
                             query = query.OrderBy(x => x.HomeCity);
@@ -275,6 +284,30 @@ namespace Medelit.Infra.Data.Repository
             {
                 _bus.RaiseEvent(new DomainNotification(GetType().Name, ex.Message));
             }
+        }
+
+        public string CalculateYourAge(DateTime Dob)
+        {
+            DateTime Now = DateTime.Now;
+            int _Years = new DateTime(DateTime.Now.Subtract(Dob).Ticks).Year - 1;
+            DateTime _DOBDateNow = Dob.AddYears(_Years);
+            int _Months = 0;
+            for (int i = 1; i <= 12; i++)
+            {
+                if (_DOBDateNow.AddMonths(i) == Now)
+                {
+                    _Months = i;
+                    break;
+                }
+                else if (_DOBDateNow.AddMonths(i) >= Now)
+                {
+                    _Months = i - 1;
+                    break;
+                }
+            }
+            int Days = Now.Subtract(_DOBDateNow.AddMonths(_Months)).Days;
+
+            return $"{_Years} Years and {_Months} Months";
         }
 
 

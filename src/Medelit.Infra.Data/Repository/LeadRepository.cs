@@ -193,6 +193,11 @@ namespace Medelit.Infra.Data.Repository
                     query = query.Where(x => x.LeadStatusId == (int)eLeadsStatus.Hot);
                 }
 
+                 if (viewModel.Filter.Filter == eLeadsFilter.ReturningLeads)
+                {
+                    query = query.Where(x => x.CustomerId.HasValue);
+                }
+
                 switch (viewModel.SortField.ToLower())
                 {
                     case "name":

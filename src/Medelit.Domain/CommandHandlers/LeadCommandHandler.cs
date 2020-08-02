@@ -152,6 +152,7 @@ namespace Medelit.Domain.CommandHandlers
                 return HandleException(request.MessageType, ex);
             }
         }
+        
         public Task<bool> Handle(UpdateLeadsStatusCommand request, CancellationToken cancellationToken)
         {
             try

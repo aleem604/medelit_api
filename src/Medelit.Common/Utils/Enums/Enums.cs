@@ -45,6 +45,7 @@ namespace Medelit.Common
     {
         All,
         HotLeads,
+        ReturningLeads,
     }
 
     public enum eLeadsStatus : short

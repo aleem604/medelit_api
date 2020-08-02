@@ -243,20 +243,23 @@ namespace Medelit.Infra.Data.Repository
         private string GetProfessions(Service service, List<ServiceProfessionalFees> fees, List<Professional> professionals, List<PtFee> ptFees, List<ProFee> proFees)
         {
             var result = new StringBuilder($"<table class='table table-bordered table-sm table-striped custom-table mt-3'>");
-            fees.ForEach(f => {
+            fees.ForEach(f =>
+            {
                 var professional = (professionals.FirstOrDefault(p => p.Id == f.ProfessionalId) ?? new Professional()).Name;
                 var ptFee = (ptFees.FirstOrDefault(p => p.Id == f.PtFeeId) ?? new PtFee());
                 var proFee = (proFees.FirstOrDefault(p => p.Id == f.ProFeeId) ?? new ProFee());
-
-                result.Append($"<thead><tr>");
-                result.Append($"<td> {professional}</td>");
-                result.Append($"<td> {string.Format("{0:F2}", ptFee.A1)}</td>");
-                result.Append($"<td> {string.Format("{0:F2}", ptFee.A2)}</td>");
-                result.Append($"<td> {string.Format("{0:F2}", proFee.A1)}</td>");
-                result.Append($"<td> {string.Format("{0:F2}", proFee.A2)} </td>");
-                result.Append($"</tr></thead>");
+                if (professional !=null || ((ptFee.A1.HasValue|| ptFee.A2.HasValue) && (proFee.A1.HasValue || proFee.A2.HasValue)))
+                    {
+                    result.Append($"<thead><tr>");
+                    result.Append($"<td> {professional}</td>");
+                    result.Append($"<td> {string.Format("{0:F2}", ptFee.A1)}</td>");
+                    result.Append($"<td> {string.Format("{0:F2}", ptFee.A2)}</td>");
+                    result.Append($"<td> {string.Format("{0:F2}", proFee.A1)}</td>");
+                    result.Append($"<td> {string.Format("{0:F2}", proFee.A2)} </td>");
+                    result.Append($"</tr></thead>");
+                }
             });
-            
+
             return result.ToString();
         }
 
@@ -991,13 +994,14 @@ namespace Medelit.Infra.Data.Repository
                     where s.Id == serviceId
                     select new
                     {
+                        ib.InvoiceId,
                         InvoiceName = ib.Invoice.Subject,
                         InvoiceNumber = ib.Invoice.InvoiceNumber,
                         InvoiceEntity = ib.Invoice.InvoiceEntityId.HasValue ? ib.Invoice.InvoiceEntity.Name : string.Empty,
                         ib.Invoice.InvoiceDate,
                         ib.Invoice.TotalInvoice
                     }
-                ).ToList();
+                ).DistinctBy(d => d.InvoiceId).ToList();
         }
 
         public dynamic GetConnectedLeads(long serviceId)

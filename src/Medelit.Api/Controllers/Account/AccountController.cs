@@ -24,7 +24,7 @@ namespace Medelit.Api.Controllers
     public class AccountController : ApiController
     {
         private readonly UserManager<MedelitUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<MedelitRole> _roleManager;
         private readonly SignInManager<MedelitUser> _signInManager;
         private readonly ILogger _logger;
         private readonly IJwtFactory _jwtFactory;
@@ -32,7 +32,7 @@ namespace Medelit.Api.Controllers
         private readonly INotificationHandler<DomainNotification> _notifications;
 
         public AccountController(
-            RoleManager<IdentityRole> rolesManager,
+            RoleManager<MedelitRole> rolesManager,
             UserManager<MedelitUser> userManager,
             SignInManager<MedelitUser> signInManager,
             INotificationHandler<DomainNotification> notifications,
@@ -138,7 +138,7 @@ namespace Medelit.Api.Controllers
             }
             return new CurrentUserInfo
             {
-                Id = user.Id,
+                Id = user.Id.ToString(),
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,

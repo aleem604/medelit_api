@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Medelit.Common;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
+using Medelit.Infra.CrossCutting.Identity.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,12 +17,12 @@ namespace Medelit.Api.Controllers
 
     public class RolesController : ApiController
     {
-        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly RoleManager<MedelitRole> roleManager;
         private readonly ILogger _logger;
        
 
         public RolesController(
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<MedelitRole> roleManager,
             INotificationHandler<DomainNotification> notifications,
             ILoggerFactory loggerFactory,
             IMediatorHandler mediator
@@ -47,7 +48,7 @@ namespace Medelit.Api.Controllers
                 viewModel.Filter.Search = viewModel.Filter.Search.Trim();
                 query = query.Where(x =>
 
-                    (!string.IsNullOrEmpty(x.Id) && x.Id.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    (!string.IsNullOrEmpty(x.Id.ToString()) && x.Id.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.Name) && x.Name.CLower().Contains(viewModel.Filter.Search.CLower()))
                 );
             }
@@ -79,13 +80,13 @@ namespace Medelit.Api.Controllers
         }
 
         [HttpPost("roles")]
-        public async Task<IActionResult> Create(IdentityRole role)
+        public async Task<IActionResult> Create(MedelitRole role)
         {
             return Response(await roleManager.CreateAsync(role));
         }
 
         [HttpPut("roles")]
-        public async Task<IActionResult> Update([FromBody]IdentityRole role)
+        public async Task<IActionResult> Update([FromBody]MedelitRole role)
         {
             return Response(await roleManager.UpdateAsync(role));
         }
@@ -97,7 +98,7 @@ namespace Medelit.Api.Controllers
         }
 
         [HttpDelete("roles")]
-        public async Task<IActionResult> DeleteRoles([FromBody] IEnumerable<IdentityRole> roles)
+        public async Task<IActionResult> DeleteRoles([FromBody] IEnumerable<MedelitRole> roles)
         {
             //roles = roleManager.Roles.ToList();
             foreach (var role in roles)

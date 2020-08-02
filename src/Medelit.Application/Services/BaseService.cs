@@ -40,7 +40,7 @@ namespace Medelit.Application
             foreach (var user in users)
             {
                 commonUser.Add(new AuthUser {
-                Id = user.Id,
+                Id = user.Id.ToString(),
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email

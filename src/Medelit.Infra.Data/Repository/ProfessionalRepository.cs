@@ -115,6 +115,7 @@ namespace Medelit.Infra.Data.Repository
                     Field = string.Join("<br/>", s.ProfessionalFields.Select(x => x.Field.Field).Distinct().ToList()),
                     SubCategory = string.Join("<br/>", s.ProfessionalSubCategories.Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
                     Services = string.Join("<br/>", s.ServiceProfessionalFees.Select(x => x.Service.Name).Distinct().ToList()),
+                    Languages = string.Join("<br/>", s.ProfessionalLanguages.Select(x => x.Language.Name).Distinct().ToList()),
                     assignedTo = GetAssignedUser(s.AssignedToId)
                 });
 

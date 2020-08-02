@@ -87,7 +87,7 @@ namespace Medelit.Api.Controllers
         }
 
         //api/v1/
-        [HttpPut("invoices/delete")]
+        [HttpPut("invoices/delete-invoices")]
         public IActionResult DeleteInvoices([FromBody] IEnumerable<long> invoiceIds)
         {
             _invoiceService.DeleteInvoices(invoiceIds);

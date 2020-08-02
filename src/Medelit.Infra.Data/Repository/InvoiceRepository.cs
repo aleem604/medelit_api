@@ -75,17 +75,15 @@ namespace Medelit.Infra.Data.Repository
                                  b.Subject,
                                  b.CustomerId,
                                  Customer = $"{b.Customer.SurName} {b.Customer.Name}",
+                                
                                  b.InvoiceEntityId,
                                  InvoiceEntity = b.InvoiceEntityId.HasValue ? (invoicingEntities.FirstOrDefault(x => x.Id == b.InvoiceEntityId) ?? new InvoiceEntity()).Name : "",
                                  b.InvoiceNumber,
                                  b.DueDate,
                                  b.InvoiceDate,
                                  b.StatusId,
-                                 invoiceStatus =(paymentMethods.FirstOrDefault(f => f.Id == b.StatusId) ?? new FilterModel()).Value,
+                                 invoiceStatus = (invoiceStatus.FirstOrDefault(f => f.Id == b.StatusId) ?? new FilterModel()).Value,
                                  Status = b.IsProforma ? "Proforma" : "Emitted",
-                                 
-
-                                
 
                                  b.PaymentDueDate,
                                  b.InvoiceDeliveryDate,
@@ -104,7 +102,7 @@ namespace Medelit.Infra.Data.Repository
                                  b.IEBillingCity,
                                  b.MailingCity,
                                  b.IEBillingCountryId,
-                                 BillingCountry = b.IEBillingCountryId.HasValue ? b.BillingCountry.Value : string.Empty,
+                                 BillingCountry = b.IEBillingCountryId.HasValue ? b.IEBillingCountry.Value : string.Empty,
                                  b.MailingCountryId,
                                  MailingCountry = b.MailingCountryId.HasValue ? b.MailingCountry.Value : string.Empty,
                                  b.InvoiceNotes,
@@ -179,15 +177,15 @@ namespace Medelit.Infra.Data.Repository
                     ));
                 }
 
-                if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.ToBeSent)
+                if (viewModel.Filter.InvoiceFilter == eInvoiceFilter.ToBeSent)
                 {
                     query = query.Where(x => x.StatusId != (short?)eInvoiceStatus.Sent);
                 }
-                else if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.InsurancePending)
+                else if (viewModel.Filter.InvoiceFilter == eInvoiceFilter.InsurancePending)
                 {
                     query = query.Where(x => x.StatusId != (short?)eInvoiceStatus.Pending && x.PaymentMethodId == (short)ePaymentMethods.Insurance);
                 }
-                //else if (viewModel.Filter.InvoiceFilter != eInvoiceFilter.Refunded)
+                //else if (viewModel.Filter.InvoiceFilter == eInvoiceFilter.Refunded)
                 //{
                 //    query = query.Where(x => x.);
                 //}
@@ -275,12 +273,10 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
-
         public IQueryable<InvoiceBookings> GetInvoiceBookings()
         {
             return Db.InvoiceBookings;
         }
-
 
         public InvoiceBookings AddBookingToInvoice(long bookingId, long invoiceId)
         {
@@ -418,7 +414,7 @@ namespace Medelit.Infra.Data.Repository
                                 }).ToList();
                 foreach (var b in bookings)
                 {
-                    var booking = new Booking { InvoiceNumber = b.InvoiceNumber, PaymentStatusId = b.PaymentStatusId, PaymentConcludedId = b.PaymentConcludedId, PaymentMethodId = b.PaymentMethodId };
+                    var booking = new Booking { InvoiceNumber = b.InvoiceNumber, PaymentStatusId = b.PaymentStatusId, PaymentConcludedId = b.PaymentConcludedId, PaymentMethodId = b.PaymentMethodId, BookingStatusId = b.BookingStatusId };
                     if (booking.IsValid())
                         result.Add(b);
                 }
@@ -501,7 +497,7 @@ namespace Medelit.Infra.Data.Repository
                                 .Include(x => x.Customer).ThenInclude(c => c.HomeCountry)
                                 .Include(x => x.Customer).ThenInclude(c => c.VisitCountry)
                                 .Include(x => x.InvoiceEntity)
-                                .Include(x => x.BillingCountry)
+                                .Include(x => x.IEBillingCountry)
                                 .Include(x => x.MailingCountry)
                                 .FirstOrDefault(x => x.Id == invoiceId);
 
@@ -534,43 +530,30 @@ namespace Medelit.Infra.Data.Repository
                 obj.accountNumber = invoiceInfo.Customer.AccountNumber;
                 obj.customerId = invoiceInfo.CustomerId;
 
-                obj.surName = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.Name : invoiceInfo.Customer.SurName;
-                obj.name = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.Name : invoiceInfo.Customer.Name;
+                obj.name = (invoiceInfo.InvoiceEntity ?? new InvoiceEntity()).Name;
+                obj.surName = string.Empty;
+                obj.name = string.IsNullOrEmpty(obj.name) ? string.Concat((invoiceInfo.Customer ?? new Customer()).Name, " ", (invoiceInfo.Customer ?? new Customer()).SurName) : obj.name;
+
                 obj.dateOfBirth = invoiceInfo.PatientDateOfBirth;
-                obj.vatNumber = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.VatNumber : string.Empty;
+                obj.vatNumber = (invoiceInfo.InvoiceEntity ?? new InvoiceEntity()).VatNumber;
 
+                obj.billingAddress = invoiceInfo.IEBillingAddress;
+                obj.billingCity = invoiceInfo.IEBillingCity;
+                obj.billingCountry = (invoiceInfo.IEBillingCountry ?? new Country()).Value;
+                obj.billingPostCode = invoiceInfo.IEBillingPostCode;
 
-                obj.billingAddress = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.BillingAddress : invoiceInfo.Customer.HomeStreetName;
-                obj.billingCity = invoiceInfo.InvoiceEntityId.HasValue ?
-                                            (!string.IsNullOrEmpty(invoiceInfo.InvoiceEntity.BillingCity) ? invoiceInfo.InvoiceEntity.BillingCity : string.Empty) :
-                                            invoiceInfo.Customer.HomeCity;
-
-                obj.billingCountry = invoiceInfo.InvoiceEntityId.HasValue ?
-                                            (invoiceInfo.InvoiceEntity.BillingCountryId.HasValue ? invoiceInfo.InvoiceEntity.BillingCountry.Value : string.Empty) :
-                                            invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
-
-                obj.billingPostCode = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.BillingPostCode : invoiceInfo.Customer.HomePostCode;
-
-
-                obj.mailingAddress = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.MailingAddress : invoiceInfo.Customer.HomeStreetName;
-                obj.mailingCity = invoiceInfo.InvoiceEntityId.HasValue ?
-                                             (!string.IsNullOrEmpty(invoiceInfo.InvoiceEntity.MailingCity) ? invoiceInfo.InvoiceEntity.MailingCity : string.Empty) :
-                                             invoiceInfo.Customer.HomeCity;
-
-                obj.mailingCountry = invoiceInfo.InvoiceEntityId.HasValue ?
-                                            (invoiceInfo.InvoiceEntity.MailingCountryId.HasValue ? invoiceInfo.InvoiceEntity.MailingCountry.Value : string.Empty) :
-                                            invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
-
-                obj.mailingPostCode = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.MailingPostCode : invoiceInfo.Customer.HomePostCode;
+                obj.mailingAddress = invoiceInfo.MailingAddress;
+                obj.mailingCity = invoiceInfo.MailingCity;
+                obj.mailingCountry = (invoiceInfo.MailingCountry ?? new Country()).Value;
+                obj.mailingPostCode = invoiceInfo.MailingPostCode;
 
                 obj.homePostCode = invoiceInfo.Customer.HomePostCode;
-                obj.homeCity = !string.IsNullOrEmpty(invoiceInfo.Customer.HomeCity) ? invoiceInfo.Customer.HomeCity : string.Empty;
-                obj.homeCountry = invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
+                obj.homeCity = invoiceInfo.Customer != null ? invoiceInfo.Customer.HomeCity : string.Empty;
+                obj.homeCountry = invoiceInfo.Customer != null ? (invoiceInfo.Customer.HomeCountry ?? new Country()).Value : string.Empty;
                 obj.termsAndConditions = invoiceInfo.TermsAndConditions;
                 obj.accountInfo = Db.CompanyAccountInfo.FirstOrDefault();
 
                 obj.bookings = bookings;
-
                 return obj;
             }
             catch (Exception ex)
@@ -698,14 +681,14 @@ namespace Medelit.Infra.Data.Repository
                     }
                 }
             }
-            catch {}
+            catch { }
         }
 
         public void ProcessInvoiceEmission(long invoiceId)
         {
             var invoice = Db.Invoice.Find(invoiceId);
             invoice.InvoiceNumber = $"{invoice.Id.ToString().PadLeft(7, '0')}/{DateTime.Now.ToString("yyyy")}";
-            invoice.Subject = invoice.Subject.Replace("PROFORMA", "");
+            invoice.Subject = invoice.Subject;
             invoice.IsProforma = false;
             Db.Invoice.Update(invoice);
             Db.SaveChanges();
@@ -723,7 +706,7 @@ namespace Medelit.Infra.Data.Repository
                                 .Include(x => x.Customer).ThenInclude(c => c.HomeCountry)
                                 .Include(x => x.Customer).ThenInclude(c => c.VisitCountry)
                                 .Include(x => x.InvoiceEntity)
-                                .Include(x => x.BillingCountry)
+                                .Include(x => x.IEBillingCountry)
                                 .Include(x => x.MailingCountry)
                                 .FirstOrDefault(x => x.Id == invoiceId);
 
@@ -744,6 +727,7 @@ namespace Medelit.Infra.Data.Repository
             var statusId = invoiceInfo.StatusId;
             var status = paymentMethods.FirstOrDefault(x => x.Id == invoiceInfo.StatusId)?.Value;
             var dueDate = invoiceInfo.DueDate;
+            var dateOfVisit = invoiceInfo.DateOfVisit;
             var paymentDue = invoiceInfo.PaymentDueDate;
             var totalInvoice = invoiceInfo.TotalInvoice;
 
@@ -752,42 +736,27 @@ namespace Medelit.Infra.Data.Repository
             var accountNumber = invoiceInfo.Customer.AccountNumber;
             var customerId = invoiceInfo.CustomerId;
 
-            var surName = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.Name : invoiceInfo.Customer.SurName;
-            var name = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.Name : invoiceInfo.Customer.Name;
+            var name = (invoiceInfo.InvoiceEntity ?? new InvoiceEntity()).Name;
+            var surName = string.Empty;
+            name = string.IsNullOrEmpty(name) ? string.Concat((invoiceInfo.Customer ?? new Customer()).Name, " ", (invoiceInfo.Customer ?? new Customer()).SurName) : name;
             var dateOfBirth = invoiceInfo.PatientDateOfBirth;
-            var vatNumber = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.VatNumber : string.Empty;
+            var vatNumber = (invoiceInfo.InvoiceEntity ?? new InvoiceEntity()).VatNumber;
 
-            var billingAddress = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.BillingAddress : invoiceInfo.Customer.HomeStreetName;
-            var billingCity = invoiceInfo.InvoiceEntityId.HasValue ?
-                                        (!string.IsNullOrEmpty(invoiceInfo.InvoiceEntity.BillingCity) ? invoiceInfo.InvoiceEntity.BillingCity : string.Empty) :
-                                        invoiceInfo.Customer.HomeCity;
+            var billingAddress = invoiceInfo.IEBillingAddress;
+            var billingCity = invoiceInfo.IEBillingCity;
+            var billingCountry = (invoiceInfo.IEBillingCountry ?? new Country()).Value;
+            var billingPostCode = invoiceInfo.IEBillingPostCode;
 
-            var billingCountry = invoiceInfo.InvoiceEntityId.HasValue ?
-                                        (invoiceInfo.InvoiceEntity.BillingCountryId.HasValue ? invoiceInfo.InvoiceEntity.BillingCountry.Value : string.Empty) :
-                                        invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
-
-            var billingPostCode = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.BillingPostCode : invoiceInfo.Customer.HomePostCode;
-
-
-            var mailingAddress = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.MailingAddress : invoiceInfo.Customer.HomeStreetName;
-            var mailingCity = invoiceInfo.InvoiceEntityId.HasValue ?
-                                         (!string.IsNullOrEmpty(invoiceInfo.InvoiceEntity.MailingCity) ? invoiceInfo.InvoiceEntity.MailingCity : string.Empty) :
-                                         invoiceInfo.Customer.HomeCity;
-
-            var mailingCountry = invoiceInfo.InvoiceEntityId.HasValue ?
-                                        (invoiceInfo.InvoiceEntity.MailingCountryId.HasValue ? invoiceInfo.InvoiceEntity.MailingCountry.Value : string.Empty) :
-                                        invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
-
-            var mailingPostCode = invoiceInfo.InvoiceEntityId.HasValue ? invoiceInfo.InvoiceEntity.MailingPostCode : invoiceInfo.Customer.HomePostCode;
+            var mailingAddress = invoiceInfo.MailingAddress;
+            var mailingCity = invoiceInfo.MailingCity;
+            var mailingCountry = (invoiceInfo.MailingCountry ?? new Country()).Value;
+            var mailingPostCode = invoiceInfo.MailingPostCode;
 
             var homePostCode = invoiceInfo.Customer.HomePostCode;
-            var homeCity = !string.IsNullOrEmpty(invoiceInfo.Customer.HomeCity) ? invoiceInfo.Customer.HomeCity : string.Empty;
-            var homeCountry = invoiceInfo.Customer.HomeCountryId.HasValue ? invoiceInfo.Customer.HomeCountry.Value : string.Empty;
+            var homeCity = (invoiceInfo.Customer ?? new Customer()).HomeCity;
+            var homeCountry = invoiceInfo.Customer != null ? (invoiceInfo.Customer.HomeCountry ?? new Country()).Value : string.Empty;
             var termsAndConditions = invoiceInfo.TermsAndConditions;
             var accountInfo = Db.CompanyAccountInfo.FirstOrDefault();
-
-
-
 
             var path = Path.Combine(_hostingEnvironment.WebRootPath, "assets", "exicons", "250x250-Name-&-Logo-.png");
 
@@ -861,7 +830,7 @@ namespace Medelit.Infra.Data.Repository
             // right side
             builder.Append($"<td style='width:50%; padding: 10px; text-align:left; vertical-align:top; border-left:{borderStyle}; border-right: {borderStyle}; border-top:{borderStyle}; border-bottom: {borderStyle};'>");
             builder.Append($"<p><span style='font-weight: 500'>Invoice N°: </span>{string.Format("{0}", invoiceNumber)}</p>");
-            builder.Append($"<p><span style='font-weight: 500'>Date: </span>{string.Format("{0}", dueDate.HasValue ? dueDate.Value.ToString("dd/MM/yyyy") : "")}</p>");
+            builder.Append($"<p><span style='font-weight: 500'>Date: </span>{string.Format("{0}", invoiceDate.HasValue ? invoiceDate.Value.ToString("dd/MM/yyyy") : "")}</p>");
             builder.Append($"<p><span style='font-weight: 500'>Method of Payment: </span>{string.Format("{0}", paymentMethod)}</p>");
             builder.Append($"</td>");
             //end right side
