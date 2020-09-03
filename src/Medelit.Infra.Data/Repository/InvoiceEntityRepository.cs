@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Medelit.Common;
 using Medelit.Domain.Core.Bus;
 using Medelit.Domain.Core.Notifications;
@@ -51,6 +52,12 @@ namespace Medelit.Infra.Data.Repository
                 var ieTypes = _static.GetIETypes();
                 var ratings = _static.GetIERatings();
                 var contracts = _static.GetContractStatus();
+                var leads = Db.Lead.Include(s => s.InvoiceEntity).ToList();
+                var leadServices = Db.LeadServiceRelation.Include(s => s.Service).Include(s => s.Professional).ToList();
+                var bookings = Db.InvoiceBookings
+                    .Include(s => s.Invoice)
+                    .Include(b => b.Booking).ThenInclude(t => t.Professional)
+                    .ToList();
 
                 var query = Db.InvoiceEntity.Select((s) => new
                 {
@@ -112,6 +119,9 @@ namespace Medelit.Infra.Data.Repository
                     s.CreateDate,
                     s.UpdateDate,
                     address = s.BillingAddress,
+                    Leads = getLeadInvoiceEntities(s.Id, leads, leadServices).leads,
+                    Services = getLeadInvoiceEntities(s.Id, leads, leadServices).services,
+                    Professionals = GetProfessionals(bookings, s.Id),
                     AssignedTo = GetAssignedUser(s.AssignedToId)
                 });
 
@@ -166,6 +176,9 @@ namespace Medelit.Infra.Data.Repository
                     || (!string.IsNullOrEmpty(x.country) && x.country.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.address) && x.address.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Leads) && x.Leads.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Services) && x.Services.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (x.Id.ToString().Contains(viewModel.Filter.Search))
                     ));
                 }
@@ -258,6 +271,29 @@ namespace Medelit.Infra.Data.Repository
             }
         }
 
+        private string GetProfessionals(List<InvoiceBookings> bookings, long id)
+        {
+            var sb = new StringBuilder();
+            bookings.ForEach(b => {
+                var invoice = b.Invoice;
+                if(invoice.InvoiceEntityId == id)
+                {
+                  sb.Append($"{b.Booking.Professional.Name},");                
+                }                                     
+            });
+            return sb.ToString();
+        }
+
+        public (string leads, string services, string professionals) getLeadInvoiceEntities(long invoiceEntityId, List<Lead> leads, List<LeadServices> entities)
+        {
+            var ieleads = leads.Where(f => f.InvoiceEntityId == invoiceEntityId).Select(s => s.Id).ToList();
+
+            var ieLeads = string.Join(", ", leads.Where(f => f.InvoiceEntityId == invoiceEntityId).Select(s => s.Name).ToList());
+            var services = string.Join(", ", entities.Where(s => ieleads.IndexOf(s.Id) > -1).Select(s => s.Service.Name).ToList());
+            var pros = string.Join(", ", entities.Where(s => ieleads.IndexOf(s.Id) > -1).Select(s => s.Professional.Name).ToList());
+
+            return (ieLeads, services, pros);
+        }
 
         public dynamic InvoiceEntityConnectedServices(long invoiceEntityId)
         {

@@ -449,6 +449,8 @@ namespace Medelit.Infra.Data.Repository
             try
             {
                 var connectedProfessionals = Db.ServiceProfessionalFees.Where(x => x.ServiceId == serviceId).Select(x => x.ProfessionalId).Distinct().ToList();
+                
+
 
                 var result = (from p in Db.Professional
                               where !connectedProfessionals.Contains(p.Id)
@@ -460,6 +462,8 @@ namespace Medelit.Infra.Data.Repository
                                   telephone = p.Telephone,
                                   p.City,
                                   country = p.Country.Value,
+                                  fields =  string.Join(", ", p.ProfessionalFields.Select(s => s.Field.Field).ToArray()),
+                                  subcategories =  string.Join(", ", p.ProfessionalSubCategories.Select(s => s.SubCategory.SubCategory).ToArray()),
 
                                   ////PtFeeRowId = p.Id,
                                   //PtFeeId = p.ServiceProfessionalFees.FirstOrDefault().PtFeeId,
@@ -654,6 +658,8 @@ namespace Medelit.Infra.Data.Repository
 
         public void GetServiceConnectedFeesToConnect(long serviceId, eFeeType feeType)
         {
+           
+
             try
             {
                 if (feeType == eFeeType.PTFee)
@@ -668,9 +674,9 @@ namespace Medelit.Infra.Data.Repository
                                       PtFeeName = fee.FeeName,
                                       PtFeeA1 = fee.A1,
                                       PtFeeA2 = fee.A2,
-                                      //Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Professional.Name).Distinct().ToList()),
-                                      //Services = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Service.Name).Distinct().ToList()),
-                                      //Tags = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Service.Tags).Distinct().ToList()),
+                                      Professionals = string.Join("<br/> ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Professional.Name).Distinct().ToList()),
+                                      Services = string.Join("<br/> ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Service.Name).Distinct().ToList()),
+                                      Tags = string.Join("<br/> ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.PtFee.Tags).Distinct().ToList()),
                                   })
                                   .DistinctBy(x => x.Id)
                                   .ToList();
@@ -690,9 +696,9 @@ namespace Medelit.Infra.Data.Repository
                                       ProFeeName = fee.FeeName,
                                       ProFeeA1 = fee.A1,
                                       ProFeeA2 = fee.A2,
-                                      //Professionals = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == fee.Id).Select(x => x.Professional.Name).Distinct().ToList()),
-                                      //Services = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == fee.Id).Select(x => x.Service.Name).Distinct().ToList()),
-                                      //Tags = string.Join(", ", Db.ServiceProfessionalFees.Where(x => x.ProFeeId == fee.Id).Select(x => x.Service.Tags).Distinct().ToList()),
+                                      Professionals = string.Join("<br/> ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Professional.Name).Distinct().ToList()),
+                                      Services = string.Join("<br/> ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.Service.Name).Distinct().ToList()),
+                                      Tags = string.Join("<br/> ", Db.ServiceProfessionalFees.Where(x => x.PtFeeId == fee.Id).Select(x => x.PtFee.Tags).Distinct().ToList()),
                                   })
                                   .DistinctBy(x => x.Id)
                                   .ToList();

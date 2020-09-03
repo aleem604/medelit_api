@@ -36,6 +36,8 @@ namespace Medelit.Domain.Models
 
         [Column("professional_id")]
         public long ProfessionalId { get; set; }
+        [ForeignKey("ProfessionalId")]
+        public Professional Professional { get; set; }
 
         [Column("customer_id")]
         public long CustomerId { get; set; }

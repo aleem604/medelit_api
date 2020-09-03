@@ -55,6 +55,8 @@ namespace Medelit.Infra.Data.Repository
                 var leadStatus = _static.GetLeadStatuses().ToList();
 
                 var invoiceEntities = Db.InvoiceEntity.ToList();
+   
+
 
                 var query = (from lead in Db.Lead
                              select lead)
@@ -127,6 +129,7 @@ namespace Medelit.Infra.Data.Repository
                                 x.UpdateDate,
                                 AssignedTo = GetAssignedUser(x.AssignedToId),
                                 Services = string.Join(", ", x.Services.Select(s => s.Service.Name)),
+                                Professionals = string.Join(", ", x.Services.Select(s => s.Professional.Name)),
 
                             });
 
@@ -184,6 +187,7 @@ namespace Medelit.Infra.Data.Repository
                     || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("dd/MM/yyyy").Contains(viewModel.Filter.Search.CLower()))
                     || (x.Id.ToString().Contains(viewModel.Filter.Search))
                     || (!string.IsNullOrEmpty(x.Services) && x.Services.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.Professionals) && x.Professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
 
                     ));
                 }

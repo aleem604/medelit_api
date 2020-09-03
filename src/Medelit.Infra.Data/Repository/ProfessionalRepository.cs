@@ -52,6 +52,9 @@ namespace Medelit.Infra.Data.Repository
                 var contractStatus = _static.GetContractStatus();
                 var documnetList = _static.GetDocumentListSents();
                 var proTaxCodes = _static.GetProTaxCodes();
+                var professionalFields = Db.ProfessionalFields.Include(x => x.Field).ToList();
+                var professionalSubcat = Db.ProfessionalSubCategories.Include(x => x.SubCategory).ToList();
+
 
                 var query = Db.Professional.Select((s) => new
                 {
@@ -112,8 +115,8 @@ namespace Medelit.Infra.Data.Repository
                     s.ProtaxCodeId,
                     ProTaxCode = (proTaxCodes.FirstOrDefault(f => f.Id == s.ProtaxCodeId) ?? new FilterModel()).Value,
 
-                    Field = string.Join("<br/>", s.ProfessionalFields.Select(x => x.Field.Field).Distinct().ToList()),
-                    SubCategory = string.Join("<br/>", s.ProfessionalSubCategories.Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
+                    Field = string.Join("<br/>", professionalFields.Where(p => p.ProfessionalId == s.Id).Select(x => x.Field.Field).Distinct().ToList()),
+                    SubCategory = string.Join("<br/>", professionalSubcat.Where(p => p.ProfessionalId == s.Id).Select(x => x.SubCategory.SubCategory).Distinct().ToList()),
                     Services = string.Join("<br/>", s.ServiceProfessionalFees.Select(x => x.Service.Name).Distinct().ToList()),
                     Languages = string.Join("<br/>", s.ProfessionalLanguages.Select(x => x.Language.Name).Distinct().ToList()),
                     assignedTo = GetAssignedUser(s.AssignedToId)
@@ -134,39 +137,39 @@ namespace Medelit.Infra.Data.Repository
                 // 4- Doctors
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Doctors)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("MEDICAL", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("MEDICAL") > -1);
                 }
 
                 // 5- PHYSIOTHERAPISTS 
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Physiotherapists)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("PHYSIOTHERAPY", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("PHYSIOTHERAPY") > -1);
                 }
 
                 //6- NURSES (FIELD “M” = NURSING” + CONTRACT STATUS “AW” = ACTIVE)
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Nurses)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("NURSING", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("NURSING") > -1);
                 }
                 //7- SPEECH & LANGUAGE(FIELD “M” = SPEECH & LANGUAGE + CONTRACT STATUS “AW” = ACTIVE)
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.SpeechAndLanguage)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("SPEECH & LANGUAGE", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("SPEECH & LANGUAGE") > -1);
                 }
                 //8- PSYCHOLOGISTS(FIELD “M” = PSYCHOLOGY + CONTRACT STATUS “AW” = ACTIVE)
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Psychologists)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("PSYCHOLOGY", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("PSYCHOLOGY") > -1);
                 }
                 //9- PODIATRISTS (FIELD “M” = PODIATRY + CONTRACT STATUS “AW” = ACTIVE)
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Podiatrists)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("PODIATRY", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("PODIATRY") > -1);
                 }
                 //10- ALTERNATIVE MEDICINE (FIELD “M” = ALTERNATIVE MEDICINE + CONTRACT STATUS “AW” = ACTIVE)
                 else if (viewModel.Filter.ProfessionalFilter == eProfessionalFilter.Alternativemedicine)
                 {
-                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.Equals("ALTERNATIVE MEDICINE", StringComparison.CurrentCultureIgnoreCase));
+                    query = query.Where(x => x.ContractStatusId == (short)eContractStatus.Active && x.Field.IndexOf("ALTERNATIVE MEDICINE") > -1);
                 }
 
                 if (!string.IsNullOrEmpty(viewModel.Filter.Search))

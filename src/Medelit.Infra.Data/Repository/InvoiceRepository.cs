@@ -124,6 +124,7 @@ namespace Medelit.Infra.Data.Repository
                                  b.IsProforma,
                                  b.CreateDate,
                                  b.UpdateDate,
+                                 professionals = string.Join(",",  b.InvoiceBookings.Select(s => s.Booking.Professional.Name)),
                                  AssignedTo = GetAssignedUser(b.AssignedToId)
                              });
 
@@ -168,6 +169,7 @@ namespace Medelit.Infra.Data.Repository
                     || (x.StatusId.HasValue && x.StatusId.ToString().CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.Status) && x.Status.CLower().Contains(viewModel.Filter.Search.CLower()))
                     || (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.CLower().Contains(viewModel.Filter.Search.CLower()))
+                    || (!string.IsNullOrEmpty(x.professionals) && x.professionals.CLower().Contains(viewModel.Filter.Search.CLower()))
 
                     || (x.DateOfVisit.HasValue && x.DateOfVisit.Value.ToString("dd/MM/yyyy").CLower().Contains(viewModel.Filter.Search.CLower()))
 
